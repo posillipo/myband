@@ -53,5 +53,43 @@ Se dopo tutti i controlli sopra il pulsante resta comunque disattivato:
 
 ---
 
-**Per aiutarti più precisamente**: fammi uno screenshot della schermata "Add stack" così com'è
-adesso (con tutti i campi visibili) — vedo subito quale campo manca o è compilato in modo errato.
+## Errore riscontrato: "Invalid username or token. Password authentication is not supported"
+
+Questo errore conferma che il repository `posillipo/myband` è **privato**, e GitHub non accetta
+più la password del tuo account per operazioni Git (clone, push, pull) — serve un **Personal
+Access Token (PAT)** al posto della password.
+
+### Genera il token
+
+1. Vai su https://github.com/settings/tokens
+2. **Generate new token** → **Generate new token (classic)**
+3. **Note**: scrivi qualcosa tipo "Portainer Hetzner myband"
+4. **Expiration**: scegli una durata (es. 90 giorni, o "No expiration" se preferisci non doverlo
+   rinnovare — meno sicuro ma più comodo)
+5. **Scopes**: spunta solo **`repo`** (basta quello, dà accesso in lettura/scrittura ai repository)
+6. **Generate token** in fondo alla pagina
+7. **Copia subito il token** (inizia con `ghp_...`) — GitHub te lo mostra una sola volta, se lo
+   perdi devi generarne uno nuovo
+
+### Usalo in Portainer
+
+Torna sulla schermata "Add stack":
+1. Sezione **Authentication**: assicurati che il toggle sia **attivo**
+2. **Username**: il tuo username GitHub (es. `posillipo` se è quello del tuo account, altrimenti
+   il tuo username personale — non necessariamente uguale al nome dell'organizzazione/repo)
+3. **Personal Access Token** (non "Password"): incolla qui il token `ghp_...` appena generato,
+   **non** la tua password di GitHub
+4. Riprova **Deploy the stack**
+
+### Alternativa più semplice: rendi il repository pubblico
+
+Se il codice non contiene dati sensibili (e non dovrebbe: `.env` è escluso da `.gitignore`, upload
+utenti restano sul server e non su Git), puoi evitare tutta la gestione del token rendendo il
+repository pubblico:
+1. Su GitHub: `posillipo/myband` → **Settings** → in fondo, **Danger Zone** → **Change visibility**
+   → **Change to public**
+2. In Portainer, disattiva il toggle "Authentication" e riprova il deploy
+
+Scegli questa strada se preferisci semplicità; scegli il token se preferisci mantenere il
+repository privato.
+
