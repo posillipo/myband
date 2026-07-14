@@ -50,20 +50,20 @@ Vai su https://github.com/new:
 
 Copia l'URL che GitHub ti mostra, tipo:
 ```
-https://github.com/TUO-USERNAME/myband-platform.git
+https://github.com/posillipo/myband.git
 ```
 
 ## 5. Collega il remote e pubblica
 
 ```powershell
-git remote add origin https://github.com/TUO-USERNAME/myband-platform.git
+git remote add origin https://github.com/posillipo/myband.git
 git push -u origin main
 ```
 
 Se il remote `origin` esiste già da un tentativo precedente e dà errore "remote origin already
 exists", usa invece:
 ```powershell
-git remote set-url origin https://github.com/TUO-USERNAME/myband-platform.git
+git remote set-url origin https://github.com/posillipo/myband.git
 git push -u origin main
 ```
 

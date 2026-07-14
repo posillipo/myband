@@ -33,7 +33,7 @@ lasciando intatti i dati esistenti. Te lo preparo io ogni volta che serve, insie
 ```bash
 # sul server Hetzner (o dove sarà)
 cd /opt
-git clone https://github.com/TUO-USERNAME/myband-platform.git myband
+git clone https://github.com/posillipo/myband.git myband
 cd myband
 
 cp .env.example .env

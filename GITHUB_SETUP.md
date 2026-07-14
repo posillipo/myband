@@ -13,7 +13,7 @@ Vai su https://github.com/new e crea un nuovo repository:
 
 Al termine GitHub ti mostrerà un URL tipo:
 ```
-https://github.com/TUO-USERNAME/myband-platform.git
+https://github.com/posillipo/myband.git
 ```
 
 ## 2. Estrai lo zip in WSL (se non l'hai già fatto per l'ultima versione)
@@ -29,7 +29,7 @@ cd myband
 ## 3. Collega il repository remoto e pubblica
 
 ```bash
-git remote add origin https://github.com/TUO-USERNAME/myband-platform.git
+git remote add origin https://github.com/posillipo/myband.git
 git push -u origin main
 ```
 
@@ -48,7 +48,7 @@ cat ~/.ssh/id_ed25519.pub
 ```
 Copia la chiave pubblica su https://github.com/settings/keys, poi usa l'URL SSH invece di HTTPS:
 ```bash
-git remote set-url origin git@github.com:TUO-USERNAME/myband-platform.git
+git remote set-url origin git@github.com:posillipo/myband.git
 git push -u origin main
 ```
 
@@ -78,8 +78,8 @@ git push
 
 Potrai fare `git clone` direttamente sul server invece di trasferire lo zip manualmente:
 ```bash
-git clone https://github.com/TUO-USERNAME/myband-platform.git
+git clone https://github.com/posillipo/myband.git
 # oppure, con SSH già configurato sul server:
-git clone git@github.com:TUO-USERNAME/myband-platform.git
+git clone git@github.com:posillipo/myband.git
 ```
 Poi solo `cp .env.example .env`, imposti le password e `docker compose up -d --build` come al solito.

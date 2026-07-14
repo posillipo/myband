@@ -28,7 +28,7 @@ da lì.
 1. Nel menu laterale di Portainer: **Stacks** → **Add stack**
 2. **Name**: `myband`
 3. **Build method**: scegli **Repository**
-4. **Repository URL**: `https://github.com/TUO-USERNAME/myband-platform.git`
+4. **Repository URL**: `https://github.com/posillipo/myband.git`
 5. **Repository reference**: `refs/heads/main`
 6. **Compose path**: `docker-compose.yml`
 7. Se il repository è **privato**, in "Authentication" spunta e inserisci:

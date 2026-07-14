@@ -90,7 +90,7 @@ chmod 600 ~/.ssh/config
 ```bash
 sudo mkdir -p /opt/myband
 sudo chown $USER:$USER /opt/myband
-git clone git@github.com:TUO-USERNAME/myband-platform.git /opt/myband
+git clone git@github.com:posillipo/myband.git /opt/myband
 cd /opt/myband
 
 cp .env.example .env
