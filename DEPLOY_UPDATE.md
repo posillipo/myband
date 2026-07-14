@@ -1,8 +1,17 @@
 # Aggiornare il sito in produzione con GitHub
 
-Risposta breve: **il codice sì, in automatico. Il database no, quello va gestito a parte.**
-Git tiene traccia solo dei file del progetto (PHP, CSS, Dockerfile, ecc.), non dei dati che gli
-utenti inseriscono (iscrizioni, link, brani, articoli...). Qui sotto il workflow corretto.
+## Regola fissa: mai modifiche manuali dentro i container
+
+Ogni fix o modifica passa **sempre e solo** da GitHub: io ti do il codice, tu fai commit/push
+(o te lo do già pronto da pushare), poi su Portainer fai "Pull and redeploy". Non si tocca mai
+nulla a mano dentro un container in produzione (niente console/chown/comandi diretti) — anche
+quando sembra la scorciatoia più veloce, perché altrimenti il container torna alla versione "non
+corretta" ad ogni futuro redeploy, e la modifica manuale si perde.
+
+Risposta breve alla domanda "posso aggiornare tutto con GitHub": **il codice sì, in automatico.
+Il database no, quello va gestito a parte** (vedi punto 3 più sotto per i dettagli). Git tiene
+traccia solo dei file del progetto (PHP, CSS, Dockerfile, ecc.), non dei dati che gli utenti
+inseriscono (iscrizioni, link, brani, articoli...). Qui sotto il workflow corretto.
 
 ## 1. Cosa viene aggiornato automaticamente con `git pull`
 
