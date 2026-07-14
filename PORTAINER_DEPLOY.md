@@ -57,6 +57,10 @@ La porta pubblicata sarà **8085** (o quella che hai scelto).
 
 ## 4. Configura il Proxy Host in Nginx Proxy Manager
 
+> Suggerimento: puoi verificare il valore di "Forward Hostname/IP" (punto 4 sotto) in qualsiasi
+> momento, anche subito, indipendentemente dagli altri passaggi — non c'è un ordine obbligato.
+> Basta aprire un Proxy Host esistente (es. quello di gianlucadipietro.com) e copiare quel valore.
+
 Apri l'interfaccia di Nginx Proxy Manager (porta 81 del tuo container `proxy-manager-app-1`):
 
 1. **Proxy Hosts** → **Add Proxy Host**
