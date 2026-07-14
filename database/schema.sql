@@ -8,6 +8,9 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash VARCHAR(255) NOT NULL,
     is_active TINYINT(1) NOT NULL DEFAULT 1,
     is_admin TINYINT(1) NOT NULL DEFAULT 0,
+    email_verified TINYINT(1) NOT NULL DEFAULT 1,
+    verification_token VARCHAR(64) DEFAULT NULL,
+    verification_expires DATETIME DEFAULT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
@@ -84,3 +87,6 @@ CREATE TABLE IF NOT EXISTS site_settings (
 ) ENGINE=InnoDB;
 
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('privacy_script', '');
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('gtm_head_script', '');
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('gtm_body_script', '');
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('fb_pixel_script', '');

@@ -6,6 +6,7 @@ header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 
 $error = null;
+$unverified = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     checkCsrf();
@@ -20,6 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Email o password non corretti.';
     } elseif (!$u['is_active']) {
         $error = 'Account disattivato.';
+    } elseif (!$u['email_verified']) {
+        $unverified = true;
     } else {
         $_SESSION['user_id'] = $u['id'];
         header('Location: /dashboard.php');
@@ -35,8 +38,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <title>Accedi — myband.it</title>
 <link rel="stylesheet" href="/assets/css/style.css">
 <?= embedPrivacyScript() ?>
+<?= embedTrackingHead() ?>
 </head>
 <body>
+<?= embedTrackingBodyStart() ?>
 <div class="navbar">
   <div class="brand"><a href="/">myband<span>.it</span></a></div>
   <nav><a href="/register.php">Registrati</a></nav>
@@ -44,6 +49,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="container">
   <h2>Accedi</h2>
   <?php if ($error): ?><div class="alert error"><?= e($error) ?></div><?php endif; ?>
+  <?php if ($unverified): ?>
+    <div class="alert error">
+      Devi prima confermare la tua email. Controlla la posta, oppure
+      <a href="/resend_verification.php">richiedi un nuovo invio</a>.
+    </div>
+  <?php endif; ?>
   <form method="post" class="card">
     <?= csrfField() ?>
     <label>Email</label>

@@ -8,6 +8,8 @@ header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 
 $error = null;
+$registered = false;
+$registeredEmailSent = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     checkCsrf();
@@ -33,16 +35,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $db->beginTransaction();
             $hash = password_hash($password, PASSWORD_BCRYPT);
-            $stmt = $db->prepare('INSERT INTO users (slug, email, password_hash) VALUES (?, ?, ?)');
-            $stmt->execute([$slug, $email, $hash]);
+            [$token, $expires] = generateVerificationToken();
+            $stmt = $db->prepare('INSERT INTO users (slug, email, password_hash, email_verified, verification_token, verification_expires) VALUES (?, ?, ?, 0, ?, ?)');
+            $stmt->execute([$slug, $email, $hash, $token, $expires]);
             $userId = (int) $db->lastInsertId();
             $stmt = $db->prepare('INSERT INTO profiles (user_id, display_name) VALUES (?, ?)');
             $stmt->execute([$userId, $displayName]);
             $db->commit();
 
-            $_SESSION['user_id'] = $userId;
-            header('Location: /dashboard.php');
-            exit;
+            $emailSent = notifyEmailVerification($email, $displayName, $token);
+            $registered = true;
+            $registeredEmailSent = $emailSent;
         }
     }
 }
@@ -55,14 +58,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <title>Registrati — myband.it</title>
 <link rel="stylesheet" href="/assets/css/style.css">
 <?= embedPrivacyScript() ?>
+<?= embedTrackingHead() ?>
 </head>
 <body>
+<?= embedTrackingBodyStart() ?>
 <div class="navbar">
   <div class="brand"><a href="/">myband<span>.it</span></a></div>
   <nav><a href="/login.php">Accedi</a></nav>
 </div>
 <div class="container">
   <h2>Crea la tua pagina</h2>
+  <?php if ($registered): ?>
+    <div class="alert success">
+      <strong>Registrazione completata!</strong><br>
+      <?php if ($registeredEmailSent): ?>
+        Ti abbiamo inviato un'email di conferma: apri il link contenuto nel messaggio per
+        attivare il tuo account (valido 24 ore). Dopo la conferma potrai accedere normalmente.
+      <?php else: ?>
+        Il tuo account è stato creato ma non è stato possibile inviare l'email di conferma
+        automaticamente. Contatta l'amministratore per attivare il tuo account.
+      <?php endif; ?>
+    </div>
+    <p><a href="/login.php">Vai al login</a></p>
+  <?php else: ?>
   <?php if ($error): ?><div class="alert error"><?= e($error) ?></div><?php endif; ?>
   <form method="post" class="card">
     <?= csrfField() ?>
@@ -80,6 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <button type="submit" class="btn">Crea pagina</button>
   </form>
+  <?php endif; ?>
 </div>
 </body>
 </html>

@@ -69,8 +69,10 @@ foreach ($links as $l) {
   }
 </style>
 <?= embedPrivacyScript() ?>
+<?= embedTrackingHead() ?>
 </head>
 <body class="colorful-page">
+<?= embedTrackingBodyStart() ?>
 <div class="container">
   <?= publicProfileHeader($artist, 'home', true) ?>
 

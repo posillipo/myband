@@ -19,6 +19,9 @@
 </div>
 <div class="container">
   <div class="tabs">
+    <a href="/admin_dashboard.php" class="<?= $activeAdminTab==='dashboard'?'active':'' ?>">Dashboard</a>
     <a href="/admin_users.php" class="<?= $activeAdminTab==='users'?'active':'' ?>">Utenti iscritti</a>
+    <a href="/admin_contacts.php" class="<?= $activeAdminTab==='contacts'?'active':'' ?>">Contatti ricevuti</a>
     <a href="/admin_privacy.php" class="<?= $activeAdminTab==='privacy'?'active':'' ?>">Privacy / Cookie</a>
+    <a href="/admin_tracking.php" class="<?= $activeAdminTab==='tracking'?'active':'' ?>">Tracking (GTM/Pixel)</a>
   </div>

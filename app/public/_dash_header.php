@@ -15,7 +15,7 @@
   <nav>
     <a href="/<?= e($user['slug']) ?>" target="_blank">Vedi pagina pubblica ↗</a>
     <?php if (!empty($user['is_admin'])): ?>
-      <a href="/admin_users.php">Area Admin</a>
+      <a href="/admin_dashboard.php">Area Admin</a>
     <?php endif; ?>
     <a href="/logout.php">Esci</a>
   </nav>

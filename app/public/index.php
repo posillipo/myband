@@ -11,8 +11,10 @@ $user = currentUser();
 <title>MyBand.it — Il tuo Linktree da musicista</title>
 <link rel="stylesheet" href="/assets/css/style.css">
 <?= embedPrivacyScript() ?>
+<?= embedTrackingHead() ?>
 </head>
 <body>
+<?= embedTrackingBodyStart() ?>
 <div class="navbar">
   <div class="brand">myband<span>.it</span></div>
   <nav>

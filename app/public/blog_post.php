@@ -59,8 +59,10 @@ $ogImage = $post['avatar_path'] ? siteUrl($post['avatar_path']) : null;
 <link rel="stylesheet" href="/assets/css/style.css">
 <style>:root { --accent: <?= e($post['theme_color'] ?: '#6C5CE7') ?>; }</style>
 <?= embedPrivacyScript() ?>
+<?= embedTrackingHead() ?>
 </head>
 <body class="colorful-page">
+<?= embedTrackingBodyStart() ?>
 <div class="container">
   <?= publicProfileHeader($artist, 'blog') ?>
 
