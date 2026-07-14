@@ -12,6 +12,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'toggle_active' && $id !== (int)$admin['id']) {
         $stmt = getDB()->prepare('UPDATE users SET is_active = NOT is_active WHERE id = ?');
         $stmt->execute([$id]);
+    } elseif ($action === 'toggle_admin' && $id !== (int)$admin['id']) {
+        $stmt = getDB()->prepare('UPDATE users SET is_admin = NOT is_admin WHERE id = ?');
+        $stmt->execute([$id]);
     }
     header('Location: /admin_user_detail.php?id=' . $id);
     exit;
@@ -47,11 +50,18 @@ include __DIR__ . '/_admin_header.php';
     <?php if ($u['bio']): ?><p><em><?= nl2br(e($u['bio'])) ?></em></p><?php endif; ?>
 
     <?php if ($u['id'] != $admin['id']): ?>
-    <form method="post" onsubmit="return confirm('<?= $u['is_active'] ? 'Disattivare' : 'Riattivare' ?> questo account?');">
+    <form method="post" onsubmit="return confirm('<?= $u['is_active'] ? 'Disattivare' : 'Riattivare' ?> questo account?');" style="display:inline-block;margin-right:8px;">
       <?= csrfField() ?>
       <input type="hidden" name="action" value="toggle_active">
       <button class="btn <?= $u['is_active'] ? 'danger' : '' ?>" type="submit">
         <?= $u['is_active'] ? 'Disattiva account' : 'Riattiva account' ?>
+      </button>
+    </form>
+    <form method="post" onsubmit="return confirm('<?= $u['is_admin'] ? 'Rimuovere i permessi da amministratore?' : 'Rendere questo utente amministratore?' ?>');" style="display:inline-block;">
+      <?= csrfField() ?>
+      <input type="hidden" name="action" value="toggle_admin">
+      <button class="btn secondary" type="submit">
+        <?= $u['is_admin'] ? 'Rimuovi permessi admin' : 'Rendi amministratore' ?>
       </button>
     </form>
     <?php endif; ?>

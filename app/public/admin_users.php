@@ -13,6 +13,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'toggle_active' && $id !== (int)$admin['id']) {
         $stmt = getDB()->prepare('UPDATE users SET is_active = NOT is_active WHERE id = ?');
         $stmt->execute([$id]);
+    } elseif ($action === 'toggle_admin' && $id !== (int)$admin['id']) {
+        // Non permettiamo mai di rimuovere il proprio status admin (eviterebbe di restare
+        // bloccati fuori dall'area admin se sei l'unico amministratore)
+        $stmt = getDB()->prepare('UPDATE users SET is_admin = NOT is_admin WHERE id = ?');
+        $stmt->execute([$id]);
     }
     header('Location: /admin_users.php');
     exit;
@@ -51,6 +56,16 @@ include __DIR__ . '/_admin_header.php';
         </div>
         <div style="display:flex;gap:6px;flex-shrink:0;">
           <a class="btn small secondary" href="/admin_user_detail.php?id=<?= (int)$u['id'] ?>">Dettagli</a>
+          <?php if ($u['id'] != $admin['id']): ?>
+          <form method="post" onsubmit="return confirm('<?= $u['is_admin'] ? 'Rimuovere i permessi da amministratore a' : 'Rendere amministratore' ?> <?= e(addslashes($u['display_name'])) ?>?');">
+            <?= csrfField() ?>
+            <input type="hidden" name="action" value="toggle_admin">
+            <input type="hidden" name="id" value="<?= (int)$u['id'] ?>">
+            <button class="btn small secondary" type="submit">
+              <?= $u['is_admin'] ? 'Rimuovi admin' : 'Rendi admin' ?>
+            </button>
+          </form>
+          <?php endif; ?>
           <?php if ($u['id'] != $admin['id']): ?>
           <form method="post" onsubmit="return confirm('<?= $u['is_active'] ? 'Disattivare' : 'Riattivare' ?> questo account?');">
             <?= csrfField() ?>
