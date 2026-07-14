@@ -90,6 +90,49 @@ repository pubblico:
    → **Change to public**
 2. In Portainer, disattiva il toggle "Authentication" e riprova il deploy
 
-Scegli questa strada se preferisci semplicità; scegli il token se preferisci mantenere il
-repository privato.
+---
+
+## Errore: "authorization failed: Write access to repository not granted"
+
+Questo errore compare quasi sempre per uno di questi motivi:
+
+### 1. Hai creato un token "Fine-grained" invece di "Classic"
+GitHub oggi propone due tipi di token nella pagina Settings → Developer settings:
+- **Fine-grained tokens** (più recenti, permessi granulari per repository)
+- **Tokens (classic)** (il tipo più semplice e compatibile)
+
+Per Portainer conviene usare il tipo **classic**, che evita problemi di permessi come questo:
+1. https://github.com/settings/tokens (nota: URL diverso da `tokens?type=beta`, che sono i
+   fine-grained)
+2. **Generate new token** → **Generate new token (classic)**
+3. Scope: spunta **`repo`** (l'intero blocco, non solo `public_repo`)
+4. Genera e copia il nuovo token, sostituiscilo in Portainer
+
+### 2. Hai selezionato lo scope sbagliato
+Se nella pagina di creazione del token classic hai spuntato solo `public_repo` invece di
+`repo` (l'intero gruppo), GitHub nega l'accesso ai repository privati. Assicurati che sia
+spuntato il checkbox principale **`repo`** in alto (che include automaticamente tutti i sotto-scope).
+
+### 3. Se hai usato un token Fine-grained e vuoi tenerlo
+Verifica che nella configurazione del token:
+- **Resource owner** sia `posillipo` (il proprietario corretto del repository)
+- **Repository access** → "Only select repositories" → sia selezionato `myband`
+- **Permissions** → **Repository permissions** → **Contents** sia impostato su
+  **"Read and write"** (non "Read-only")
+
+### 4. Se "posillipo" è un'organizzazione GitHub (non il tuo account personale)
+Le organizzazioni possono richiedere un'approvazione esplicita ("SSO authorization") per ogni
+token creato, anche se hai già i permessi corretti:
+1. Dopo aver generato il token, su https://github.com/settings/tokens dovresti vedere un
+   pulsante **"Enable SSO"** o **"Authorize"** accanto al token appena creato
+2. Cliccalo e autorizza l'accesso all'organizzazione `posillipo`
+
+Se non sei sicuro se `posillipo` sia il tuo account personale o un'organizzazione: controlla
+l'URL del profilo su GitHub, oppure dimmelo e verifico con te.
+
+### Soluzione più rapida se continui ad avere problemi
+Rendi il repository pubblico (Settings → Danger Zone → Change visibility) e disattiva il toggle
+"Authentication" in Portainer — elimina il problema alla radice, dato che il codice non contiene
+dati sensibili.
+
 
