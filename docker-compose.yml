@@ -8,11 +8,11 @@ services:
     ports:
       - "8085:80"
     environment:
-      DB_HOST: db
-      DB_NAME: myband
-      DB_USER: myband_user
-      DB_PASS: ${DB_PASSWORD}
-      SITE_URL: ${SITE_URL:-https://myband.it}
+      - DB_HOST=myband_db
+      - DB_NAME=myband
+      - DB_USER=myband_user
+      - DB_PASS=${DB_PASSWORD:-cambiami_123}
+      - SITE_URL=${SITE_URL:-https://myband.it}
     volumes:
       - ./app/public/uploads:/var/www/html/uploads
     depends_on:
@@ -25,10 +25,10 @@ services:
     container_name: myband_db
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: myband
-      MYSQL_USER: myband_user
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=myband
+      - MYSQL_USER=myband_user
+      - MYSQL_PASSWORD=${DB_PASSWORD:-cambiami_123}
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-cambiami_root_123}
     volumes:
       - db_data:/var/lib/mysql
       - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro

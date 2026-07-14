@@ -3,7 +3,7 @@
 function getDB(): PDO {
     static $pdo = null;
     if ($pdo === null) {
-        $host = getenv('DB_HOST') ?: 'db';
+        $host = getenv('DB_HOST') ?: 'myband_db';
         $name = getenv('DB_NAME') ?: 'myband';
         $user = getenv('DB_USER') ?: 'myband_user';
         $pass = getenv('DB_PASS') ?: '';
