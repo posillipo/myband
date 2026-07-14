@@ -145,6 +145,35 @@ function publicProfileHeader(array $artist, string $active, bool $showBio = fals
     return $html;
 }
 
+// Invia una notifica email al musicista quando riceve un nuovo messaggio di contatto/booking.
+// Se SMTP_HOST non è configurato, non fa nulla (nessun errore, la richiesta resta comunque
+// salvata nel database e visibile in dashboard).
+function notifyNewContact(string $toEmail, string $toName, string $senderName, string $senderEmail, string $message, string $publicUrl): void {
+    $host = getenv('SMTP_HOST');
+    if (!$host) {
+        return; // SMTP non configurato: nessuna notifica, nessun errore
+    }
+    $port = (int) (getenv('SMTP_PORT') ?: 587);
+    $user = getenv('SMTP_USER') ?: '';
+    $pass = getenv('SMTP_PASS') ?: '';
+    $secure = getenv('SMTP_SECURE') ?: 'tls';
+    $fromEmail = getenv('SMTP_FROM') ?: $user;
+    $fromName = getenv('SMTP_FROM_NAME') ?: 'myband.it';
+
+    require_once __DIR__ . '/mailer.php';
+    $mailer = new SimpleSmtpMailer($host, $port, $user, $pass, $secure);
+
+    $subject = "Nuovo messaggio da {$senderName} su myband.it";
+    $body = "Hai ricevuto un nuovo messaggio dalla tua pagina {$publicUrl}:\n\n"
+          . "Nome: {$senderName}\n"
+          . "Email: {$senderEmail}\n\n"
+          . "Messaggio:\n{$message}\n\n"
+          . "---\nRispondi direttamente a questa email per contattare {$senderName},\n"
+          . "oppure gestisci tutti i messaggi dalla tua dashboard su myband.it.";
+
+    $mailer->send($fromEmail, $fromName, $toEmail, $toName, $subject, $body);
+}
+
 function slugExists(string $slug): bool {
     $stmt = getDB()->prepare('SELECT id FROM users WHERE slug = ?');
     $stmt->execute([$slug]);

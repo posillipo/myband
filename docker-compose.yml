@@ -13,6 +13,13 @@ services:
       - DB_USER=myband_user
       - DB_PASS=${DB_PASSWORD:-cambiami_123}
       - SITE_URL=${SITE_URL:-https://myband.it}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - SMTP_SECURE=${SMTP_SECURE:-tls}
+      - SMTP_FROM=${SMTP_FROM:-}
+      - SMTP_FROM_NAME=${SMTP_FROM_NAME:-myband.it}
     volumes:
       - ./app/public/uploads:/var/www/html/uploads
     depends_on:
