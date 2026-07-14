@@ -1,0 +1,213 @@
+:root {
+  --accent: #6C5CE7;
+  --bg: #0f0f14;
+  --card-bg: #17171f;
+  --text: #f2f2f5;
+  --text-muted: #a0a0ad;
+  --radius: 14px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+a { color: var(--accent); text-decoration: none; }
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 20px 80px;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #26262f;
+}
+.navbar .brand { font-weight: 700; font-size: 20px; }
+.navbar .brand span { color: var(--accent); }
+.navbar nav a { margin-left: 16px; color: var(--text-muted); }
+.navbar nav a:hover { color: var(--text); }
+
+.hero { text-align: center; padding: 60px 20px; }
+.hero h1 { font-size: 40px; margin-bottom: 12px; }
+.hero p { color: var(--text-muted); font-size: 18px; max-width: 480px; margin: 0 auto 28px; }
+
+.btn {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 999px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+}
+.btn:hover { opacity: 0.9; }
+.btn.secondary { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
+.btn.danger { background: #e74c3c; }
+.btn.small { padding: 6px 14px; font-size: 13px; }
+
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  border: 1px solid #26262f;
+}
+
+form input[type=text],
+form input[type=email],
+form input[type=password],
+form input[type=url],
+form input[type=date],
+form input[type=datetime-local],
+form input[type=color],
+form textarea,
+form select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #33333f;
+  background: #0f0f14;
+  color: var(--text);
+  margin-bottom: 14px;
+  font-size: 15px;
+}
+form label { display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 14px; }
+
+.tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+.tabs a {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--card-bg);
+  color: var(--text-muted);
+  font-size: 14px;
+  border: 1px solid #26262f;
+}
+.tabs a.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.alert { padding: 12px 16px; border-radius: 10px; margin-bottom: 16px; font-size: 14px; }
+.alert.error { background: #3a1e1e; color: #ff8a8a; border: 1px solid #5c2b2b; }
+.alert.success { background: #1e3a24; color: #8affa0; border: 1px solid #2b5c37; }
+
+.link-item, .list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--card-bg);
+  border: 1px solid #26262f;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+/* Pagina pubblica profilo */
+.profile-header { text-align: center; margin-bottom: 28px; }
+.avatar {
+  width: 96px; height: 96px; border-radius: 50%;
+  object-fit: cover; margin-bottom: 12px;
+  border: 3px solid var(--accent);
+}
+.profile-header h1 { margin: 8px 0 4px; font-size: 24px; }
+.profile-header p { color: var(--text-muted); font-size: 15px; }
+
+.public-link {
+  display: block;
+  background: var(--card-bg);
+  border: 1px solid #26262f;
+  border-radius: 999px;
+  padding: 14px 20px;
+  text-align: center;
+  margin-bottom: 10px;
+  font-weight: 600;
+  transition: transform 0.1s ease;
+}
+.public-link:hover { transform: translateY(-2px); border-color: var(--accent); }
+
+.section-title { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin: 28px 0 12px; }
+
+audio { width: 100%; margin-bottom: 10px; }
+
+.event-item, .blog-item { padding: 14px 0; border-bottom: 1px solid #26262f; }
+.event-item .date { color: var(--accent); font-size: 13px; font-weight: 600; }
+
+footer.site { text-align: center; padding: 30px; color: var(--text-muted); font-size: 13px; }
+
+/* ===== Tema "Colorful" per la pagina pubblica del profilo artista ===== */
+body.colorful-page {
+  background: linear-gradient(160deg, var(--cf-1, #FFD6A5) 0%, var(--cf-2, #A0C4FF) 55%, var(--cf-3, #BDB2FF) 100%);
+  color: #22223b;
+  min-height: 100vh;
+}
+.colorful-page footer.site { color: rgba(34,34,59,0.6); }
+.colorful-page .profile-header { padding-top: 20px; }
+.colorful-page .avatar {
+  width: 128px; height: 128px;
+  border: 5px solid #fff;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+.colorful-page .profile-header h1 { color: #22223b; font-size: 28px; font-weight: 800; }
+.colorful-page .profile-header p { color: rgba(34,34,59,0.75); }
+
+.colorful-nav a { color: #22223b; font-weight: 700; }
+.colorful-nav span { color: rgba(34,34,59,0.5); }
+
+.social-icons-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 18px 0 26px;
+}
+.social-icon-btn {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.55);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  text-decoration: none;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+  transition: transform 0.15s ease;
+}
+.social-icon-btn:hover { transform: translateY(-3px) scale(1.05); }
+
+.color-link-btn {
+  display: block;
+  border-radius: 20px;
+  padding: 18px 22px;
+  text-align: center;
+  margin-bottom: 14px;
+  font-weight: 700;
+  color: #22223b;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.color-link-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.16); }
+
+.colorful-page .card {
+  background: rgba(255,255,255,0.6);
+  border: none;
+  color: #22223b;
+  backdrop-filter: blur(4px);
+}
+.colorful-page .section-title { color: rgba(34,34,59,0.6); }
+.colorful-page .event-item, .colorful-page .blog-item { border-bottom-color: rgba(34,34,59,0.15); }
+.colorful-page .event-item .date { color: #6a4c93; }
+.colorful-page a { color: #6a4c93; }
+.colorful-page form textarea,
+.colorful-page form input {
+  background: rgba(255,255,255,0.7);
+  border: 1px solid rgba(34,34,59,0.15);
+  color: #22223b;
+}
+.colorful-page form label { color: rgba(34,34,59,0.65); }

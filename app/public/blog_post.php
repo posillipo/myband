@@ -1,0 +1,77 @@
+<?php
+require_once __DIR__ . '/../src/functions.php';
+
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+
+$userSlug = $_GET['slug'] ?? '';
+$postToken = $_GET['post'] ?? '';
+
+// Il segmento URL è "anno.mese.giorno.slug-articolo" — estraiamo lo slug ignorando la data
+// (la data resta nell'URL solo per leggibilità/SEO, la ricerca avviene per slug univoco utente)
+if (!preg_match('/^\d{4}\.\d{2}\.\d{2}\.(.+)$/', $postToken, $m)) {
+    http_response_code(404);
+    exit('Articolo non trovato.');
+}
+$postSlug = $m[1];
+
+$stmt = getDB()->prepare('SELECT u.slug AS user_slug, p.display_name, p.avatar_path, b.*
+                          FROM blog_posts b
+                          JOIN users u ON u.id = b.user_id
+                          JOIN profiles p ON p.user_id = u.id
+                          WHERE u.slug = ? AND b.slug = ? AND u.is_active = 1');
+$stmt->execute([$userSlug, $postSlug]);
+$post = $stmt->fetch();
+
+if (!$post) {
+    http_response_code(404);
+    exit('Articolo non trovato.');
+}
+
+$permalink = siteUrl(blogPostUrl($userSlug, $post));
+$ogImage = $post['avatar_path'] ? siteUrl($post['avatar_path']) : null;
+?>
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><?= e($post['title']) ?> — <?= e($post['display_name']) ?></title>
+<meta name="description" content="<?= e($post['excerpt'] ?: textExcerpt($post['content'])) ?>">
+
+<!-- Open Graph / condivisione social (Facebook, WhatsApp, Threads, LinkedIn, ecc.) -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="<?= e($post['title']) ?>">
+<meta property="og:description" content="<?= e($post['excerpt'] ?: textExcerpt($post['content'])) ?>">
+<meta property="og:url" content="<?= e($permalink) ?>">
+<meta property="og:site_name" content="myband.it">
+<?php if ($ogImage): ?><meta property="og:image" content="<?= e($ogImage) ?>"><?php endif; ?>
+
+<!-- Twitter / X card -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="<?= e($post['title']) ?>">
+<meta name="twitter:description" content="<?= e($post['excerpt'] ?: textExcerpt($post['content'])) ?>">
+
+<link rel="canonical" href="<?= e($permalink) ?>">
+<link rel="stylesheet" href="/assets/css/style.css">
+<?= embedPrivacyScript() ?>
+</head>
+<body>
+<div class="container">
+  <div class="section-title"><a href="/<?= e($userSlug) ?>">← <?= e($post['display_name']) ?></a></div>
+  <article class="blog-item" style="border-bottom:none;">
+    <div class="date"><?= date('d/m/Y', strtotime($post['published_at'])) ?></div>
+    <h1><?= e($post['title']) ?></h1>
+    <div style="color:var(--text)"><?= nl2br(e($post['content'])) ?></div>
+  </article>
+
+  <div class="card" style="margin-top:24px;">
+    <strong>Condividi questo articolo</strong><br>
+    <small style="color:var(--text-muted)"><?= e($permalink) ?></small>
+  </div>
+
+  <p><a href="/<?= e($userSlug) ?>/blog">← Tutti gli articoli</a></p>
+</div>
+<footer class="site">Pagina realizzata con <a href="/">myband.it</a></footer>
+</body>
+</html>

@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  app:
+    build: ./app
+    container_name: myband_app
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      DB_HOST: db
+      DB_NAME: myband
+      DB_USER: myband_user
+      DB_PASS: ${DB_PASSWORD}
+      SITE_URL: ${SITE_URL:-https://myband.it}
+    volumes:
+      - ./app/public/uploads:/var/www/html/uploads
+    depends_on:
+      - db
+    networks:
+      - myband_net
+
+  db:
+    image: mysql:8.0
+    container_name: myband_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: myband
+      MYSQL_USER: myband_user
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    networks:
+      - myband_net
+
+volumes:
+  db_data:
+
+networks:
+  myband_net:
+    driver: bridge

@@ -1,0 +1,18 @@
+RewriteEngine On
+
+# Non toccare file/cartelle esistenti (assets, uploads, script .php reali)
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# /nomeartista/blog/anno.mese.giorno.slug-articolo -> singolo articolo (permalink SEO)
+RewriteRule ^([a-zA-Z0-9_-]+)/blog/([0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[a-zA-Z0-9-]+)/?$ blog_post.php?slug=$1&post=$2 [L,QSA]
+
+# /nomeartista/blog -> elenco articoli
+RewriteRule ^([a-zA-Z0-9_-]+)/blog/?$ blog_index.php?slug=$1 [L,QSA]
+
+# /nomeartista/contatti -> form di contatto
+RewriteRule ^([a-zA-Z0-9_-]+)/contatti/?$ contatti.php?slug=$1 [L,QSA]
+
+# /nomeartista -> pagina profilo pubblica (regola generica, deve restare per ultima)
+RewriteRule ^([a-zA-Z0-9_-]+)/?$ u.php?slug=$1 [L,QSA]
