@@ -169,7 +169,10 @@ function getSmtpConfig(): array {
     $fromName = getSiteSetting('smtp_from_name');
     $fromName = ($fromName !== null && $fromName !== '') ? $fromName : (getenv('SMTP_FROM_NAME') ?: 'myband.it');
 
-    return compact('host', 'port', 'user', 'pass', 'secure', 'from', 'fromName');
+    $verifyCertSetting = getSiteSetting('smtp_verify_cert');
+    $verifyCert = ($verifyCertSetting === null || $verifyCertSetting === '') ? true : ($verifyCertSetting === '1');
+
+    return compact('host', 'port', 'user', 'pass', 'secure', 'from', 'fromName', 'verifyCert');
 }
 
 // Invia una notifica email al musicista quando riceve un nuovo messaggio di contatto/booking.
@@ -182,7 +185,7 @@ function notifyNewContact(string $toEmail, string $toName, string $senderName, s
     }
 
     require_once __DIR__ . '/mailer.php';
-    $mailer = new SimpleSmtpMailer($cfg['host'], $cfg['port'], $cfg['user'], $cfg['pass'], $cfg['secure']);
+    $mailer = new SimpleSmtpMailer($cfg['host'], $cfg['port'], $cfg['user'], $cfg['pass'], $cfg['secure'], $cfg['verifyCert']);
 
     $subject = "Nuovo messaggio da {$senderName} su myband.it";
     $body = "Hai ricevuto un nuovo messaggio dalla tua pagina {$publicUrl}:\n\n"
@@ -209,7 +212,7 @@ function notifyEmailVerification(string $toEmail, string $toName, string $token)
     }
 
     require_once __DIR__ . '/mailer.php';
-    $mailer = new SimpleSmtpMailer($cfg['host'], $cfg['port'], $cfg['user'], $cfg['pass'], $cfg['secure']);
+    $mailer = new SimpleSmtpMailer($cfg['host'], $cfg['port'], $cfg['user'], $cfg['pass'], $cfg['secure'], $cfg['verifyCert']);
 
     $link = siteUrl('/verify.php?token=' . $token);
     $subject = "Conferma il tuo account su myband.it";

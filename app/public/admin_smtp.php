@@ -24,6 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setSiteSetting('smtp_secure', $_POST['smtp_secure'] ?? 'tls');
         setSiteSetting('smtp_from', trim($_POST['smtp_from'] ?? ''));
         setSiteSetting('smtp_from_name', trim($_POST['smtp_from_name'] ?? 'myband.it'));
+        setSiteSetting('smtp_verify_cert', isset($_POST['smtp_verify_cert']) ? '1' : '0');
         $success = 'Configurazione SMTP salvata.';
     } elseif ($action === 'test') {
         $testEmail = trim($_POST['test_email'] ?? '');
@@ -35,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $testResult = ['ok' => false, 'msg' => 'Nessun host SMTP configurato: salva prima la configurazione.'];
             } else {
                 require_once __DIR__ . '/../src/mailer.php';
-                $mailer = new SimpleSmtpMailer($cfg['host'], $cfg['port'], $cfg['user'], $cfg['pass'], $cfg['secure']);
+                $mailer = new SimpleSmtpMailer($cfg['host'], $cfg['port'], $cfg['user'], $cfg['pass'], $cfg['secure'], $cfg['verifyCert']);
                 $sent = $mailer->send(
                     $cfg['from'], $cfg['fromName'], $testEmail, $testEmail,
                     'Email di prova da myband.it',
@@ -95,6 +96,12 @@ include __DIR__ . '/_admin_header.php';
 
     <label>Nome mittente</label>
     <input type="text" name="smtp_from_name" value="<?= e($cfg['fromName']) ?>" placeholder="myband.it">
+
+    <label style="display:flex;align-items:center;gap:8px;">
+      <input type="checkbox" name="smtp_verify_cert" value="1" style="width:auto;" <?= $cfg['verifyCert'] ? 'checked' : '' ?>>
+      Verifica il certificato SSL del server (disattiva solo se il tuo hosting usa un hostname
+      personalizzato che non corrisponde al nome nel certificato, es. molti server Aruba condivisi)
+    </label>
 
     <button type="submit" class="btn">Salva configurazione</button>
   </form>

@@ -97,3 +97,4 @@ INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('smtp_pass
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('smtp_secure', 'tls');
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('smtp_from', '');
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('smtp_from_name', 'myband.it');
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('smtp_verify_cert', '1');
