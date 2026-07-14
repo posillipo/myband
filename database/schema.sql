@@ -90,3 +90,10 @@ INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('privacy_s
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('gtm_head_script', '');
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('gtm_body_script', '');
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('fb_pixel_script', '');
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('smtp_host', '');
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('smtp_port', '587');
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('smtp_user', '');
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('smtp_pass', '');
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('smtp_secure', 'tls');
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('smtp_from', '');
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('smtp_from_name', 'myband.it');

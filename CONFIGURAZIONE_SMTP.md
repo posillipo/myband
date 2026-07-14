@@ -1,5 +1,19 @@
 # Notifiche email per i nuovi messaggi di contatto
 
+## Nuovo: configurazione direttamente dall'area admin (consigliato)
+
+Non serve più impostare variabili d'ambiente su Portainer: vai su **Area Admin → Email / SMTP**
+e inserisci lì host, porta, username, password e mittente. C'è anche un pulsante per inviare
+un'email di prova e verificare subito che tutto funzioni.
+
+Le variabili d'ambiente (`SMTP_HOST` ecc.) restano comunque supportate come ripiego, nel caso tu
+le avessi già configurate: la pagina admin ha sempre la priorità se compilata.
+
+Il resto di questa guida spiega come ottenere le credenziali dal provider scelto — i valori li
+inserisci semplicemente nella pagina admin invece che in Portainer.
+
+---
+
 Quando qualcuno invia un messaggio dal form Contatti di una pagina artista, il musicista
 proprietario di quella pagina riceve ora un'email di notifica alla sua email di registrazione
 (quella con cui si è iscritto a myband.it), con nome, email e testo del messaggio del mittente.

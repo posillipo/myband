@@ -24,4 +24,5 @@
     <a href="/admin_contacts.php" class="<?= $activeAdminTab==='contacts'?'active':'' ?>">Contatti ricevuti</a>
     <a href="/admin_privacy.php" class="<?= $activeAdminTab==='privacy'?'active':'' ?>">Privacy / Cookie</a>
     <a href="/admin_tracking.php" class="<?= $activeAdminTab==='tracking'?'active':'' ?>">Tracking (GTM/Pixel)</a>
+    <a href="/admin_smtp.php" class="<?= $activeAdminTab==='smtp'?'active':'' ?>">Email / SMTP</a>
   </div>

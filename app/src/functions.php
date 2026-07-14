@@ -145,23 +145,44 @@ function publicProfileHeader(array $artist, string $active, bool $showBio = fals
     return $html;
 }
 
+// Legge la configurazione SMTP: priorità alle impostazioni salvate dall'admin nel database,
+// con ripiego sulle variabili d'ambiente (per compatibilità con configurazioni precedenti).
+function getSmtpConfig(): array {
+    $host = getSiteSetting('smtp_host');
+    $host = ($host !== null && $host !== '') ? $host : (getenv('SMTP_HOST') ?: '');
+
+    $port = getSiteSetting('smtp_port');
+    $port = ($port !== null && $port !== '') ? (int) $port : (int) (getenv('SMTP_PORT') ?: 587);
+
+    $user = getSiteSetting('smtp_user');
+    $user = ($user !== null && $user !== '') ? $user : (getenv('SMTP_USER') ?: '');
+
+    $pass = getSiteSetting('smtp_pass');
+    $pass = ($pass !== null && $pass !== '') ? $pass : (getenv('SMTP_PASS') ?: '');
+
+    $secure = getSiteSetting('smtp_secure');
+    $secure = ($secure !== null && $secure !== '') ? $secure : (getenv('SMTP_SECURE') ?: 'tls');
+
+    $from = getSiteSetting('smtp_from');
+    $from = ($from !== null && $from !== '') ? $from : (getenv('SMTP_FROM') ?: $user);
+
+    $fromName = getSiteSetting('smtp_from_name');
+    $fromName = ($fromName !== null && $fromName !== '') ? $fromName : (getenv('SMTP_FROM_NAME') ?: 'myband.it');
+
+    return compact('host', 'port', 'user', 'pass', 'secure', 'from', 'fromName');
+}
+
 // Invia una notifica email al musicista quando riceve un nuovo messaggio di contatto/booking.
-// Se SMTP_HOST non è configurato, non fa nulla (nessun errore, la richiesta resta comunque
-// salvata nel database e visibile in dashboard).
+// Se l'SMTP non è configurato (né da admin né da variabili d'ambiente), non fa nulla (nessun
+// errore, la richiesta resta comunque salvata nel database e visibile in dashboard).
 function notifyNewContact(string $toEmail, string $toName, string $senderName, string $senderEmail, string $message, string $publicUrl): void {
-    $host = getenv('SMTP_HOST');
-    if (!$host) {
-        return; // SMTP non configurato: nessuna notifica, nessun errore
+    $cfg = getSmtpConfig();
+    if (!$cfg['host']) {
+        return;
     }
-    $port = (int) (getenv('SMTP_PORT') ?: 587);
-    $user = getenv('SMTP_USER') ?: '';
-    $pass = getenv('SMTP_PASS') ?: '';
-    $secure = getenv('SMTP_SECURE') ?: 'tls';
-    $fromEmail = getenv('SMTP_FROM') ?: $user;
-    $fromName = getenv('SMTP_FROM_NAME') ?: 'myband.it';
 
     require_once __DIR__ . '/mailer.php';
-    $mailer = new SimpleSmtpMailer($host, $port, $user, $pass, $secure);
+    $mailer = new SimpleSmtpMailer($cfg['host'], $cfg['port'], $cfg['user'], $cfg['pass'], $cfg['secure']);
 
     $subject = "Nuovo messaggio da {$senderName} su myband.it";
     $body = "Hai ricevuto un nuovo messaggio dalla tua pagina {$publicUrl}:\n\n"
@@ -171,7 +192,7 @@ function notifyNewContact(string $toEmail, string $toName, string $senderName, s
           . "---\nRispondi direttamente a questa email per contattare {$senderName},\n"
           . "oppure gestisci tutti i messaggi dalla tua dashboard su myband.it.";
 
-    $mailer->send($fromEmail, $fromName, $toEmail, $toName, $subject, $body);
+    $mailer->send($cfg['from'], $cfg['fromName'], $toEmail, $toName, $subject, $body);
 }
 
 // Genera un token di verifica email (valido 24 ore)
@@ -180,21 +201,15 @@ function generateVerificationToken(): array {
 }
 
 // Invia l'email di conferma registrazione con il link di verifica. Come per le notifiche di
-// contatto: se SMTP_HOST non è configurato non fa nulla (nessun errore).
+// contatto: se l'SMTP non è configurato non fa nulla (nessun errore).
 function notifyEmailVerification(string $toEmail, string $toName, string $token): bool {
-    $host = getenv('SMTP_HOST');
-    if (!$host) {
+    $cfg = getSmtpConfig();
+    if (!$cfg['host']) {
         return false;
     }
-    $port = (int) (getenv('SMTP_PORT') ?: 587);
-    $user = getenv('SMTP_USER') ?: '';
-    $pass = getenv('SMTP_PASS') ?: '';
-    $secure = getenv('SMTP_SECURE') ?: 'tls';
-    $fromEmail = getenv('SMTP_FROM') ?: $user;
-    $fromName = getenv('SMTP_FROM_NAME') ?: 'myband.it';
 
     require_once __DIR__ . '/mailer.php';
-    $mailer = new SimpleSmtpMailer($host, $port, $user, $pass, $secure);
+    $mailer = new SimpleSmtpMailer($cfg['host'], $cfg['port'], $cfg['user'], $cfg['pass'], $cfg['secure']);
 
     $link = siteUrl('/verify.php?token=' . $token);
     $subject = "Conferma il tuo account su myband.it";
@@ -203,7 +218,7 @@ function notifyEmailVerification(string $toEmail, string $toName, string $token)
           . "questo link (valido per 24 ore):\n\n{$link}\n\n"
           . "Se non hai richiesto tu questa registrazione, ignora pure questa email.";
 
-    return $mailer->send($fromEmail, $fromName, $toEmail, $toName, $subject, $body);
+    return $mailer->send($cfg['from'], $cfg['fromName'], $toEmail, $toName, $subject, $body);
 }
 
 // Script di tracking globali (Google Tag Manager, Facebook Pixel) impostati dall'admin,
@@ -229,7 +244,7 @@ const RESERVED_SLUGS = ['login','register','logout','dashboard','dashboard_profi
     'dashboard_links','dashboard_audio','dashboard_events','dashboard_blog',
     'dashboard_contacts','u','index','assets','uploads','blog','contatti','link',
     'admin','admin_users','admin_user_detail','admin_privacy','brani','eventi',
-    'verify','resend_verification','admin_dashboard','admin_user_edit','admin_contacts','admin_tracking'];
+    'verify','resend_verification','admin_dashboard','admin_user_edit','admin_contacts','admin_tracking','admin_smtp'];
 
 // Genera uno slug univoco per un articolo di un dato utente (title -> slug, con suffisso -2, -3... se già esistente)
 function generateUniquePostSlug(int $userId, string $title, ?int $excludePostId = null): string {
