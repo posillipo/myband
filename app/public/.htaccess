@@ -11,6 +11,12 @@ RewriteRule ^([a-zA-Z0-9_-]+)/blog/([0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[a-zA-Z0-9-]+)
 # /nomeartista/blog -> elenco articoli
 RewriteRule ^([a-zA-Z0-9_-]+)/blog/?$ blog_index.php?slug=$1 [L,QSA]
 
+# /nomeartista/brani -> pagina brani musicali
+RewriteRule ^([a-zA-Z0-9_-]+)/brani/?$ brani.php?slug=$1 [L,QSA]
+
+# /nomeartista/eventi -> pagina concerti
+RewriteRule ^([a-zA-Z0-9_-]+)/eventi/?$ eventi.php?slug=$1 [L,QSA]
+
 # /nomeartista/contatti -> form di contatto
 RewriteRule ^([a-zA-Z0-9_-]+)/contatti/?$ contatti.php?slug=$1 [L,QSA]
 

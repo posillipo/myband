@@ -6,7 +6,7 @@ header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 
 $userSlug = $_GET['slug'] ?? '';
-$stmt = getDB()->prepare('SELECT u.id, u.slug, p.display_name
+$stmt = getDB()->prepare('SELECT u.id, u.slug, p.display_name, p.avatar_path, p.theme_color
                           FROM users u JOIN profiles p ON p.user_id = u.id
                           WHERE u.slug = ? AND u.is_active = 1');
 $stmt->execute([$userSlug]);
@@ -48,12 +48,12 @@ $pageUrl = siteUrl('/' . $userSlug . '/contatti');
 <meta property="og:url" content="<?= e($pageUrl) ?>">
 <link rel="canonical" href="<?= e($pageUrl) ?>">
 <link rel="stylesheet" href="/assets/css/style.css">
+<style>:root { --accent: <?= e($artist['theme_color'] ?: '#6C5CE7') ?>; }</style>
 <?= embedPrivacyScript() ?>
 </head>
-<body>
+<body class="colorful-page">
 <div class="container">
-  <div class="section-title"><a href="/<?= e($userSlug) ?>">← <?= e($artist['display_name']) ?></a></div>
-  <h1>Contatti / Booking</h1>
+  <?= publicProfileHeader($artist, 'contatti') ?>
 
   <?php if ($formSent): ?>
     <div class="alert success">Messaggio inviato! Grazie, verrai ricontattato al più presto.</div>

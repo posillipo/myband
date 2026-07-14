@@ -24,14 +24,6 @@ $links = getDB()->prepare('SELECT * FROM links WHERE user_id=? AND is_active=1 O
 $links->execute([$uid]);
 $links = $links->fetchAll();
 
-$tracks = getDB()->prepare('SELECT * FROM audio_tracks WHERE user_id=? ORDER BY sort_order ASC, id DESC');
-$tracks->execute([$uid]);
-$tracks = $tracks->fetchAll();
-
-$events = getDB()->prepare('SELECT * FROM events WHERE user_id=? AND event_date >= NOW() ORDER BY event_date ASC LIMIT 10');
-$events->execute([$uid]);
-$events = $events->fetchAll();
-
 $pageUrl = siteUrl('/' . $slug);
 $ogImage = $artist['avatar_path'] ? siteUrl($artist['avatar_path']) : null;
 $ogDescription = $artist['bio'] ? textExcerpt($artist['bio']) : ('La pagina di ' . $artist['display_name'] . ' su myband.it');
@@ -80,18 +72,7 @@ foreach ($links as $l) {
 </head>
 <body class="colorful-page">
 <div class="container">
-  <div class="profile-header">
-    <?php if ($artist['avatar_path']): ?>
-      <img class="avatar" src="/<?= e($artist['avatar_path']) ?>" alt="<?= e($artist['display_name']) ?>">
-    <?php endif; ?>
-    <h1><?= e($artist['display_name']) ?></h1>
-    <?php if ($artist['bio']): ?><p><?= nl2br(e($artist['bio'])) ?></p><?php endif; ?>
-    <p class="colorful-nav" style="margin-top:10px;">
-      <a href="/<?= e($slug) ?>/blog">Blog</a>
-      <span> | </span>
-      <a href="/<?= e($slug) ?>/contatti">Contatti</a>
-    </p>
-  </div>
+  <?= publicProfileHeader($artist, 'home', true) ?>
 
   <?php if ($socialLinks): ?>
     <div class="social-icons-row">
@@ -107,30 +88,6 @@ foreach ($links as $l) {
       <a class="color-link-btn" style="background:<?= e(COLORFUL_PALETTE[$i % count(COLORFUL_PALETTE)]) ?>;"
          target="_blank" rel="noopener"
          href="/link.php?id=<?= (int)$l['id'] ?>"><?= e($l['label']) ?></a>
-    <?php endforeach; ?>
-  <?php endif; ?>
-
-  <?php if ($tracks): ?>
-    <div class="section-title">Ascolta</div>
-    <?php foreach ($tracks as $t): ?>
-      <div><?= e($t['title']) ?></div>
-      <audio controls src="/<?= e($t['file_path']) ?>"></audio>
-    <?php endforeach; ?>
-  <?php endif; ?>
-
-  <?php if ($events): ?>
-    <div class="section-title">Prossimi concerti</div>
-    <?php foreach ($events as $ev): ?>
-      <div class="event-item">
-        <div class="date"><?= date('d/m/Y H:i', strtotime($ev['event_date'])) ?></div>
-        <strong><?= e($ev['title']) ?></strong>
-        <?php if ($ev['venue'] || $ev['city']): ?>
-          <div style="color:var(--text-muted)"><?= e($ev['venue']) ?><?= $ev['venue'] && $ev['city'] ? ', ' : '' ?><?= e($ev['city']) ?></div>
-        <?php endif; ?>
-        <?php if ($ev['ticket_url']): ?>
-          <a href="<?= e($ev['ticket_url']) ?>" target="_blank">Biglietti →</a>
-        <?php endif; ?>
-      </div>
     <?php endforeach; ?>
   <?php endif; ?>
 </div>

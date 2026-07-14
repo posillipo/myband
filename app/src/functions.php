@@ -112,6 +112,39 @@ function detectPlatform(string $url): ?array {
 // Palette di colori pastello per i pulsanti "azione" nel tema colorato della pagina pubblica
 const COLORFUL_PALETTE = ['#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF', '#A0C4FF', '#BDB2FF', '#FFC6FF', '#FFADAD'];
 
+// Menu di navigazione condiviso tra tutte le pagine pubbliche di un artista (Home | Blog | Brani | Eventi | Contatti)
+function publicNav(string $slug, string $active): string {
+    $tabs = [
+        'home'     => ['label' => 'Home', 'url' => '/' . $slug],
+        'blog'     => ['label' => 'Blog', 'url' => '/' . $slug . '/blog'],
+        'brani'    => ['label' => 'Brani', 'url' => '/' . $slug . '/brani'],
+        'eventi'   => ['label' => 'Eventi', 'url' => '/' . $slug . '/eventi'],
+        'contatti' => ['label' => 'Contatti', 'url' => '/' . $slug . '/contatti'],
+    ];
+    $parts = [];
+    foreach ($tabs as $key => $t) {
+        $activeAttr = $key === $active ? ' style="font-weight:900;text-decoration:underline;"' : '';
+        $parts[] = '<a href="' . e($t['url']) . '"' . $activeAttr . '>' . e($t['label']) . '</a>';
+    }
+    return '<p class="colorful-nav" style="margin-top:10px;">' . implode('<span> | </span>', $parts) . '</p>';
+}
+
+// Blocco identità condiviso (avatar + nome + eventuale bio + menu) stampato in cima ad ogni
+// pagina pubblica dell'artista (home, blog, brani, eventi, contatti), per un aspetto coerente
+function publicProfileHeader(array $artist, string $active, bool $showBio = false): string {
+    $html = '<div class="profile-header">';
+    if (!empty($artist['avatar_path'])) {
+        $html .= '<img class="avatar" src="/' . e($artist['avatar_path']) . '" alt="' . e($artist['display_name']) . '">';
+    }
+    $html .= '<h1>' . e($artist['display_name']) . '</h1>';
+    if ($showBio && !empty($artist['bio'])) {
+        $html .= '<p>' . nl2br(e($artist['bio'])) . '</p>';
+    }
+    $html .= publicNav($artist['slug'], $active);
+    $html .= '</div>';
+    return $html;
+}
+
 function slugExists(string $slug): bool {
     $stmt = getDB()->prepare('SELECT id FROM users WHERE slug = ?');
     $stmt->execute([$slug]);
@@ -122,7 +155,7 @@ function slugExists(string $slug): bool {
 const RESERVED_SLUGS = ['login','register','logout','dashboard','dashboard_profile',
     'dashboard_links','dashboard_audio','dashboard_events','dashboard_blog',
     'dashboard_contacts','u','index','assets','uploads','blog','contatti','link',
-    'admin','admin_users','admin_user_detail','admin_privacy'];
+    'admin','admin_users','admin_user_detail','admin_privacy','brani','eventi'];
 
 // Genera uno slug univoco per un articolo di un dato utente (title -> slug, con suffisso -2, -3... se già esistente)
 function generateUniquePostSlug(int $userId, string $title, ?int $excludePostId = null): string {
