@@ -1,51 +1,47 @@
-# Come far funzionare il pulsante "Preferenze Cookie"
+# Come far funzionare il pulsante "Preferenze Cookie" (CookieYes)
 
-Il pulsante è già collegato nel codice a un comando standard di Iubenda
-(`_iub.cs.api.openPreferences()`), che riapre il pannello dove il visitatore può cambiare le
-proprie scelte sui cookie. Perché funzioni davvero, servono due cose entrambe da fare su Iubenda
-(non nel codice del sito).
+Il pulsante nel footer del sito ha già la classe `cky-banner-element`, che è il meccanismo
+standard con cui CookieYes intercetta automaticamente qualsiasi link o pulsante per riaprire
+il pannello delle preferenze — non serve nessuna chiamata JavaScript personalizzata.
 
-## 1. Hai già incollato lo script Iubenda in Area Admin → Privacy / Cookie?
+## 1. Incolla lo script di installazione CookieYes
 
-Se il campo "Script privacy / cookie" in quella pagina è ancora vuoto, il pulsante non ha nulla
-a cui collegarsi — va prima incollato lo script di embed che Iubenda ti fornisce:
+1. Accedi a https://app.cookieyes.com
+2. Dashboard → **Advanced Settings** → **Get Installation Code**
+3. Copia lo script mostrato (quello simile a):
+   ```html
+   <script id="cky-cookie-policy" type="text/javascript"
+           src="https://cdn-cookieyes.com/client_data/TUO-ID/cookie-policy/script.js"></script>
+   ```
+4. Incollalo nel campo **"Script privacy / cookie"** in **Area Admin → Privacy / Cookie** del
+   tuo pannello myband.it, e salva
 
-1. Accedi al tuo account su https://www.iubenda.com
-2. Se non hai ancora creato una "Cookie Solution" per myband.it, creala (Iubenda ti guida con
-   un wizard: tipo di sito, categorie di cookie usate, ecc.)
-3. Nella sezione **Cookie Solution → Installazione**, Iubenda ti mostra uno script da incollare
-   nel sito — è quello che va copiato nel campo "Script privacy / cookie" in
-   **Area Admin → Privacy / Cookie** del tuo pannello myband.it
-4. Salva
+Da questo momento lo script CookieYes viene caricato automaticamente su tutte le pagine
+pubbliche del sito (homepage, pagine artista, blog, brani, eventi, contatti).
 
-Da questo momento il banner cookie comparirà sul sito, e la libreria `_iub` sarà caricata
-automaticamente su tutte le pagine pubbliche.
+## 2. Verifica che il banner compaia
 
-## 2. Assicurati che il pulsante "Riapri preferenze" sia abilitato su Iubenda
+1. Apri una pagina pubblica in incognito (es. `https://www.myband.it/tuoslug`)
+2. Dovresti vedere comparire il banner cookie di CookieYes
+3. Su CookieYes Dashboard, dovresti vedere lo stato passare a "Banner active" (premi il
+   pulsante "Verify" se necessario)
 
-Nel pannello Iubenda, dentro la configurazione della tua Cookie Solution, cerca l'opzione per
-abilitare il **floating button** o il **metodo `openPreferences`** (a seconda della versione
-dell'interfaccia Iubenda si chiama leggermente diverso: "Consenti di riaprire le preferenze",
-"Preference button", o simile). Di solito è già attivo di default nelle Cookie Solution create
-di recente, ma vale la pena controllare.
+## 3. Verifica il pulsante "Preferenze Cookie"
 
-## 3. Verifica che funzioni
+1. Accetta/chiudi il banner
+2. Scorri in fondo alla pagina pubblica
+3. Clicca **"Preferenze Cookie"**
+4. Deve riaprirsi il pannello delle preferenze — funziona già automaticamente grazie alla
+   classe `cky-banner-element` già presente nel codice
 
-1. Vai su una pagina pubblica del sito (es. `https://www.myband.it/tuoslug`)
-2. Dovresti vedere comparire il banner cookie di Iubenda al primo accesso (o in incognito)
-3. Chiudi/accetta il banner
-4. Scorri in fondo alla pagina e clicca **"Preferenze Cookie"**
-5. Deve riaprirsi il pannello delle preferenze cookie
+## Nota sul Revisit Consent Button di CookieYes
 
-## Se usi un servizio diverso da Iubenda
+CookieYes offre anche un proprio "floating button" fluttuante integrato (l'iconcina cookie in
+basso a sinistra che a volte compare di default). Puoi disattivarlo dal pannello CookieYes
+(Cookie Banner → Content & Colors → Revisit Consent Button → disattiva il floating button) se
+preferisci usare solo il link "Preferenze Cookie" nel footer del sito, per evitare doppioni.
 
-Se hai scelto Cookiebot, OneTrust o un altro CMP invece di Iubenda, il codice attuale non
-funzionerà perché è scritto specificamente per l'API di Iubenda (`_iub.cs.api.openPreferences`).
-In quel caso fammelo sapere: ogni servizio ha un comando diverso per riaprire le preferenze
-(es. Cookiebot usa `Cookiebot.renew()`), e adatto il codice del pulsante di conseguenza.
+## Se le personalizzazioni non si vedono
 
-## Se il pulsante non fa nulla dopo aver configurato tutto
-
-Apri la Console del browser (F12 → tab "Console") mentre sei sulla pagina pubblica, e clicca il
-pulsante "Preferenze Cookie": se compare un errore JavaScript, copialo e mandamelo, così capiamo
-se è un problema di script non caricato o di configurazione Iubenda.
+Le modifiche fatte sul pannello CookieYes potrebbero non comparire subito per via della cache
+del browser — prova un refresh forzato (Ctrl+Shift+R su Windows).

@@ -277,7 +277,9 @@ function renderJoinBar(): string {
 function renderFooterLinks(): string {
     $privacyUrl = getSiteSetting('privacy_policy_url') ?: '';
     $parts = [];
-    $parts[] = '<a href="#" onclick="if(window._iub &amp;&amp; window._iub.cs &amp;&amp; window._iub.cs.api){window._iub.cs.api.openPreferences();}return false;">Preferenze Cookie</a>';
+    // CookieYes intercetta automaticamente qualsiasi elemento con questa classe per riaprire
+    // il pannello delle preferenze cookie — non serve nessuna chiamata JavaScript esplicita.
+    $parts[] = '<a href="#" class="cky-banner-element">Preferenze Cookie</a>';
     if ($privacyUrl !== '') {
         $parts[] = '<a href="' . e($privacyUrl) . '" target="_blank" rel="noopener">Privacy</a>';
     } else {
