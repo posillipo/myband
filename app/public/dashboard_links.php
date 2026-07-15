@@ -93,7 +93,7 @@ include __DIR__ . '/_dash_header.php';
         <br>
         <small style="color:var(--text-muted)"><?= e($l['url']) ?> · <?= (int)$l['click_count'] ?> click</small>
       </div>
-      <div style="display:flex;gap:6px;align-items:center;">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
         <form method="post">
           <?= csrfField() ?>
           <input type="hidden" name="action" value="move_up">
