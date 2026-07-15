@@ -89,7 +89,7 @@ include __DIR__ . '/_dash_header.php';
     <div class="link-item">
       <div>
         <strong><?= e($l['label']) ?></strong>
-        <?php if ($l['is_website_icon']): ?><span style="color:var(--accent);font-size:12px;"> · icona sito web</span><?php endif; ?>
+        <?php if (!empty($l['is_website_icon'])): ?><span style="color:var(--accent);font-size:12px;"> · icona sito web</span><?php endif; ?>
         <br>
         <small style="color:var(--text-muted)"><?= e($l['url']) ?> · <?= (int)$l['click_count'] ?> click</small>
       </div>

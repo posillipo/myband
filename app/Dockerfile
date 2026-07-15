@@ -37,4 +37,15 @@ RUN { \
       echo 'post_max_size = 25M'; \
     } > /usr/local/etc/php/conf.d/uploads.ini
 
+# Configurazione errori da produzione: mai stampare warning/notice/errori nella pagina HTML
+# (rompono l'impaginazione e sono visibili ai visitatori), ma registrarli sempre nei log del
+# container così restano diagnosticabili da Portainer → Containers → myband_app → Logs
+RUN { \
+      echo 'display_errors = Off'; \
+      echo 'display_startup_errors = Off'; \
+      echo 'log_errors = On'; \
+      echo 'error_log = /dev/stderr'; \
+      echo 'error_reporting = E_ALL'; \
+    } > /usr/local/etc/php/conf.d/error-handling.ini
+
 WORKDIR /var/www/html
