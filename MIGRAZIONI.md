@@ -52,6 +52,24 @@ INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('ga_measur
 ALTER TABLE links ADD COLUMN is_website_icon TINYINT(1) NOT NULL DEFAULT 0;
 ```
 
+## 8. Tema dashboard band manager (scuro/chiaro)
+```sql
+ALTER TABLE profiles ADD COLUMN dashboard_theme VARCHAR(10) NOT NULL DEFAULT 'dark';
+```
+
+## 9. Login persistente "ricordami"
+```sql
+CREATE TABLE IF NOT EXISTS remember_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    selector VARCHAR(24) NOT NULL UNIQUE,
+    validator_hash VARCHAR(255) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+```
+
 ---
 
 ## Come aggiungere una nuova voce

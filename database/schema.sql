@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     bio TEXT,
     avatar_path VARCHAR(255),
     theme_color VARCHAR(7) DEFAULT '#6C5CE7',
+    dashboard_theme VARCHAR(10) NOT NULL DEFAULT 'dark',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
@@ -85,6 +86,19 @@ CREATE TABLE IF NOT EXISTS contact_requests (
 CREATE TABLE IF NOT EXISTS site_settings (
     setting_key VARCHAR(60) PRIMARY KEY,
     setting_value TEXT
+) ENGINE=InnoDB;
+
+-- Token per il login "ricordami": selector in chiaro (per la ricerca), validator solo come hash
+-- (mai in chiaro nel database), seguendo il pattern standard selector/validator per i cookie
+-- di login persistenti.
+CREATE TABLE IF NOT EXISTS remember_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    selector VARCHAR(24) NOT NULL UNIQUE,
+    validator_hash VARCHAR(255) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('privacy_script', '');

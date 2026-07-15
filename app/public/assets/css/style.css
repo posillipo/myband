@@ -143,6 +143,23 @@ audio { width: 100%; margin-bottom: 10px; }
 
 footer.site { text-align: center; padding: 30px; color: var(--text-muted); font-size: 13px; }
 
+/* ===== Tema chiaro per la dashboard del band manager (alternativa al tema scuro di default) ===== */
+body.light-theme {
+  --bg: #f5f5f7;
+  --card-bg: #ffffff;
+  --text: #1a1a1a;
+  --text-muted: #5f5f66;
+}
+body.light-theme .navbar { border-bottom-color: #e2e2e7; }
+body.light-theme .card { border-color: #e2e2e7; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+body.light-theme .tabs a { background: var(--card-bg); border-color: #e2e2e7; }
+body.light-theme form input, body.light-theme form textarea, body.light-theme form select {
+  background: #fff; border-color: #d5d5da; color: var(--text);
+}
+body.light-theme .link-item, body.light-theme .list-item {
+  background: var(--card-bg); border-color: #e2e2e7;
+}
+
 /* ===== Tema "Colorful" per la pagina pubblica del profilo artista ===== */
 body.colorful-page {
   background: linear-gradient(160deg, var(--cf-1, #FFD6A5) 0%, var(--cf-2, #A0C4FF) 55%, var(--cf-3, #BDB2FF) 100%);

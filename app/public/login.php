@@ -25,6 +25,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $unverified = true;
     } else {
         $_SESSION['user_id'] = $u['id'];
+        if (!empty($_POST['remember'])) {
+            issueRememberToken((int) $u['id']);
+        }
         header('Location: /dashboard.php');
         exit;
     }
@@ -62,6 +65,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <input type="email" name="email" required>
     <label>Password</label>
     <input type="password" name="password" required>
+    <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+      <input type="checkbox" name="remember" value="1" style="width:auto;">
+      Ricordami su questo dispositivo (resta connesso per 30 giorni)
+    </label>
     <button type="submit" class="btn">Accedi</button>
   </form>
 </div>

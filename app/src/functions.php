@@ -31,15 +31,81 @@ function checkCsrf(): void {
 }
 
 function currentUser(): ?array {
+    attemptRememberLogin();
     if (empty($_SESSION['user_id'])) return null;
     static $cache = null;
     if ($cache !== null) return $cache;
-    $stmt = getDB()->prepare('SELECT u.*, p.display_name, p.bio, p.avatar_path, p.theme_color
+    $stmt = getDB()->prepare('SELECT u.*, p.display_name, p.bio, p.avatar_path, p.theme_color, p.dashboard_theme
                               FROM users u LEFT JOIN profiles p ON p.user_id = u.id
                               WHERE u.id = ?');
     $stmt->execute([$_SESSION['user_id']]);
     $cache = $stmt->fetch() ?: null;
     return $cache;
+}
+
+// ===== Login persistente "ricordami" (cookie selector/validator) =====
+// Il cookie contiene "selector:validator" in chiaro, ma nel database salviamo solo l'hash del
+// validator (mai il valore in chiaro) — così anche un accesso in lettura al database non
+// permette di impersonare l'utente senza conoscere il validator originale dal cookie.
+
+function issueRememberToken(int $userId): void {
+    $selector = bin2hex(random_bytes(12));
+    $validator = bin2hex(random_bytes(32));
+    $hash = hash('sha256', $validator);
+    $expiresAt = date('Y-m-d H:i:s', strtotime('+30 days'));
+
+    $stmt = getDB()->prepare('INSERT INTO remember_tokens (user_id, selector, validator_hash, expires_at) VALUES (?,?,?,?)');
+    $stmt->execute([$userId, $selector, $hash, $expiresAt]);
+
+    setcookie('remember_me', $selector . ':' . $validator, [
+        'expires' => strtotime('+30 days'),
+        'path' => '/',
+        'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+}
+
+function clearRememberToken(): void {
+    if (!empty($_COOKIE['remember_me'])) {
+        $parts = explode(':', $_COOKIE['remember_me'], 2);
+        if (isset($parts[0]) && $parts[0] !== '') {
+            getDB()->prepare('DELETE FROM remember_tokens WHERE selector = ?')->execute([$parts[0]]);
+        }
+    }
+    setcookie('remember_me', '', ['expires' => time() - 3600, 'path' => '/']);
+}
+
+// Se non c'è una sessione attiva ma esiste un cookie "ricordami" valido, effettua il login
+// automatico e ruota il token (il vecchio viene invalidato, se ne emette uno nuovo) — pratica
+// standard per limitare i danni in caso di furto del cookie.
+function attemptRememberLogin(): void {
+    if (!empty($_SESSION['user_id']) || empty($_COOKIE['remember_me'])) {
+        return;
+    }
+    $parts = explode(':', $_COOKIE['remember_me'], 2);
+    if (count($parts) !== 2) {
+        return;
+    }
+    [$selector, $validator] = $parts;
+
+    $stmt = getDB()->prepare('SELECT * FROM remember_tokens WHERE selector = ? AND expires_at >= NOW()');
+    $stmt->execute([$selector]);
+    $row = $stmt->fetch();
+    if (!$row || !hash_equals($row['validator_hash'], hash('sha256', $validator))) {
+        return;
+    }
+
+    $stmt = getDB()->prepare('SELECT is_active FROM users WHERE id = ?');
+    $stmt->execute([$row['user_id']]);
+    $u = $stmt->fetch();
+    if (!$u || !$u['is_active']) {
+        return;
+    }
+
+    $_SESSION['user_id'] = (int) $row['user_id'];
+    getDB()->prepare('DELETE FROM remember_tokens WHERE id = ?')->execute([$row['id']]);
+    issueRememberToken((int) $row['user_id']);
 }
 
 function requireLogin(): array {
