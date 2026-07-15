@@ -13,12 +13,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add') {
         $label = trim($_POST['label'] ?? '');
         $url = trim($_POST['url'] ?? '');
+        $isWebsite = isset($_POST['is_website_icon']) ? 1 : 0;
         if ($label !== '' && filter_var($url, FILTER_VALIDATE_URL)) {
-            $stmt = getDB()->prepare('INSERT INTO links (user_id, label, url, sort_order) VALUES (?,?,?, (SELECT n FROM (SELECT COALESCE(MAX(sort_order),0)+1 AS n FROM links WHERE user_id=?) t))');
-            $stmt->execute([$user['id'], $label, $url, $user['id']]);
+            $stmt = getDB()->prepare('INSERT INTO links (user_id, label, url, is_website_icon, sort_order) VALUES (?,?,?,?, (SELECT n FROM (SELECT COALESCE(MAX(sort_order),0)+1 AS n FROM links WHERE user_id=?) t))');
+            $stmt->execute([$user['id'], $label, $url, $isWebsite, $user['id']]);
         } else {
             $error = 'Inserisci un\'etichetta e un URL valido.';
         }
+    } elseif ($action === 'toggle_website') {
+        $id = (int) ($_POST['id'] ?? 0);
+        $stmt = getDB()->prepare('UPDATE links SET is_website_icon = NOT is_website_icon WHERE id=? AND user_id=?');
+        $stmt->execute([$id, $user['id']]);
     } elseif ($action === 'delete') {
         $id = (int) ($_POST['id'] ?? 0);
         $stmt = getDB()->prepare('DELETE FROM links WHERE id=? AND user_id=?');
@@ -65,20 +70,27 @@ include __DIR__ . '/_dash_header.php';
     <input type="text" name="label" required>
     <label>URL</label>
     <input type="url" name="url" placeholder="https://..." required>
+    <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+      <input type="checkbox" name="is_website_icon" value="1" style="width:auto;">
+      È il tuo sito web personale? (comparirà come icona "sito web" invece di pulsante)
+    </label>
     <button type="submit" class="btn">Aggiungi link</button>
   </form>
 
   <div class="section-title">I tuoi link (<?= count($links) ?>)</div>
   <p style="color:var(--text-muted);font-size:13px;">
-    Le icone social (Spotify, Instagram, Facebook, TikTok, YouTube, LinkedIn) vengono riconosciute
-    automaticamente e mostrate come icona in alto — solo la <strong>prima</strong> di ciascuna
-    piattaforma; eventuali duplicati restano tra i pulsanti qui sotto. L'ordine dei pulsanti nella
-    pagina pubblica segue l'ordine in cui li disponi qui (usa le frecce ▲▼ per riordinare).
+    Le icone (Spotify, Apple Music, Instagram, Facebook, TikTok, YouTube, LinkedIn, SoundCloud,
+    WhatsApp, sito web) vengono riconosciute automaticamente e mostrate in cima alla pagina
+    pubblica — solo la <strong>prima</strong> di ciascun tipo, seguendo l'ordine in cui i link
+    compaiono qui sotto; eventuali duplicati restano tra i pulsanti. Usa le frecce ▲▼ per
+    decidere l'ordine.
   </p>
   <?php foreach ($links as $i => $l): ?>
     <div class="link-item">
       <div>
-        <strong><?= e($l['label']) ?></strong><br>
+        <strong><?= e($l['label']) ?></strong>
+        <?php if ($l['is_website_icon']): ?><span style="color:var(--accent);font-size:12px;"> · icona sito web</span><?php endif; ?>
+        <br>
         <small style="color:var(--text-muted)"><?= e($l['url']) ?> · <?= (int)$l['click_count'] ?> click</small>
       </div>
       <div style="display:flex;gap:6px;align-items:center;">

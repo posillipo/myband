@@ -74,7 +74,7 @@ $ogDescription = $artist['bio'] ? textExcerpt($artist['bio']) : ('La pagina di '
     <div class="social-icons-row">
       <?php foreach ($socialLinks as $l): ?>
         <a class="social-icon-btn" title="<?= e($l['platform']['label']) ?>" target="_blank" rel="noopener"
-           href="/link.php?id=<?= (int)$l['id'] ?>"><i class="fa-brands <?= e($l['platform']['icon']) ?>"></i></a>
+           href="/link.php?id=<?= (int)$l['id'] ?>"><i class="<?= e($l['platform']['icon_class']) ?>"></i></a>
       <?php endforeach; ?>
     </div>
   <?php endif; ?>

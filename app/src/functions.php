@@ -95,20 +95,24 @@ function embedGoogleAnalytics(): string {
          . 'gtag("js",new Date());gtag("config",' . $safeIdJs . ');</script>';
 }
 
-// Riconosce la piattaforma social da un URL, solo tra le 6 previste per la riga di icone in
-// cima alla pagina pubblica. Ogni voce ha una "key" univoca usata per l'ordine canonico e la
-// deduplicazione (un solo link per piattaforma viene mostrato come icona).
+// Riconosce la piattaforma social da un URL, tra quelle mostrate come icona in cima alla pagina
+// pubblica. Ogni voce ha una "key" univoca usata per la deduplicazione (un solo link per
+// piattaforma viene mostrato come icona) e una classe Font Awesome completa per l'icona.
 function detectPlatform(string $url): ?array {
     $host = strtolower((string) parse_url($url, PHP_URL_HOST));
     $map = [
-        'spotify.com'   => ['key' => 'spotify',   'icon' => 'fa-spotify',    'label' => 'Spotify'],
-        'instagram.com' => ['key' => 'instagram', 'icon' => 'fa-instagram',  'label' => 'Instagram'],
-        'facebook.com'  => ['key' => 'facebook',  'icon' => 'fa-facebook-f', 'label' => 'Facebook'],
-        'fb.com'        => ['key' => 'facebook',  'icon' => 'fa-facebook-f','label' => 'Facebook'],
-        'tiktok.com'    => ['key' => 'tiktok',     'icon' => 'fa-tiktok',    'label' => 'TikTok'],
-        'youtube.com'   => ['key' => 'youtube',    'icon' => 'fa-youtube',   'label' => 'YouTube'],
-        'youtu.be'      => ['key' => 'youtube',    'icon' => 'fa-youtube',   'label' => 'YouTube'],
-        'linkedin.com'  => ['key' => 'linkedin',   'icon' => 'fa-linkedin-in','label' => 'LinkedIn'],
+        'spotify.com'      => ['key' => 'spotify',    'icon_class' => 'fa-brands fa-spotify',    'label' => 'Spotify'],
+        'music.apple.com'  => ['key' => 'apple_music','icon_class' => 'fa-brands fa-apple',      'label' => 'Apple Music'],
+        'instagram.com'    => ['key' => 'instagram',  'icon_class' => 'fa-brands fa-instagram',  'label' => 'Instagram'],
+        'facebook.com'     => ['key' => 'facebook',   'icon_class' => 'fa-brands fa-facebook-f', 'label' => 'Facebook'],
+        'fb.com'           => ['key' => 'facebook',   'icon_class' => 'fa-brands fa-facebook-f', 'label' => 'Facebook'],
+        'tiktok.com'       => ['key' => 'tiktok',     'icon_class' => 'fa-brands fa-tiktok',     'label' => 'TikTok'],
+        'youtube.com'      => ['key' => 'youtube',    'icon_class' => 'fa-brands fa-youtube',    'label' => 'YouTube'],
+        'youtu.be'         => ['key' => 'youtube',    'icon_class' => 'fa-brands fa-youtube',    'label' => 'YouTube'],
+        'linkedin.com'     => ['key' => 'linkedin',   'icon_class' => 'fa-brands fa-linkedin-in','label' => 'LinkedIn'],
+        'soundcloud.com'   => ['key' => 'soundcloud', 'icon_class' => 'fa-brands fa-soundcloud', 'label' => 'SoundCloud'],
+        'whatsapp.com'     => ['key' => 'whatsapp',   'icon_class' => 'fa-brands fa-whatsapp',   'label' => 'WhatsApp'],
+        'wa.me'            => ['key' => 'whatsapp',   'icon_class' => 'fa-brands fa-whatsapp',   'label' => 'WhatsApp'],
     ];
     foreach ($map as $domain => $info) {
         if ($host === $domain || str_ends_with($host, '.' . $domain)) {
@@ -118,28 +122,27 @@ function detectPlatform(string $url): ?array {
     return null;
 }
 
-// Ordine fisso di visualizzazione delle icone social, indipendentemente dall'ordine di
-// inserimento dei link da parte del musicista
-const SOCIAL_ICON_ORDER = ['spotify', 'instagram', 'facebook', 'tiktok', 'youtube', 'linkedin'];
-
-// Separa i link di un utente in: icone social (una sola per piattaforma, la prima incontrata,
-// ordinate secondo SOCIAL_ICON_ORDER) e pulsanti azione (tutto il resto, incluse eventuali
-// piattaforme social ripetute, nell'ordine originale dei link).
+// Separa i link di un utente in: icone social (una sola per piattaforma, la PRIMA incontrata
+// scorrendo l'elenco così come ordinato dal band manager nella propria dashboard) e pulsanti
+// azione (tutto il resto: ripetizioni della stessa piattaforma, e link non riconosciuti).
+// Un link marcato manualmente come "sito web personale" diventa sempre un'icona (globo),
+// indipendentemente dal dominio, perché un sito personale non è riconoscibile automaticamente.
 function splitSocialAndActionLinks(array $links): array {
-    $socialByKey = [];
+    $socialLinks = [];
     $actionLinks = [];
+    $seenKeys = [];
     foreach ($links as $l) {
+        if (!empty($l['is_website_icon']) && !isset($seenKeys['website'])) {
+            $socialLinks[] = $l + ['platform' => ['key' => 'website', 'icon_class' => 'fa-solid fa-globe', 'label' => 'Sito web']];
+            $seenKeys['website'] = true;
+            continue;
+        }
         $platform = detectPlatform($l['url']);
-        if ($platform && !isset($socialByKey[$platform['key']])) {
-            $socialByKey[$platform['key']] = $l + ['platform' => $platform];
+        if ($platform && !isset($seenKeys[$platform['key']])) {
+            $socialLinks[] = $l + ['platform' => $platform];
+            $seenKeys[$platform['key']] = true;
         } else {
             $actionLinks[] = $l;
-        }
-    }
-    $socialLinks = [];
-    foreach (SOCIAL_ICON_ORDER as $key) {
-        if (isset($socialByKey[$key])) {
-            $socialLinks[] = $socialByKey[$key];
         }
     }
     return [$socialLinks, $actionLinks];

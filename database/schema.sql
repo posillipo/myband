@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS links (
     sort_order INT NOT NULL DEFAULT 0,
     click_count INT NOT NULL DEFAULT 0,
     is_active TINYINT(1) NOT NULL DEFAULT 1,
+    is_website_icon TINYINT(1) NOT NULL DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
