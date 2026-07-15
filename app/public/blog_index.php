@@ -36,6 +36,7 @@ $pageUrl = siteUrl('/' . $userSlug . '/blog');
 <style>:root { --accent: <?= e($artist['theme_color'] ?: '#6C5CE7') ?>; }</style>
 <?= embedPrivacyScript() ?>
 <?= embedTrackingHead() ?>
+<?= embedGoogleAnalytics() ?>
 </head>
 <body class="colorful-page">
 <?= embedTrackingBodyStart() ?>

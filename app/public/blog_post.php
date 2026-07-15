@@ -60,6 +60,7 @@ $ogImage = $post['avatar_path'] ? siteUrl($post['avatar_path']) : null;
 <style>:root { --accent: <?= e($post['theme_color'] ?: '#6C5CE7') ?>; }</style>
 <?= embedPrivacyScript() ?>
 <?= embedTrackingHead() ?>
+<?= embedGoogleAnalytics() ?>
 </head>
 <body class="colorful-page">
 <?= embedTrackingBodyStart() ?>

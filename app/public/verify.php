@@ -34,6 +34,7 @@ if ($token === '') {
 <link rel="stylesheet" href="/assets/css/style.css">
 <?= embedPrivacyScript() ?>
 <?= embedTrackingHead() ?>
+<?= embedGoogleAnalytics() ?>
 </head>
 <body>
 <?= embedTrackingBodyStart() ?>

@@ -70,6 +70,7 @@ foreach ($links as $l) {
 </style>
 <?= embedPrivacyScript() ?>
 <?= embedTrackingHead() ?>
+<?= embedGoogleAnalytics() ?>
 </head>
 <body class="colorful-page">
 <?= embedTrackingBodyStart() ?>

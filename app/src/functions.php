@@ -81,6 +81,20 @@ function embedPrivacyScript(): string {
     return getSiteSetting('privacy_script') ?: '';
 }
 
+// Genera lo snippet standard di Google Analytics (gtag.js) a partire dal solo Measurement ID
+// (es. G-XXXXXXXXXX), così l'admin non deve incollare script complessi a mano.
+function embedGoogleAnalytics(): string {
+    $id = trim(getSiteSetting('ga_measurement_id') ?: '');
+    if ($id === '') {
+        return '';
+    }
+    $safeIdAttr = e($id);
+    $safeIdJs = json_encode($id);
+    return '<script async src="https://www.googletagmanager.com/gtag/js?id=' . $safeIdAttr . '"></script>' . "\n"
+         . '<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}'
+         . 'gtag("js",new Date());gtag("config",' . $safeIdJs . ');</script>';
+}
+
 // Riconosce la piattaforma social da un URL (per mostrare un'iconcina invece del pulsante grande)
 function detectPlatform(string $url): ?array {
     $host = strtolower((string) parse_url($url, PHP_URL_HOST));
