@@ -1,9 +1,23 @@
 # MyBand.it — Piattaforma Linktree per musicisti
 
-Piattaforma multi-utente dove ogni musicista può registrarsi e creare la propria pagina pubblica
-(`myband.it/nomepagina`) con link, brani audio, calendario concerti, blog e form di contatto/booking.
+Piattaforma multi-utente dove ogni musicista (band manager) può registrarsi e creare la propria
+pagina pubblica (`myband.it/nomepagina`) con link, brani audio, calendario concerti, blog e form
+di contatto/booking.
 
-Stack: **PHP 8.2 + Apache** (container `app`) + **MySQL 8** (container `db`), orchestrati con Docker Compose.
+Stack: **PHP 8.2 + Apache** (container `app`) + **MySQL 8** (container `db`), orchestrati con
+Docker Compose. In produzione gestito con **Portainer** + **Nginx Proxy Manager** su Hetzner.
+
+## Documentazione
+
+- **`LOCAL_TESTING.md`** — testare il progetto in locale su WSL/Docker
+- **`GITHUB.md`** — push da Windows, autenticazione, alternative senza Git
+- **`DEPLOY.md`** — deploy e aggiornamento in produzione (Hetzner/Portainer/Nginx Proxy Manager),
+  troubleshooting dei problemi più comuni
+- **`ADMIN_SETUP.md`** — diventare admin, recuperare password DB, verificare account, elevare
+  altri utenti
+- **`SMTP.md`** — configurare le notifiche email, interpretare gli errori
+- **`MIGRAZIONI.md`** — registro cronologico di tutte le modifiche allo schema database
+- **`SCHEMA_DATABASE.md`** — struttura completa delle tabelle
 
 ## 1. Struttura del progetto
 
