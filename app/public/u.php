@@ -28,17 +28,9 @@ $pageUrl = siteUrl('/' . $slug);
 $ogImage = $artist['avatar_path'] ? siteUrl($artist['avatar_path']) : null;
 $ogDescription = $artist['bio'] ? textExcerpt($artist['bio']) : ('La pagina di ' . $artist['display_name'] . ' su myband.it');
 
-// Separiamo i link riconosciuti come social (icona tonda in alto) dagli altri (pulsante colorato grande)
-$socialLinks = [];
-$actionLinks = [];
-foreach ($links as $l) {
-    $platform = detectPlatform($l['url']);
-    if ($platform) {
-        $socialLinks[] = $l + ['platform' => $platform];
-    } else {
-        $actionLinks[] = $l;
-    }
-}
+// Separiamo i link riconosciuti come social (icona tonda in alto, una sola per piattaforma)
+// dagli altri (pulsante colorato grande) — include eventuali social ripetuti
+[$socialLinks, $actionLinks] = splitSocialAndActionLinks($links);
 ?>
 <!doctype html>
 <html lang="it">
@@ -61,6 +53,7 @@ foreach ($links as $l) {
 <meta name="twitter:description" content="<?= e($ogDescription) ?>">
 
 <link rel="canonical" href="<?= e($pageUrl) ?>">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
 <link rel="stylesheet" href="/assets/css/style.css">
 <style>
   :root {
@@ -81,7 +74,7 @@ foreach ($links as $l) {
     <div class="social-icons-row">
       <?php foreach ($socialLinks as $l): ?>
         <a class="social-icon-btn" title="<?= e($l['platform']['label']) ?>" target="_blank" rel="noopener"
-           href="/link.php?id=<?= (int)$l['id'] ?>"><?= $l['platform']['icon'] ?></a>
+           href="/link.php?id=<?= (int)$l['id'] ?>"><i class="fa-brands <?= e($l['platform']['icon']) ?>"></i></a>
       <?php endforeach; ?>
     </div>
   <?php endif; ?>

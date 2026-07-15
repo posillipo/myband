@@ -95,25 +95,20 @@ function embedGoogleAnalytics(): string {
          . 'gtag("js",new Date());gtag("config",' . $safeIdJs . ');</script>';
 }
 
-// Riconosce la piattaforma social da un URL (per mostrare un'iconcina invece del pulsante grande)
+// Riconosce la piattaforma social da un URL, solo tra le 6 previste per la riga di icone in
+// cima alla pagina pubblica. Ogni voce ha una "key" univoca usata per l'ordine canonico e la
+// deduplicazione (un solo link per piattaforma viene mostrato come icona).
 function detectPlatform(string $url): ?array {
     $host = strtolower((string) parse_url($url, PHP_URL_HOST));
     $map = [
-        'spotify.com'      => ['icon' => '🎵', 'label' => 'Spotify'],
-        'music.apple.com'  => ['icon' => '🍎', 'label' => 'Apple Music'],
-        'instagram.com'    => ['icon' => '📸', 'label' => 'Instagram'],
-        'tiktok.com'       => ['icon' => '🎬', 'label' => 'TikTok'],
-        'youtube.com'      => ['icon' => '▶️', 'label' => 'YouTube'],
-        'youtu.be'         => ['icon' => '▶️', 'label' => 'YouTube'],
-        'twitter.com'      => ['icon' => '𝕏', 'label' => 'X'],
-        'x.com'            => ['icon' => '𝕏', 'label' => 'X'],
-        'threads.net'      => ['icon' => '@', 'label' => 'Threads'],
-        'bsky.app'         => ['icon' => '🦋', 'label' => 'Bluesky'],
-        'facebook.com'     => ['icon' => '👤', 'label' => 'Facebook'],
-        'soundcloud.com'   => ['icon' => '☁️', 'label' => 'SoundCloud'],
-        'linkedin.com'     => ['icon' => '💼', 'label' => 'LinkedIn'],
-        'whatsapp.com'     => ['icon' => '💬', 'label' => 'WhatsApp'],
-        'wa.me'            => ['icon' => '💬', 'label' => 'WhatsApp'],
+        'spotify.com'   => ['key' => 'spotify',   'icon' => 'fa-spotify',    'label' => 'Spotify'],
+        'instagram.com' => ['key' => 'instagram', 'icon' => 'fa-instagram',  'label' => 'Instagram'],
+        'facebook.com'  => ['key' => 'facebook',  'icon' => 'fa-facebook-f', 'label' => 'Facebook'],
+        'fb.com'        => ['key' => 'facebook',  'icon' => 'fa-facebook-f','label' => 'Facebook'],
+        'tiktok.com'    => ['key' => 'tiktok',     'icon' => 'fa-tiktok',    'label' => 'TikTok'],
+        'youtube.com'   => ['key' => 'youtube',    'icon' => 'fa-youtube',   'label' => 'YouTube'],
+        'youtu.be'      => ['key' => 'youtube',    'icon' => 'fa-youtube',   'label' => 'YouTube'],
+        'linkedin.com'  => ['key' => 'linkedin',   'icon' => 'fa-linkedin-in','label' => 'LinkedIn'],
     ];
     foreach ($map as $domain => $info) {
         if ($host === $domain || str_ends_with($host, '.' . $domain)) {
@@ -121,6 +116,33 @@ function detectPlatform(string $url): ?array {
         }
     }
     return null;
+}
+
+// Ordine fisso di visualizzazione delle icone social, indipendentemente dall'ordine di
+// inserimento dei link da parte del musicista
+const SOCIAL_ICON_ORDER = ['spotify', 'instagram', 'facebook', 'tiktok', 'youtube', 'linkedin'];
+
+// Separa i link di un utente in: icone social (una sola per piattaforma, la prima incontrata,
+// ordinate secondo SOCIAL_ICON_ORDER) e pulsanti azione (tutto il resto, incluse eventuali
+// piattaforme social ripetute, nell'ordine originale dei link).
+function splitSocialAndActionLinks(array $links): array {
+    $socialByKey = [];
+    $actionLinks = [];
+    foreach ($links as $l) {
+        $platform = detectPlatform($l['url']);
+        if ($platform && !isset($socialByKey[$platform['key']])) {
+            $socialByKey[$platform['key']] = $l + ['platform' => $platform];
+        } else {
+            $actionLinks[] = $l;
+        }
+    }
+    $socialLinks = [];
+    foreach (SOCIAL_ICON_ORDER as $key) {
+        if (isset($socialByKey[$key])) {
+            $socialLinks[] = $socialByKey[$key];
+        }
+    }
+    return [$socialLinks, $actionLinks];
 }
 
 // Palette di colori pastello per i pulsanti "azione" nel tema colorato della pagina pubblica

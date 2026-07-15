@@ -27,6 +27,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id = (int) ($_POST['id'] ?? 0);
         $stmt = getDB()->prepare('UPDATE links SET is_active = NOT is_active WHERE id=? AND user_id=?');
         $stmt->execute([$id, $user['id']]);
+    } elseif ($action === 'move_up' || $action === 'move_down') {
+        $id = (int) ($_POST['id'] ?? 0);
+        $stmt = getDB()->prepare('SELECT id, sort_order FROM links WHERE user_id=? ORDER BY sort_order ASC, id ASC');
+        $stmt->execute([$user['id']]);
+        $all = $stmt->fetchAll();
+        $idx = null;
+        foreach ($all as $i => $row) {
+            if ((int)$row['id'] === $id) { $idx = $i; break; }
+        }
+        if ($idx !== null) {
+            $swapIdx = $action === 'move_up' ? $idx - 1 : $idx + 1;
+            if (isset($all[$swapIdx])) {
+                $a = $all[$idx];
+                $b = $all[$swapIdx];
+                getDB()->prepare('UPDATE links SET sort_order=? WHERE id=? AND user_id=?')->execute([$b['sort_order'], $a['id'], $user['id']]);
+                getDB()->prepare('UPDATE links SET sort_order=? WHERE id=? AND user_id=?')->execute([$a['sort_order'], $b['id'], $user['id']]);
+            }
+        }
     }
     header('Location: /dashboard_links.php');
     exit;
@@ -51,13 +69,31 @@ include __DIR__ . '/_dash_header.php';
   </form>
 
   <div class="section-title">I tuoi link (<?= count($links) ?>)</div>
-  <?php foreach ($links as $l): ?>
+  <p style="color:var(--text-muted);font-size:13px;">
+    Le icone social (Spotify, Instagram, Facebook, TikTok, YouTube, LinkedIn) vengono riconosciute
+    automaticamente e mostrate come icona in alto — solo la <strong>prima</strong> di ciascuna
+    piattaforma; eventuali duplicati restano tra i pulsanti qui sotto. L'ordine dei pulsanti nella
+    pagina pubblica segue l'ordine in cui li disponi qui (usa le frecce ▲▼ per riordinare).
+  </p>
+  <?php foreach ($links as $i => $l): ?>
     <div class="link-item">
       <div>
         <strong><?= e($l['label']) ?></strong><br>
         <small style="color:var(--text-muted)"><?= e($l['url']) ?> · <?= (int)$l['click_count'] ?> click</small>
       </div>
-      <div style="display:flex;gap:6px;">
+      <div style="display:flex;gap:6px;align-items:center;">
+        <form method="post">
+          <?= csrfField() ?>
+          <input type="hidden" name="action" value="move_up">
+          <input type="hidden" name="id" value="<?= (int)$l['id'] ?>">
+          <button class="btn small secondary" type="submit" <?= $i === 0 ? 'disabled style="opacity:.3;cursor:default;"' : '' ?>>▲</button>
+        </form>
+        <form method="post">
+          <?= csrfField() ?>
+          <input type="hidden" name="action" value="move_down">
+          <input type="hidden" name="id" value="<?= (int)$l['id'] ?>">
+          <button class="btn small secondary" type="submit" <?= $i === count($links) - 1 ? 'disabled style="opacity:.3;cursor:default;"' : '' ?>>▼</button>
+        </form>
         <form method="post">
           <?= csrfField() ?>
           <input type="hidden" name="action" value="toggle">
