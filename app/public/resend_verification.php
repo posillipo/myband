@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Richiedi nuova email di verifica — myband.it</title>
-<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <?= embedPrivacyScript() ?>
 <?= embedTrackingHead() ?>
 <?= embedGoogleAnalytics() ?>

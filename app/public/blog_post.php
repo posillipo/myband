@@ -56,7 +56,7 @@ $ogImage = $post['avatar_path'] ? siteUrl($post['avatar_path']) : null;
 <meta name="twitter:description" content="<?= e($post['excerpt'] ?: textExcerpt($post['content'])) ?>">
 
 <link rel="canonical" href="<?= e($permalink) ?>">
-<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <style>:root { --accent: <?= e($post['theme_color'] ?: '#6C5CE7') ?>; }</style>
 <?= embedPrivacyScript() ?>
 <?= embedTrackingHead() ?>
@@ -79,7 +79,6 @@ $ogImage = $post['avatar_path'] ? siteUrl($post['avatar_path']) : null;
   </div>
 </div>
 <?= renderFooterLinks() ?>
-<footer class="site">Pagina realizzata con <a href="/">myband.it</a></footer>
 <?= renderJoinBar() ?>
 </body>
 </html>

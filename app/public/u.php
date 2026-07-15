@@ -54,7 +54,7 @@ $ogDescription = $artist['bio'] ? textExcerpt($artist['bio']) : ('La pagina di '
 
 <link rel="canonical" href="<?= e($pageUrl) ?>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
-<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <style>
   :root {
     --accent: <?= e($artist['theme_color'] ?: '#6C5CE7') ?>;
@@ -88,7 +88,6 @@ $ogDescription = $artist['bio'] ? textExcerpt($artist['bio']) : ('La pagina di '
   <?php endif; ?>
 </div>
 <?= renderFooterLinks() ?>
-<footer class="site">Pagina realizzata con <a href="/">myband.it</a></footer>
 <?= renderJoinBar() ?>
 </body>
 </html>

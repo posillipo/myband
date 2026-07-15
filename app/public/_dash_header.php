@@ -8,7 +8,7 @@ $dashTheme = ($user['dashboard_theme'] ?? 'dark') === 'light' ? 'light-theme' : 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= e($pageTitle ?? 'Dashboard') ?> — myband.it</title>
-<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 </head>
 <body class="<?= e($dashTheme) ?>">
 <div class="navbar">

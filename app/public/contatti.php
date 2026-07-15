@@ -56,7 +56,7 @@ $pageUrl = siteUrl('/' . $userSlug . '/contatti');
 <meta property="og:title" content="Contatta <?= e($artist['display_name']) ?>">
 <meta property="og:url" content="<?= e($pageUrl) ?>">
 <link rel="canonical" href="<?= e($pageUrl) ?>">
-<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <style>:root { --accent: <?= e($artist['theme_color'] ?: '#6C5CE7') ?>; }</style>
 <?= embedPrivacyScript() ?>
 <?= embedTrackingHead() ?>
@@ -84,7 +84,6 @@ $pageUrl = siteUrl('/' . $userSlug . '/contatti');
   <?php endif; ?>
 </div>
 <?= renderFooterLinks() ?>
-<footer class="site">Pagina realizzata con <a href="/">myband.it</a></footer>
 <?= renderJoinBar() ?>
 </body>
 </html>

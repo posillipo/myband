@@ -227,7 +227,7 @@ body.colorful-page {
 .colorful-page { padding-bottom: 60px; } /* spazio per non far coprire il contenuto dalla barra fissa */
 
 /* Riga di link orizzontali nel footer (cookie, privacy, home) */
-.footer-links { margin-bottom: 8px; }
+.footer-links { margin-bottom: 8px; text-align: center; }
 .footer-links a { color: inherit; text-decoration: underline; }
 .footer-links span { opacity: 0.5; }
 

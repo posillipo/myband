@@ -12,6 +12,15 @@ function e(?string $s): string {
     return htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
 }
 
+// Aggiunge un parametro di versione basato sulla data di modifica del file (cache-busting),
+// così quando aggiorniamo il CSS il browser scarica sempre la versione corretta invece di
+// usare una copia vecchia in cache.
+function assetUrl(string $path): string {
+    $file = dirname(__DIR__) . '/public' . $path;
+    $v = @filemtime($file);
+    return $path . ($v ? ('?v=' . $v) : '');
+}
+
 function csrfToken(): string {
     if (empty($_SESSION['csrf'])) {
         $_SESSION['csrf'] = bin2hex(random_bytes(32));
