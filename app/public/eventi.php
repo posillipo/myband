@@ -60,6 +60,8 @@ $pageUrl = siteUrl('/' . $slug . '/eventi');
     </div>
   <?php endforeach; ?>
 </div>
+<?= renderFooterLinks() ?>
 <footer class="site">Pagina realizzata con <a href="/">myband.it</a></footer>
+<?= renderJoinBar() ?>
 </body>
 </html>

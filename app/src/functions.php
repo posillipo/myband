@@ -228,26 +228,54 @@ function publicNav(string $slug, string $active): string {
     ];
     $parts = [];
     foreach ($tabs as $key => $t) {
-        $activeAttr = $key === $active ? ' style="font-weight:900;text-decoration:underline;"' : '';
+        // La voce della pagina attiva è bianca, per distinguersi visivamente dalle altre
+        $activeAttr = $key === $active ? ' style="font-weight:900;color:#fff;"' : '';
         $parts[] = '<a href="' . e($t['url']) . '"' . $activeAttr . '>' . e($t['label']) . '</a>';
     }
     return '<p class="colorful-nav" style="margin-top:10px;">' . implode('<span> | </span>', $parts) . '</p>';
 }
 
 // Blocco identità condiviso (avatar + nome + eventuale bio + menu) stampato in cima ad ogni
-// pagina pubblica dell'artista (home, blog, brani, eventi, contatti), per un aspetto coerente
+// pagina pubblica dell'artista (home, blog, brani, eventi, contatti), per un aspetto coerente.
+// La bio, quando presente, è mostrata come vignetta al passaggio del mouse sull'avatar (non più
+// come testo sempre visibile), per un profilo più compatto.
 function publicProfileHeader(array $artist, string $active, bool $showBio = false): string {
     $html = '<div class="profile-header">';
     if (!empty($artist['avatar_path'])) {
+        $html .= '<div class="avatar-wrap">';
         $html .= '<img class="avatar" src="/' . e($artist['avatar_path']) . '" alt="' . e($artist['display_name']) . '">';
-    }
-    $html .= '<h1>' . e($artist['display_name']) . '</h1>';
-    if ($showBio && !empty($artist['bio'])) {
+        if ($showBio && !empty($artist['bio'])) {
+            $html .= '<div class="avatar-bio-tooltip">' . nl2br(e($artist['bio'])) . '</div>';
+        }
+        $html .= '</div>';
+    } elseif ($showBio && !empty($artist['bio'])) {
+        // Senza avatar non c'è nulla su cui fare hover: la bio resta visibile come testo normale
         $html .= '<p>' . nl2br(e($artist['bio'])) . '</p>';
     }
+    $html .= '<h1>' . e($artist['display_name']) . '</h1>';
     $html .= publicNav($artist['slug'], $active);
     $html .= '</div>';
     return $html;
+}
+
+// Barra fissa in fondo alla pagina che invita alla registrazione, presente su tutte le pagine
+// pubbliche del sito.
+function renderJoinBar(): string {
+    return '<a href="/register.php" class="join-bar">Unisciti a myBand</a>';
+}
+
+// Riga di link orizzontali nel footer: preferenze cookie, privacy, link alla home myband.it
+function renderFooterLinks(): string {
+    $privacyUrl = getSiteSetting('privacy_policy_url') ?: '';
+    $parts = [];
+    $parts[] = '<a href="#" onclick="if(window._iub &amp;&amp; window._iub.cs &amp;&amp; window._iub.cs.api){window._iub.cs.api.openPreferences();}return false;">Preferenze Cookie</a>';
+    if ($privacyUrl !== '') {
+        $parts[] = '<a href="' . e($privacyUrl) . '" target="_blank" rel="noopener">Privacy</a>';
+    } else {
+        $parts[] = '<a href="/">Privacy</a>';
+    }
+    $parts[] = '<a href="/">myBand</a>';
+    return '<div class="footer-links">' . implode('<span> · </span>', $parts) . '</div>';
 }
 
 // Legge la configurazione SMTP: priorità alle impostazioni salvate dall'admin nel database,

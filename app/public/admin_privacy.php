@@ -12,6 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'save_privacy') {
         setSiteSetting('privacy_script', $_POST['privacy_script'] ?? '');
+        setSiteSetting('privacy_policy_url', trim($_POST['privacy_policy_url'] ?? ''));
         $success = 'Script privacy aggiornato. Sarà visibile su tutte le pagine pubbliche entro pochi secondi.';
     } elseif ($action === 'save_ga') {
         $gaId = trim($_POST['ga_measurement_id'] ?? '');
@@ -23,6 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $currentScript = getSiteSetting('privacy_script') ?: '';
+$privacyPolicyUrl = getSiteSetting('privacy_policy_url') ?: '';
 $gaId = getSiteSetting('ga_measurement_id') ?: '';
 
 include __DIR__ . '/_admin_header.php';
@@ -44,6 +46,8 @@ include __DIR__ . '/_admin_header.php';
     <input type="hidden" name="action" value="save_privacy">
     <label>Script privacy / cookie (HTML/JS fornito dal servizio esterno)</label>
     <textarea name="privacy_script" rows="10" placeholder="&lt;script type=&quot;text/javascript&quot;&gt;...&lt;/script&gt;"><?= e($currentScript) ?></textarea>
+    <label>URL della tua Privacy Policy (per il link "Privacy" nel footer delle pagine pubbliche)</label>
+    <input type="url" name="privacy_policy_url" value="<?= e($privacyPolicyUrl) ?>" placeholder="https://www.iubenda.com/privacy-policy/...">
     <button type="submit" class="btn">Salva script</button>
   </form>
 

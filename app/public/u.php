@@ -87,6 +87,8 @@ $ogDescription = $artist['bio'] ? textExcerpt($artist['bio']) : ('La pagina di '
     <?php endforeach; ?>
   <?php endif; ?>
 </div>
+<?= renderFooterLinks() ?>
 <footer class="site">Pagina realizzata con <a href="/">myband.it</a></footer>
+<?= renderJoinBar() ?>
 </body>
 </html>

@@ -78,6 +78,8 @@ $ogImage = $post['avatar_path'] ? siteUrl($post['avatar_path']) : null;
     <small style="color:rgba(34,34,59,0.75);"><?= e($permalink) ?></small>
   </div>
 </div>
+<?= renderFooterLinks() ?>
 <footer class="site">Pagina realizzata con <a href="/">myband.it</a></footer>
+<?= renderJoinBar() ?>
 </body>
 </html>

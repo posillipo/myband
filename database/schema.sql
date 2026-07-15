@@ -114,3 +114,4 @@ INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('smtp_from
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('smtp_from_name', 'myband.it');
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('smtp_verify_cert', '1');
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('ga_measurement_id', '');
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('privacy_policy_url', '');

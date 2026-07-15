@@ -70,6 +70,11 @@ CREATE TABLE IF NOT EXISTS remember_tokens (
 ) ENGINE=InnoDB;
 ```
 
+## 10. URL Privacy Policy per il footer pubblico
+```sql
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('privacy_policy_url', '');
+```
+
 ---
 
 ## Come aggiungere una nuova voce

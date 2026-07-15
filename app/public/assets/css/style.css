@@ -176,6 +176,61 @@ body.colorful-page {
 .colorful-page .profile-header h1 { color: #22223b; font-size: 28px; font-weight: 800; }
 .colorful-page .profile-header p { color: rgba(34,34,59,0.75); }
 
+/* Vignetta con la bio, visibile passando il mouse sull'avatar */
+.avatar-wrap { position: relative; display: inline-block; }
+.avatar-bio-tooltip {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 12px;
+  width: 280px;
+  max-width: 80vw;
+  background: #fff;
+  color: #22223b;
+  padding: 14px 16px;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  font-size: 14px;
+  line-height: 1.5;
+  z-index: 20;
+  text-align: left;
+}
+.avatar-bio-tooltip::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-bottom-color: #fff;
+}
+.avatar-wrap:hover .avatar-bio-tooltip,
+.avatar-wrap:focus-within .avatar-bio-tooltip { display: block; }
+
+/* Barra fissa "Unisciti a myBand" sempre visibile in fondo alla pagina */
+.join-bar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  display: block;
+  text-align: center;
+  background: var(--accent, #6C5CE7);
+  color: #fff;
+  font-weight: 700;
+  padding: 14px 20px;
+  text-decoration: none;
+  z-index: 50;
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.15);
+}
+.join-bar:hover { opacity: 0.92; color: #fff; }
+.colorful-page { padding-bottom: 60px; } /* spazio per non far coprire il contenuto dalla barra fissa */
+
+/* Riga di link orizzontali nel footer (cookie, privacy, home) */
+.footer-links { margin-bottom: 8px; }
+.footer-links a { color: inherit; text-decoration: underline; }
+.footer-links span { opacity: 0.5; }
+
 .colorful-nav a { color: #22223b; font-weight: 700; }
 .colorful-nav span { color: rgba(34,34,59,0.5); }
 

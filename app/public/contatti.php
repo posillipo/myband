@@ -83,6 +83,8 @@ $pageUrl = siteUrl('/' . $userSlug . '/contatti');
     </form>
   <?php endif; ?>
 </div>
+<?= renderFooterLinks() ?>
 <footer class="site">Pagina realizzata con <a href="/">myband.it</a></footer>
+<?= renderJoinBar() ?>
 </body>
 </html>
