@@ -13,19 +13,20 @@ Se l'SMTP non è configurato, non si rompe nulla: i messaggi di contatto restano
 dashboard, e per gli account nuovi serve la verifica manuale da Area Admin finché non attivi
 l'invio automatico.
 
-## Provider consigliato: SendPulse (o altro servizio email transazionale)
+## Provider attivo: SendPulse ✅
 
-Un servizio come SendPulse, Brevo o Mailgun è preferibile a una casella email generica su
-hosting condiviso, perché pensato per invio automatico da applicazioni e funziona su porte
-standard non bloccate dai provider cloud:
+Configurato e funzionante in produzione (email transazionali approvate da SendPulse). Valori
+usati:
 ```
-Host:     smtp-pulse.com  (o quello indicato dal tuo provider)
-Porta:    587
+Host:     smtp-pulse.com
+Porta:    587 (o 2525, entrambe supportate)
 Tipo:     TLS
-Username: (login SMTP dedicato generato dal pannello del provider — spesso diverso dall'email
-           di accesso all'account)
-Password: (generata dal pannello)
+Username: login SMTP dedicato generato da SendPulse (diverso dall'email dell'account)
+Password: generata dal pannello SendPulse
 ```
+
+Se in futuro si cambia provider (Brevo, Mailgun, o altro), lo stesso pattern si applica: basta
+sostituire i 4 valori in Area Admin → Email/SMTP, nessuna modifica al codice necessaria.
 
 ## Opzione "Verifica il certificato SSL del server"
 
