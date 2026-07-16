@@ -1,6 +1,9 @@
 <?php
 // Incluso da tutte le pagine dashboard_*. Richiede $user già caricato e $activeTab impostato.
-$dashTheme = ($user['dashboard_theme'] ?? 'dark') === 'light' ? 'light-theme' : '';
+// Nota: il tema è sempre "chiaro" per scelta di prodotto attuale. La colonna dashboard_theme
+// resta nel database per un'eventuale reintroduzione futura della scelta, ma non viene più
+// letta qui.
+$dashTheme = 'light-theme';
 ?>
 <!doctype html>
 <html lang="it">
@@ -8,6 +11,7 @@ $dashTheme = ($user['dashboard_theme'] ?? 'dark') === 'light' ? 'light-theme' : 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= e($pageTitle ?? 'Dashboard') ?> — myband.it</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 </head>
 <body class="<?= e($dashTheme) ?>">

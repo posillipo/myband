@@ -12,7 +12,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $displayName = trim($_POST['display_name'] ?? '');
     $bio = trim($_POST['bio'] ?? '');
     $themeColor = trim($_POST['theme_color'] ?? '#6C5CE7');
-    $dashboardTheme = ($_POST['dashboard_theme'] ?? 'dark') === 'light' ? 'light' : 'dark';
     $avatarPath = $user['avatar_path'];
 
     if (!empty($_FILES['avatar']['name'])) {
@@ -29,8 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$error) {
-        $stmt = getDB()->prepare('UPDATE profiles SET display_name=?, bio=?, avatar_path=?, theme_color=?, dashboard_theme=? WHERE user_id=?');
-        $stmt->execute([$displayName, $bio, $avatarPath, $themeColor, $dashboardTheme, $user['id']]);
+        $stmt = getDB()->prepare('UPDATE profiles SET display_name=?, bio=?, avatar_path=?, theme_color=? WHERE user_id=?');
+        $stmt->execute([$displayName, $bio, $avatarPath, $themeColor, $user['id']]);
         $success = 'Profilo aggiornato.';
         $user = currentUser();
     }
@@ -51,12 +50,6 @@ include __DIR__ . '/_dash_header.php';
 
     <label>Colore tema (pagina pubblica)</label>
     <input type="color" name="theme_color" value="<?= e($user['theme_color'] ?? '#6C5CE7') ?>" style="width:80px;height:44px;padding:4px;">
-
-    <label>Tema della tua dashboard</label>
-    <select name="dashboard_theme">
-      <option value="dark" <?= ($user['dashboard_theme'] ?? 'dark') === 'dark' ? 'selected' : '' ?>>Scuro</option>
-      <option value="light" <?= ($user['dashboard_theme'] ?? 'dark') === 'light' ? 'selected' : '' ?>>Chiaro</option>
-    </select>
 
     <label>Foto profilo</label>
     <?php if ($user['avatar_path']): ?>

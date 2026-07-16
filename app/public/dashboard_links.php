@@ -20,6 +20,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $error = 'Inserisci un\'etichetta e un URL valido.';
         }
+    } elseif ($action === 'update_link') {
+        $id = (int) ($_POST['id'] ?? 0);
+        $label = trim($_POST['label'] ?? '');
+        $url = trim($_POST['url'] ?? '');
+        $isWebsite = isset($_POST['is_website_icon']) ? 1 : 0;
+        if ($label !== '' && filter_var($url, FILTER_VALIDATE_URL)) {
+            $stmt = getDB()->prepare('UPDATE links SET label=?, url=?, is_website_icon=? WHERE id=? AND user_id=?');
+            $stmt->execute([$label, $url, $isWebsite, $id, $user['id']]);
+        } else {
+            header('Location: /dashboard_links.php?edit=' . $id . '&error=1');
+            exit;
+        }
     } elseif ($action === 'toggle_website') {
         $id = (int) ($_POST['id'] ?? 0);
         $stmt = getDB()->prepare('UPDATE links SET is_website_icon = NOT is_website_icon WHERE id=? AND user_id=?');
@@ -59,10 +71,40 @@ $stmt = getDB()->prepare('SELECT * FROM links WHERE user_id=? ORDER BY sort_orde
 $stmt->execute([$user['id']]);
 $links = $stmt->fetchAll();
 
+// Modalità modifica: se è presente ?edit=ID, precarichiamo quel link nel form al posto di "Aggiungi"
+$editingLink = null;
+$editId = (int) ($_GET['edit'] ?? 0);
+if ($editId > 0) {
+    foreach ($links as $l) {
+        if ((int)$l['id'] === $editId) { $editingLink = $l; break; }
+    }
+}
+
 include __DIR__ . '/_dash_header.php';
 ?>
   <?php if ($error): ?><div class="alert error"><?= e($error) ?></div><?php endif; ?>
+  <?php if (isset($_GET['error'])): ?><div class="alert error">Inserisci un'etichetta e un URL valido.</div><?php endif; ?>
 
+  <?php if ($editingLink): ?>
+  <form method="post" class="card">
+    <?= csrfField() ?>
+    <input type="hidden" name="action" value="update_link">
+    <input type="hidden" name="id" value="<?= (int)$editingLink['id'] ?>">
+    <strong>Modifica link</strong>
+    <label>Etichetta</label>
+    <input type="text" name="label" value="<?= e($editingLink['label']) ?>" required>
+    <label>URL</label>
+    <input type="url" name="url" value="<?= e($editingLink['url']) ?>" required>
+    <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+      <input type="checkbox" name="is_website_icon" value="1" style="width:auto;" <?= !empty($editingLink['is_website_icon']) ? 'checked' : '' ?>>
+      È il tuo sito web personale? (comparirà come icona "sito web" invece di pulsante)
+    </label>
+    <div style="display:flex;gap:8px;">
+      <button type="submit" class="btn">Salva modifiche</button>
+      <a href="/dashboard_links.php" class="btn secondary">Annulla</a>
+    </div>
+  </form>
+  <?php else: ?>
   <form method="post" class="card">
     <?= csrfField() ?>
     <input type="hidden" name="action" value="add">
@@ -76,47 +118,50 @@ include __DIR__ . '/_dash_header.php';
     </label>
     <button type="submit" class="btn">Aggiungi link</button>
   </form>
+  <?php endif; ?>
 
   <div class="section-title">I tuoi link (<?= count($links) ?>)</div>
   <p style="color:var(--text-muted);font-size:13px;">
     Le icone (Spotify, Apple Music, Instagram, Facebook, TikTok, YouTube, LinkedIn, SoundCloud,
     WhatsApp, sito web) vengono riconosciute automaticamente e mostrate in cima alla pagina
     pubblica — solo la <strong>prima</strong> di ciascun tipo, seguendo l'ordine in cui i link
-    compaiono qui sotto; eventuali duplicati restano tra i pulsanti. Usa le frecce ▲▼ per
-    decidere l'ordine.
+    compaiono qui sotto; eventuali duplicati restano tra i pulsanti. Usa le frecce per decidere
+    l'ordine.
   </p>
   <?php foreach ($links as $i => $l): ?>
     <div class="link-item">
       <div>
         <strong><?= e($l['label']) ?></strong>
         <?php if (!empty($l['is_website_icon'])): ?><span style="color:var(--accent);font-size:12px;"> · icona sito web</span><?php endif; ?>
+        <?php if (!$l['is_active']): ?><span style="color:#ff8a8a;font-size:12px;"> · nascosto</span><?php endif; ?>
         <br>
         <small style="color:var(--text-muted)"><?= e($l['url']) ?> · <?= (int)$l['click_count'] ?> click</small>
       </div>
-      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-        <form method="post">
+      <div class="icon-btn-group">
+        <form method="post" title="Sposta su">
           <?= csrfField() ?>
           <input type="hidden" name="action" value="move_up">
           <input type="hidden" name="id" value="<?= (int)$l['id'] ?>">
-          <button class="btn small secondary" type="submit" <?= $i === 0 ? 'disabled style="opacity:.3;cursor:default;"' : '' ?>>▲</button>
+          <button class="icon-btn" type="submit" <?= $i === 0 ? 'disabled' : '' ?>><i class="fa-solid fa-chevron-up"></i></button>
         </form>
-        <form method="post">
+        <form method="post" title="Sposta giù">
           <?= csrfField() ?>
           <input type="hidden" name="action" value="move_down">
           <input type="hidden" name="id" value="<?= (int)$l['id'] ?>">
-          <button class="btn small secondary" type="submit" <?= $i === count($links) - 1 ? 'disabled style="opacity:.3;cursor:default;"' : '' ?>>▼</button>
+          <button class="icon-btn" type="submit" <?= $i === count($links) - 1 ? 'disabled' : '' ?>><i class="fa-solid fa-chevron-down"></i></button>
         </form>
-        <form method="post">
+        <a class="icon-btn" href="/dashboard_links.php?edit=<?= (int)$l['id'] ?>" title="Modifica"><i class="fa-solid fa-pen"></i></a>
+        <form method="post" title="<?= $l['is_active'] ? 'Nascondi' : 'Mostra' ?>">
           <?= csrfField() ?>
           <input type="hidden" name="action" value="toggle">
           <input type="hidden" name="id" value="<?= (int)$l['id'] ?>">
-          <button class="btn small secondary" type="submit"><?= $l['is_active'] ? 'Nascondi' : 'Mostra' ?></button>
+          <button class="icon-btn" type="submit"><i class="fa-solid <?= $l['is_active'] ? 'fa-eye' : 'fa-eye-slash' ?>"></i></button>
         </form>
-        <form method="post" onsubmit="return confirm('Eliminare questo link?');">
+        <form method="post" onsubmit="return confirm('Eliminare questo link?');" title="Elimina">
           <?= csrfField() ?>
           <input type="hidden" name="action" value="delete">
           <input type="hidden" name="id" value="<?= (int)$l['id'] ?>">
-          <button class="btn small danger" type="submit">Elimina</button>
+          <button class="icon-btn danger" type="submit"><i class="fa-solid fa-trash"></i></button>
         </form>
       </div>
     </div>
