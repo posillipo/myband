@@ -33,6 +33,7 @@ $dashTheme = 'light-theme';
     <a href="/dashboard_events.php" class="<?= $activeTab==='events'?'active':'' ?>">Concerti</a>
     <a href="/dashboard_blog.php" class="<?= $activeTab==='blog'?'active':'' ?>">Blog</a>
     <a href="/dashboard_contacts.php" class="<?= $activeTab==='contacts'?'active':'' ?>">Contatti</a>
+    <a href="/dashboard_followers.php" class="<?= $activeTab==='followers'?'active':'' ?>">Follower</a>
     <a href="/dashboard_spotify.php" class="<?= $activeTab==='spotify'?'active':'' ?>">
       Spotify<?php if (!empty($user['spotify_artist_id'])): ?><span title="Profilo collegato" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#1DB954;margin-left:6px;"></span><?php endif; ?>
     </a>

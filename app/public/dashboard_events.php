@@ -21,6 +21,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $stmt = getDB()->prepare('INSERT INTO events (user_id, title, venue, city, event_date, ticket_url) VALUES (?,?,?,?,?,?)');
             $stmt->execute([$user['id'], $title, $venue ?: null, $city ?: null, $date, $ticketUrl ?: null]);
+
+            $eventsUrl = siteUrl('/' . $user['slug'] . '/eventi');
+            notifyFollowersNewContent((int)$user['id'], $user['display_name'], $user['slug'], 'evento', $title, $eventsUrl);
         }
     } elseif ($action === 'delete') {
         $id = (int) ($_POST['id'] ?? 0);

@@ -20,6 +20,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $excerpt = textExcerpt($content, 200);
             $stmt = getDB()->prepare('INSERT INTO blog_posts (user_id, title, slug, excerpt, content) VALUES (?,?,?,?,?)');
             $stmt->execute([$user['id'], $title, $slug, $excerpt, $content]);
+
+            $postUrl = siteUrl(blogPostUrl($user['slug'], ['published_at' => date('Y-m-d H:i:s'), 'slug' => $slug]));
+            notifyFollowersNewContent((int)$user['id'], $user['display_name'], $user['slug'], 'blog', $title, $postUrl);
         }
     } elseif ($action === 'delete') {
         $id = (int) ($_POST['id'] ?? 0);

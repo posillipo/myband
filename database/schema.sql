@@ -103,6 +103,20 @@ CREATE TABLE IF NOT EXISTS remember_tokens (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- Follower "leggeri" (solo email, nessun account) di un artista. Il token serve sia per
+-- confermare l'iscrizione (doppio opt-in anti-spam) sia, dopo la conferma, come link di
+-- disiscrizione in ogni email inviata — un solo utilizzo per entrambi gli scopi.
+CREATE TABLE IF NOT EXISTS followers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    email VARCHAR(190) NOT NULL,
+    verified TINYINT(1) NOT NULL DEFAULT 0,
+    token VARCHAR(64) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_user_email (user_id, email),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('privacy_script', '');
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('gtm_head_script', '');
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('gtm_body_script', '');

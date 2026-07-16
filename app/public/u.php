@@ -31,6 +31,10 @@ $ogDescription = $artist['bio'] ? textExcerpt($artist['bio']) : ('La pagina di '
 // Separiamo i link riconosciuti come social (icona tonda in alto, una sola per piattaforma)
 // dagli altri (pulsante colorato grande) — include eventuali social ripetuti
 [$socialLinks, $actionLinks] = splitSocialAndActionLinks($links);
+
+$followerCount = getFollowerCount($uid);
+$followMsg = $_GET['follow_msg'] ?? '';
+$followErr = ($_GET['follow_err'] ?? '0') === '1';
 ?>
 <!doctype html>
 <html lang="it">
@@ -69,6 +73,26 @@ $ogDescription = $artist['bio'] ? textExcerpt($artist['bio']) : ('La pagina di '
 <?= embedTrackingBodyStart() ?>
 <div class="container">
   <?= publicProfileHeader($artist, 'home', true) ?>
+
+  <?php if ($followMsg): ?>
+    <div class="alert <?= $followErr ? 'error' : 'success' ?>"><?= e($followMsg) ?></div>
+  <?php endif; ?>
+
+  <div class="card" style="text-align:center;">
+    <form method="post" action="/follow.php" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center;">
+      <?= csrfField() ?>
+      <input type="hidden" name="slug" value="<?= e($slug) ?>">
+      <input type="email" name="email" placeholder="La tua email" required style="flex:1;min-width:180px;max-width:280px;margin-bottom:0;">
+      <button type="submit" class="btn">Segui <?= e($artist['display_name']) ?></button>
+    </form>
+    <p style="color:rgba(34,34,59,0.7);font-size:13px;margin-top:10px;margin-bottom:0;">
+      <?php if ($followerCount > 0): ?>
+        <?= $followerCount ?> <?= $followerCount === 1 ? 'persona segue' : 'persone seguono' ?> questo artista
+      <?php else: ?>
+        Ricevi una notifica quando pubblica novità
+      <?php endif; ?>
+    </p>
+  </div>
 
   <?php if ($socialLinks): ?>
     <div class="social-icons-row">

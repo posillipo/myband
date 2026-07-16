@@ -384,6 +384,72 @@ function embedTrackingBodyStart(): string {
     return getSiteSetting('gtm_body_script') ?: '';
 }
 
+// ===== Sistema "Segui via email" =====
+
+function getFollowerCount(int $artistUserId): int {
+    $stmt = getDB()->prepare('SELECT COUNT(*) c FROM followers WHERE user_id = ? AND verified = 1');
+    $stmt->execute([$artistUserId]);
+    return (int) $stmt->fetch()['c'];
+}
+
+// Invia l'email di conferma iscrizione (doppio opt-in, anti-spam). Se l'SMTP non è
+// configurato, non fa nulla (nessun errore).
+function notifyFollowConfirmation(string $toEmail, string $artistName, string $token, string $confirmUrl): bool {
+    $cfg = getSmtpConfig();
+    if (!$cfg['host']) {
+        return false;
+    }
+    require_once __DIR__ . '/mailer.php';
+    $mailer = new SimpleSmtpMailer($cfg['host'], $cfg['port'], $cfg['user'], $cfg['pass'], $cfg['secure'], $cfg['verifyCert']);
+
+    $subject = "Conferma: segui {$artistName} su myband.it";
+    $body = "Ciao,\n\n"
+          . "Hai chiesto di seguire {$artistName} su myband.it. Conferma cliccando questo link:\n\n"
+          . "{$confirmUrl}\n\n"
+          . "Da quel momento riceverai un'email quando {$artistName} pubblica un nuovo articolo\n"
+          . "o annuncia un nuovo concerto.\n\n"
+          . "Se non hai richiesto tu questa iscrizione, ignora pure questa email: non verrà\n"
+          . "attivata alcuna iscrizione senza la tua conferma.";
+
+    return $mailer->send($cfg['from'], $cfg['fromName'], $toEmail, $toEmail, $subject, $body);
+}
+
+// Notifica tutti i follower verificati di un artista quando pubblica un nuovo contenuto
+// (articolo blog o evento). "Best effort": eventuali errori di invio ai singoli indirizzi non
+// bloccano gli altri né l'operazione che ha generato la notifica (pubblicare un post/evento
+// resta valida anche se le email non partissero per qualche motivo).
+function notifyFollowersNewContent(int $artistUserId, string $artistName, string $artistSlug, string $type, string $title, string $contentUrl): void {
+    $cfg = getSmtpConfig();
+    if (!$cfg['host']) {
+        return;
+    }
+    $stmt = getDB()->prepare('SELECT email, token FROM followers WHERE user_id = ? AND verified = 1');
+    $stmt->execute([$artistUserId]);
+    $followers = $stmt->fetchAll();
+    if (!$followers) {
+        return;
+    }
+
+    require_once __DIR__ . '/mailer.php';
+    $mailer = new SimpleSmtpMailer($cfg['host'], $cfg['port'], $cfg['user'], $cfg['pass'], $cfg['secure'], $cfg['verifyCert']);
+
+    $label = $type === 'evento' ? 'un nuovo concerto' : 'un nuovo articolo';
+    $subject = "{$artistName} ha pubblicato {$label} su myband.it";
+
+    foreach ($followers as $f) {
+        $unsubscribeUrl = siteUrl('/follow_unsubscribe.php?token=' . $f['token']);
+        $body = "Ciao,\n\n"
+              . "{$artistName} ha appena pubblicato {$label}:\n\n"
+              . "\"{$title}\"\n\n"
+              . "Vai a vederlo qui: {$contentUrl}\n\n"
+              . "---\n"
+              . "Ricevi questa email perché segui {$artistName} su myband.it.\n"
+              . "Per non ricevere più queste notifiche: {$unsubscribeUrl}";
+
+        $mailer->send($cfg['from'], $cfg['fromName'], $f['email'], $f['email'], $subject, $body);
+    }
+}
+
 function slugExists(string $slug): bool {
     $stmt = getDB()->prepare('SELECT id FROM users WHERE slug = ?');
     $stmt->execute([$slug]);
@@ -396,7 +462,7 @@ const RESERVED_SLUGS = ['login','register','logout','dashboard','dashboard_profi
     'dashboard_contacts','u','index','assets','uploads','blog','contatti','link',
     'admin','admin_users','admin_user_detail','admin_privacy','brani','eventi',
     'verify','resend_verification','admin_dashboard','admin_user_edit','admin_contacts','admin_tracking','admin_smtp',
-    'admin_spotify','dashboard_spotify'];
+    'admin_spotify','dashboard_spotify','follow','follow_confirm','follow_unsubscribe','dashboard_followers'];
 
 // Genera uno slug univoco per un articolo di un dato utente (title -> slug, con suffisso -2, -3... se già esistente)
 function generateUniquePostSlug(int $userId, string $title, ?int $excludePostId = null): string {
