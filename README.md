@@ -120,3 +120,21 @@ docker compose exec db mysqldump -u root -p myband > backup_$(date +%F).sql
 - Statistiche dettagliate sui click (per link, per periodo)
 - Piano gratuito/premium con limiti su numero di brani/eventi
 - Invio email automatico (SMTP) quando arriva una richiesta di contatto
+
+## 9. Decisioni di prodotto scartate
+
+**Login con Spotify + rilevamento automatico del profilo artista** (valutato e scartato):
+- Non esiste nessuna API pubblica Spotify che colleghi un account personale (da ascoltatore,
+  usato per il login OAuth) al relativo profilo Artista — sono due sistemi verificati
+  separatamente da Spotify, e questo legame non è esposto agli sviluppatori terzi. L'automatismo
+  richiesto ("logout con Spotify → riconosce l'artista") non è quindi realizzabile
+- Il login OAuth con Spotify da solo sarebbe fattibile, ma le nuove app partono limitate a 25
+  utenti totali ("Development Mode"); sbloccare l'uso pubblico richiede una richiesta di
+  approvazione a Spotify ("Extended Quota") con tempi ed esito non garantiti
+- Alternativa valutata ma non implementata: ricerca/collegamento manuale del profilo artista
+  Spotify da parte del band manager (senza bisogno di OAuth utente, solo API di catalogo
+  pubblico) + pagina dedicata con la discografia. Tecnicamente più semplice e senza il problema
+  di quota, ma la richiesta complessiva è stata scartata prima di procedere allo sviluppo
+
+Se in futuro si torna a valutare questa funzionalità, l'analisi completa resta valida come
+punto di partenza — evita di rifare da zero la ricerca sui limiti dell'API Spotify.
