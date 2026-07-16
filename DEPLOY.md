@@ -68,6 +68,13 @@ non risponde, controlla i log. Errore 500 → probabile problema di connessione 
 entrambi i container risultino sulla stessa rete dello stack. Se persiste, verifica che
 `DB_HOST` nel `docker-compose.yml` corrisponda al `container_name` esatto del servizio db.
 
+**Errore 500 solo su un'azione specifica (es. salvare un nuovo link), mentre la lettura della
+pagina funziona**: quasi sempre significa che manca una migrazione SQL. Le pagine che leggono
+dati (`SELECT *`) non falliscono solo perché una colonna attesa dal codice non esiste ancora;
+le query che scrivono (`INSERT`/`UPDATE`) nominando quella colonna esplicitamente invece
+falliscono sempre. Controlla `MIGRAZIONI.md` per vedere se c'è un comando SQL in sospeso non
+ancora eseguito dopo l'ultimo redeploy.
+
 **Upload foto/audio fallisce** ("move_uploaded_file... No such file or directory"): il
 Dockerfile include un entrypoint (`docker-entrypoint-wrapper.sh`) che sistema automaticamente
 permessi e cartelle di `uploads/` ad ogni avvio — se il problema si ripresenta dopo un
