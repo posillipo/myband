@@ -75,6 +75,17 @@ CREATE TABLE IF NOT EXISTS remember_tokens (
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('privacy_policy_url', '');
 ```
 
+## 11. Integrazione Spotify (collegamento artista + credenziali API)
+```sql
+ALTER TABLE profiles
+  ADD COLUMN spotify_artist_id VARCHAR(50) DEFAULT NULL,
+  ADD COLUMN spotify_artist_name VARCHAR(200) DEFAULT NULL;
+
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES
+  ('spotify_client_id', ''), ('spotify_client_secret', ''),
+  ('spotify_app_token', ''), ('spotify_app_token_expires', '');
+```
+
 ---
 
 ## Come aggiungere una nuova voce

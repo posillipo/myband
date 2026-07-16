@@ -21,6 +21,8 @@ CREATE TABLE IF NOT EXISTS profiles (
     avatar_path VARCHAR(255),
     theme_color VARCHAR(7) DEFAULT '#6C5CE7',
     dashboard_theme VARCHAR(10) NOT NULL DEFAULT 'dark',
+    spotify_artist_id VARCHAR(50) DEFAULT NULL,
+    spotify_artist_name VARCHAR(200) DEFAULT NULL,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
@@ -115,3 +117,7 @@ INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('smtp_from
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('smtp_verify_cert', '1');
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('ga_measurement_id', '');
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('privacy_policy_url', '');
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('spotify_client_id', '');
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('spotify_client_secret', '');
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('spotify_app_token', '');
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('spotify_app_token_expires', '');

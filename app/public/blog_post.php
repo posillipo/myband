@@ -13,7 +13,7 @@ if (!preg_match('/^\d{4}\.\d{2}\.\d{2}\.(.+)$/', $postToken, $m)) {
 }
 $postSlug = $m[1];
 
-$stmt = getDB()->prepare('SELECT u.slug AS user_slug, p.display_name, p.avatar_path, p.theme_color, b.*
+$stmt = getDB()->prepare('SELECT u.slug AS user_slug, p.display_name, p.avatar_path, p.theme_color, p.spotify_artist_id, b.*
                           FROM blog_posts b
                           JOIN users u ON u.id = b.user_id
                           JOIN profiles p ON p.user_id = u.id
@@ -31,6 +31,7 @@ $artist = [
     'slug' => $userSlug,
     'display_name' => $post['display_name'],
     'avatar_path' => $post['avatar_path'],
+    'spotify_artist_id' => $post['spotify_artist_id'] ?? null,
 ];
 
 $permalink = siteUrl(blogPostUrl($userSlug, $post));

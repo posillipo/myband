@@ -20,5 +20,8 @@ RewriteRule ^([a-zA-Z0-9_-]+)/eventi/?$ eventi.php?slug=$1 [L,QSA]
 # /nomeartista/contatti -> form di contatto
 RewriteRule ^([a-zA-Z0-9_-]+)/contatti/?$ contatti.php?slug=$1 [L,QSA]
 
+# /nomeartista/spotify -> pagina discografia Spotify
+RewriteRule ^([a-zA-Z0-9_-]+)/spotify/?$ artist_spotify.php?slug=$1 [L,QSA]
+
 # /nomeartista -> pagina profilo pubblica (regola generica, deve restare per ultima)
 RewriteRule ^([a-zA-Z0-9_-]+)/?$ u.php?slug=$1 [L,QSA]

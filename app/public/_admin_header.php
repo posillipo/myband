@@ -1,12 +1,13 @@
 <?php
 // Incluso da tutte le pagine admin_*. Richiede $admin già caricato e $activeAdminTab impostato.
 $navItems = [
-    'dashboard' => ['url' => '/admin_dashboard.php', 'icon' => 'fa-gauge-high', 'label' => 'Dashboard'],
-    'users'     => ['url' => '/admin_users.php',     'icon' => 'fa-users',       'label' => 'Utenti iscritti'],
-    'contacts'  => ['url' => '/admin_contacts.php',  'icon' => 'fa-envelope',    'label' => 'Contatti ricevuti'],
-    'privacy'   => ['url' => '/admin_privacy.php',   'icon' => 'fa-shield-halved','label' => 'Privacy / Cookie'],
-    'tracking'  => ['url' => '/admin_tracking.php',  'icon' => 'fa-chart-line',  'label' => 'Tracking (GTM/Pixel)'],
-    'smtp'      => ['url' => '/admin_smtp.php',      'icon' => 'fa-paper-plane', 'label' => 'Email / SMTP'],
+    'dashboard' => ['url' => '/admin_dashboard.php', 'icon' => 'fas fa-gauge-high', 'label' => 'Dashboard'],
+    'users'     => ['url' => '/admin_users.php',     'icon' => 'fas fa-users',       'label' => 'Utenti iscritti'],
+    'contacts'  => ['url' => '/admin_contacts.php',  'icon' => 'fas fa-envelope',    'label' => 'Contatti ricevuti'],
+    'privacy'   => ['url' => '/admin_privacy.php',   'icon' => 'fas fa-shield-halved','label' => 'Privacy / Cookie'],
+    'tracking'  => ['url' => '/admin_tracking.php',  'icon' => 'fas fa-chart-line',  'label' => 'Tracking (GTM/Pixel)'],
+    'smtp'      => ['url' => '/admin_smtp.php',      'icon' => 'fas fa-paper-plane', 'label' => 'Email / SMTP'],
+    'spotify'   => ['url' => '/admin_spotify.php',   'icon' => 'fa-brands fa-spotify', 'label' => 'Spotify'],
 ];
 ?>
 <!doctype html>
@@ -86,7 +87,7 @@ $navItems = [
           <?php foreach ($navItems as $key => $item): ?>
             <li class="nav-item">
               <a href="<?= e($item['url']) ?>" class="nav-link <?= $activeAdminTab === $key ? 'active' : '' ?>">
-                <i class="nav-icon fas <?= e($item['icon']) ?>"></i>
+                <i class="nav-icon <?= e($item['icon']) ?>"></i>
                 <p><?= e($item['label']) ?></p>
               </a>
             </li>

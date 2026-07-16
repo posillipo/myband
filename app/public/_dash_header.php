@@ -33,4 +33,5 @@ $dashTheme = 'light-theme';
     <a href="/dashboard_events.php" class="<?= $activeTab==='events'?'active':'' ?>">Concerti</a>
     <a href="/dashboard_blog.php" class="<?= $activeTab==='blog'?'active':'' ?>">Blog</a>
     <a href="/dashboard_contacts.php" class="<?= $activeTab==='contacts'?'active':'' ?>">Contatti</a>
+    <a href="/dashboard_spotify.php" class="<?= $activeTab==='spotify'?'active':'' ?>">Spotify</a>
   </div>

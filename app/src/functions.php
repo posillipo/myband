@@ -227,7 +227,8 @@ function splitSocialAndActionLinks(array $links): array {
 const COLORFUL_PALETTE = ['#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF', '#A0C4FF', '#BDB2FF', '#FFC6FF', '#FFADAD'];
 
 // Menu di navigazione condiviso tra tutte le pagine pubbliche di un artista (Home | Blog | Brani | Eventi | Contatti)
-function publicNav(string $slug, string $active): string {
+// Il tab "Spotify" compare solo se l'artista ha collegato un profilo Spotify dalla dashboard.
+function publicNav(string $slug, string $active, bool $hasSpotify = false): string {
     $tabs = [
         'home'     => ['label' => 'Home', 'url' => '/' . $slug],
         'blog'     => ['label' => 'Blog', 'url' => '/' . $slug . '/blog'],
@@ -235,6 +236,9 @@ function publicNav(string $slug, string $active): string {
         'eventi'   => ['label' => 'Eventi', 'url' => '/' . $slug . '/eventi'],
         'contatti' => ['label' => 'Contatti', 'url' => '/' . $slug . '/contatti'],
     ];
+    if ($hasSpotify) {
+        $tabs['spotify'] = ['label' => 'Spotify', 'url' => '/' . $slug . '/spotify'];
+    }
     $parts = [];
     foreach ($tabs as $key => $t) {
         // La voce della pagina attiva è bianca, per distinguersi visivamente dalle altre
@@ -245,9 +249,9 @@ function publicNav(string $slug, string $active): string {
 }
 
 // Blocco identità condiviso (avatar + nome + eventuale bio + menu) stampato in cima ad ogni
-// pagina pubblica dell'artista (home, blog, brani, eventi, contatti), per un aspetto coerente.
-// La bio, quando presente, è mostrata come vignetta al passaggio del mouse sull'avatar (non più
-// come testo sempre visibile), per un profilo più compatto.
+// pagina pubblica dell'artista (home, blog, brani, eventi, contatti, spotify), per un aspetto
+// coerente. La bio, quando presente, è mostrata come vignetta al passaggio del mouse
+// sull'avatar (non più come testo sempre visibile), per un profilo più compatto.
 function publicProfileHeader(array $artist, string $active, bool $showBio = false): string {
     $html = '<div class="profile-header">';
     if (!empty($artist['avatar_path'])) {
@@ -262,7 +266,7 @@ function publicProfileHeader(array $artist, string $active, bool $showBio = fals
         $html .= '<p>' . nl2br(e($artist['bio'])) . '</p>';
     }
     $html .= '<h1>' . e($artist['display_name']) . '</h1>';
-    $html .= publicNav($artist['slug'], $active);
+    $html .= publicNav($artist['slug'], $active, !empty($artist['spotify_artist_id']));
     $html .= '</div>';
     return $html;
 }
@@ -391,7 +395,8 @@ const RESERVED_SLUGS = ['login','register','logout','dashboard','dashboard_profi
     'dashboard_links','dashboard_audio','dashboard_events','dashboard_blog',
     'dashboard_contacts','u','index','assets','uploads','blog','contatti','link',
     'admin','admin_users','admin_user_detail','admin_privacy','brani','eventi',
-    'verify','resend_verification','admin_dashboard','admin_user_edit','admin_contacts','admin_tracking','admin_smtp'];
+    'verify','resend_verification','admin_dashboard','admin_user_edit','admin_contacts','admin_tracking','admin_smtp',
+    'admin_spotify','dashboard_spotify'];
 
 // Genera uno slug univoco per un articolo di un dato utente (title -> slug, con suffisso -2, -3... se già esistente)
 function generateUniquePostSlug(int $userId, string $title, ?int $excludePostId = null): string {
