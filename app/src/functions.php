@@ -44,7 +44,7 @@ function currentUser(): ?array {
     if (empty($_SESSION['user_id'])) return null;
     static $cache = null;
     if ($cache !== null) return $cache;
-    $stmt = getDB()->prepare('SELECT u.*, p.display_name, p.bio, p.avatar_path, p.theme_color
+    $stmt = getDB()->prepare('SELECT u.*, p.display_name, p.bio, p.avatar_path, p.theme_color, p.spotify_artist_id, p.spotify_artist_name
                               FROM users u LEFT JOIN profiles p ON p.user_id = u.id
                               WHERE u.id = ?');
     $stmt->execute([$_SESSION['user_id']]);
