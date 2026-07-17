@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS audio_tracks (
     user_id INT NOT NULL,
     title VARCHAR(150) NOT NULL,
     file_path VARCHAR(255) NOT NULL,
+    cover_path VARCHAR(255) DEFAULT NULL,
     sort_order INT NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

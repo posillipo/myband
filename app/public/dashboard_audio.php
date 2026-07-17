@@ -26,8 +26,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $fname = 'u' . $user['id'] . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
                 $dest = __DIR__ . '/uploads/audio/' . $fname;
                 if (move_uploaded_file($_FILES['audio']['tmp_name'], $dest)) {
-                    $stmt = getDB()->prepare('INSERT INTO audio_tracks (user_id, title, file_path) VALUES (?,?,?)');
-                    $stmt->execute([$user['id'], $title, 'uploads/audio/' . $fname]);
+                    $coverPath = null;
+                    if (!empty($_FILES['cover']['name'])) {
+                        $coverExt = strtolower(pathinfo($_FILES['cover']['name'], PATHINFO_EXTENSION));
+                        if (in_array($coverExt, ['jpg','jpeg','png','webp'], true) && $_FILES['cover']['error'] === UPLOAD_ERR_OK) {
+                            $coverFname = 'cover_' . $user['id'] . '_' . bin2hex(random_bytes(6)) . '.' . $coverExt;
+                            if (move_uploaded_file($_FILES['cover']['tmp_name'], __DIR__ . '/uploads/images/' . $coverFname)) {
+                                $coverPath = 'uploads/images/' . $coverFname;
+                            }
+                        }
+                    }
+                    $stmt = getDB()->prepare('INSERT INTO audio_tracks (user_id, title, file_path, cover_path) VALUES (?,?,?,?)');
+                    $stmt->execute([$user['id'], $title, 'uploads/audio/' . $fname, $coverPath]);
                 } else {
                     $error = 'Impossibile salvare il file.';
                 }
@@ -35,10 +45,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } elseif ($action === 'delete') {
         $id = (int) ($_POST['id'] ?? 0);
-        $stmt = getDB()->prepare('SELECT file_path FROM audio_tracks WHERE id=? AND user_id=?');
+        $stmt = getDB()->prepare('SELECT file_path, cover_path FROM audio_tracks WHERE id=? AND user_id=?');
         $stmt->execute([$id, $user['id']]);
         if ($row = $stmt->fetch()) {
             @unlink(__DIR__ . '/' . $row['file_path']);
+            if ($row['cover_path']) {
+                @unlink(__DIR__ . '/' . $row['cover_path']);
+            }
             $stmt = getDB()->prepare('DELETE FROM audio_tracks WHERE id=? AND user_id=?');
             $stmt->execute([$id, $user['id']]);
         }
@@ -64,14 +77,23 @@ include __DIR__ . '/_dash_header.php';
     <input type="text" name="title" required>
     <label>File audio (mp3, wav, ogg, m4a — max 20MB)</label>
     <input type="file" name="audio" accept="audio/*" required>
+    <label>Copertina del brano (opzionale, jpg/png/webp)</label>
+    <input type="file" name="cover" accept="image/*">
     <button type="submit" class="btn">Carica brano</button>
   </form>
 
   <div class="section-title">I tuoi brani (<?= count($tracks) ?>)</div>
   <?php foreach ($tracks as $t): ?>
-    <div class="card">
-      <strong><?= e($t['title']) ?></strong>
-      <audio controls src="/<?= e($t['file_path']) ?>"></audio>
+    <div class="card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
+      <?php if ($t['cover_path']): ?>
+        <img src="/<?= e($t['cover_path']) ?>" style="width:64px;height:64px;border-radius:8px;object-fit:cover;flex-shrink:0;">
+      <?php else: ?>
+        <div style="width:64px;height:64px;border-radius:8px;background:#26262f;flex-shrink:0;"></div>
+      <?php endif; ?>
+      <div style="flex:1;min-width:200px;">
+        <strong><?= e($t['title']) ?></strong>
+        <audio controls src="/<?= e($t['file_path']) ?>" style="display:block;margin-top:6px;"></audio>
+      </div>
       <form method="post" onsubmit="return confirm('Eliminare questo brano?');">
         <?= csrfField() ?>
         <input type="hidden" name="action" value="delete">

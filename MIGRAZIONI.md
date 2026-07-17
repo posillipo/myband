@@ -117,6 +117,11 @@ Dopo questo comando, l'importazione vera e propria (1.835 record) si esegue da
 **Area Admin → Import legacy**, non via SQL diretto — legge il CSV incluso nel codice e crea gli
 account con `is_active = 0` (bloccati, non pubblici, finché non deciso come attivarli).
 
+## 14. Copertina brani audio
+```sql
+ALTER TABLE audio_tracks ADD COLUMN cover_path VARCHAR(255) DEFAULT NULL;
+```
+
 ---
 
 ## Come aggiungere una nuova voce

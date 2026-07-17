@@ -48,9 +48,19 @@ $pageUrl = siteUrl('/' . $slug . '/brani');
   <?php endif; ?>
 
   <?php foreach ($tracks as $t): ?>
-    <div class="card">
-      <strong><?= e($t['title']) ?></strong>
-      <audio controls src="/<?= e($t['file_path']) ?>"></audio>
+    <div class="card" style="display:flex;gap:14px;align-items:center;">
+      <?php if ($t['cover_path']): ?>
+        <img src="/<?= e($t['cover_path']) ?>" alt="<?= e($t['title']) ?>"
+             style="width:72px;height:72px;border-radius:10px;object-fit:cover;flex-shrink:0;">
+      <?php else: ?>
+        <div style="width:72px;height:72px;border-radius:10px;background:rgba(34,34,59,0.15);flex-shrink:0;"></div>
+      <?php endif; ?>
+      <div style="flex:1;min-width:0;">
+        <a href="/<?= e($slug) ?>/brani/<?= (int)$t['id'] ?>" style="font-weight:700;color:inherit;text-decoration:none;">
+          <?= e($t['title']) ?>
+        </a>
+        <audio controls src="/<?= e($t['file_path']) ?>" style="display:block;width:100%;margin-top:6px;"></audio>
+      </div>
     </div>
   <?php endforeach; ?>
 </div>
