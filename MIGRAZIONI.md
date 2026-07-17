@@ -129,6 +129,15 @@ ALTER TABLE blog_posts ADD COLUMN cover_path VARCHAR(255) DEFAULT NULL;
 ALTER TABLE events ADD COLUMN cover_path VARCHAR(255) DEFAULT NULL;
 ```
 
+## 16. Integrazione YouTube
+```sql
+ALTER TABLE profiles
+  ADD COLUMN youtube_channel_id VARCHAR(50) DEFAULT NULL,
+  ADD COLUMN youtube_channel_name VARCHAR(200) DEFAULT NULL;
+
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('youtube_api_key', '');
+```
+
 ---
 
 ## Come aggiungere una nuova voce

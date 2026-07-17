@@ -47,7 +47,7 @@ function currentUser(): ?array {
     if (empty($_SESSION['user_id'])) return null;
     static $cache = null;
     if ($cache !== null) return $cache;
-    $stmt = getDB()->prepare('SELECT u.*, p.display_name, p.bio, p.avatar_path, p.theme_color, p.spotify_artist_id, p.spotify_artist_name
+    $stmt = getDB()->prepare('SELECT u.*, p.display_name, p.bio, p.avatar_path, p.theme_color, p.spotify_artist_id, p.spotify_artist_name, p.youtube_channel_id, p.youtube_channel_name
                               FROM users u LEFT JOIN profiles p ON p.user_id = u.id
                               WHERE u.id = ?');
     $stmt->execute([$_SESSION['user_id']]);
@@ -231,12 +231,15 @@ const COLORFUL_PALETTE = ['#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF', '#A0C4FF',
 
 // Menu di navigazione condiviso tra tutte le pagine pubbliche di un artista (Home | Blog | Brani | Eventi | Contatti)
 // Il tab "Spotify" compare solo se l'artista ha collegato un profilo Spotify dalla dashboard.
-function publicNav(string $slug, string $active, bool $hasSpotify = false): string {
+function publicNav(string $slug, string $active, bool $hasSpotify = false, bool $hasYoutube = false): string {
     $tabs = [
         'home' => ['label' => 'Home', 'url' => '/' . $slug],
     ];
     if ($hasSpotify) {
         $tabs['spotify'] = ['label' => 'Spotify', 'url' => '/' . $slug . '/spotify'];
+    }
+    if ($hasYoutube) {
+        $tabs['video'] = ['label' => 'Video', 'url' => '/' . $slug . '/video'];
     }
     $tabs['blog'] = ['label' => 'Blog', 'url' => '/' . $slug . '/blog'];
     $tabs['brani'] = ['label' => 'Brani', 'url' => '/' . $slug . '/brani'];
@@ -270,7 +273,7 @@ function publicProfileHeader(array $artist, string $active, bool $showBio = fals
         $html .= '<p>' . nl2br(e($artist['bio'])) . '</p>';
     }
     $html .= '<h1>' . e($artist['display_name']) . '</h1>';
-    $html .= publicNav($artist['slug'], $active, !empty($artist['spotify_artist_id']));
+    $html .= publicNav($artist['slug'], $active, !empty($artist['spotify_artist_id']), !empty($artist['youtube_channel_id']));
     $html .= '</div>';
     return $html;
 }
@@ -493,7 +496,7 @@ const RESERVED_SLUGS = ['login','register','logout','dashboard','dashboard_profi
     'admin','admin_users','admin_user_detail','admin_privacy','brani','eventi',
     'verify','resend_verification','admin_dashboard','admin_user_edit','admin_contacts','admin_tracking','admin_smtp',
     'admin_spotify','dashboard_spotify','follow','follow_confirm','follow_unsubscribe','dashboard_followers',
-    'admin_import_legacy','admin_profiles','track','evento'];
+    'admin_import_legacy','admin_profiles','track','evento','admin_youtube','dashboard_youtube','video'];
 
 // Genera uno slug univoco per un articolo di un dato utente (title -> slug, con suffisso -2, -3... se già esistente)
 function generateUniquePostSlug(int $userId, string $title, ?int $excludePostId = null): string {

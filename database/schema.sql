@@ -26,6 +26,8 @@ CREATE TABLE IF NOT EXISTS profiles (
     dashboard_theme VARCHAR(10) NOT NULL DEFAULT 'dark',
     spotify_artist_id VARCHAR(50) DEFAULT NULL,
     spotify_artist_name VARCHAR(200) DEFAULT NULL,
+    youtube_channel_id VARCHAR(50) DEFAULT NULL,
+    youtube_channel_name VARCHAR(200) DEFAULT NULL,
     genere VARCHAR(100) DEFAULT NULL,
     citta VARCHAR(100) DEFAULT NULL,
     provincia VARCHAR(50) DEFAULT NULL,
@@ -143,6 +145,7 @@ INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('smtp_veri
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('ga_measurement_id', '');
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('privacy_policy_url', '');
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('spotify_client_id', '');
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('youtube_api_key', '');
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('spotify_client_secret', '');
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('spotify_app_token', '');
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('spotify_app_token_expires', '');

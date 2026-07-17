@@ -7,7 +7,7 @@ header('Pragma: no-cache');
 $slug = $_GET['slug'] ?? '';
 $eventId = (int) ($_GET['id'] ?? 0);
 
-$stmt = getDB()->prepare('SELECT u.slug, p.display_name, p.avatar_path, p.theme_color, p.spotify_artist_id, ev.*
+$stmt = getDB()->prepare('SELECT u.slug, p.display_name, p.avatar_path, p.theme_color, p.spotify_artist_id, p.youtube_channel_id, ev.*
                           FROM events ev
                           JOIN users u ON u.id = ev.user_id
                           JOIN profiles p ON p.user_id = u.id
@@ -25,6 +25,7 @@ $artist = [
     'display_name' => $event['display_name'],
     'avatar_path' => $event['avatar_path'],
     'spotify_artist_id' => $event['spotify_artist_id'],
+    'youtube_channel_id' => $event['youtube_channel_id'],
 ];
 
 $pageUrl = siteUrl('/' . $slug . '/eventi/' . $eventId);
