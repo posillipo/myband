@@ -463,7 +463,7 @@ const RESERVED_SLUGS = ['login','register','logout','dashboard','dashboard_profi
     'admin','admin_users','admin_user_detail','admin_privacy','brani','eventi',
     'verify','resend_verification','admin_dashboard','admin_user_edit','admin_contacts','admin_tracking','admin_smtp',
     'admin_spotify','dashboard_spotify','follow','follow_confirm','follow_unsubscribe','dashboard_followers',
-    'admin_import_legacy'];
+    'admin_import_legacy','admin_profiles'];
 
 // Genera uno slug univoco per un articolo di un dato utente (title -> slug, con suffisso -2, -3... se già esistente)
 function generateUniquePostSlug(int $userId, string $title, ?int $excludePostId = null): string {
