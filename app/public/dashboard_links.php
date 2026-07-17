@@ -15,8 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $url = trim($_POST['url'] ?? '');
         $isWebsite = isset($_POST['is_website_icon']) ? 1 : 0;
         if ($label !== '' && filter_var($url, FILTER_VALIDATE_URL)) {
-            $stmt = getDB()->prepare('INSERT INTO links (user_id, label, url, is_website_icon, sort_order) VALUES (?,?,?,?, (SELECT n FROM (SELECT COALESCE(MAX(sort_order),0)+1 AS n FROM links WHERE user_id=?) t))');
-            $stmt->execute([$user['id'], $label, $url, $isWebsite, $user['id']]);
+            $coverPath = handleCoverUpload((int) $user['id']);
+            $stmt = getDB()->prepare('INSERT INTO links (user_id, label, url, is_website_icon, cover_path, sort_order) VALUES (?,?,?,?,?, (SELECT n FROM (SELECT COALESCE(MAX(sort_order),0)+1 AS n FROM links WHERE user_id=?) t))');
+            $stmt->execute([$user['id'], $label, $url, $isWebsite, $coverPath, $user['id']]);
         } else {
             $error = 'Inserisci un\'etichetta e un URL valido.';
         }
@@ -26,8 +27,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $url = trim($_POST['url'] ?? '');
         $isWebsite = isset($_POST['is_website_icon']) ? 1 : 0;
         if ($label !== '' && filter_var($url, FILTER_VALIDATE_URL)) {
-            $stmt = getDB()->prepare('UPDATE links SET label=?, url=?, is_website_icon=? WHERE id=? AND user_id=?');
-            $stmt->execute([$label, $url, $isWebsite, $id, $user['id']]);
+            $newCover = handleCoverUpload((int) $user['id']);
+            if ($newCover) {
+                $stmt = getDB()->prepare('UPDATE links SET label=?, url=?, is_website_icon=?, cover_path=? WHERE id=? AND user_id=?');
+                $stmt->execute([$label, $url, $isWebsite, $newCover, $id, $user['id']]);
+            } else {
+                $stmt = getDB()->prepare('UPDATE links SET label=?, url=?, is_website_icon=? WHERE id=? AND user_id=?');
+                $stmt->execute([$label, $url, $isWebsite, $id, $user['id']]);
+            }
         } else {
             header('Location: /dashboard_links.php?edit=' . $id . '&error=1');
             exit;
@@ -38,6 +45,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$id, $user['id']]);
     } elseif ($action === 'delete') {
         $id = (int) ($_POST['id'] ?? 0);
+        $stmt = getDB()->prepare('SELECT cover_path FROM links WHERE id=? AND user_id=?');
+        $stmt->execute([$id, $user['id']]);
+        if ($row = $stmt->fetch()) {
+            deleteCoverFile($row['cover_path']);
+        }
         $stmt = getDB()->prepare('DELETE FROM links WHERE id=? AND user_id=?');
         $stmt->execute([$id, $user['id']]);
     } elseif ($action === 'toggle') {
@@ -86,7 +98,7 @@ include __DIR__ . '/_dash_header.php';
   <?php if (isset($_GET['error'])): ?><div class="alert error">Inserisci un'etichetta e un URL valido.</div><?php endif; ?>
 
   <?php if ($editingLink): ?>
-  <form method="post" class="card">
+  <form method="post" enctype="multipart/form-data" class="card">
     <?= csrfField() ?>
     <input type="hidden" name="action" value="update_link">
     <input type="hidden" name="id" value="<?= (int)$editingLink['id'] ?>">
@@ -95,7 +107,12 @@ include __DIR__ . '/_dash_header.php';
     <input type="text" name="label" value="<?= e($editingLink['label']) ?>" required>
     <label>URL</label>
     <input type="url" name="url" value="<?= e($editingLink['url']) ?>" required>
-    <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+    <label>Copertina quadrata (opzionale, jpg/png/webp)</label>
+    <?php if ($editingLink['cover_path']): ?>
+      <img src="/<?= e($editingLink['cover_path']) ?>" style="width:56px;height:56px;border-radius:8px;object-fit:cover;margin-bottom:8px;">
+    <?php endif; ?>
+    <input type="file" name="cover" accept="image/*">
+    <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;margin-top:10px;">
       <input type="checkbox" name="is_website_icon" value="1" style="width:auto;" <?= !empty($editingLink['is_website_icon']) ? 'checked' : '' ?>>
       È il tuo sito web personale? (comparirà come icona "sito web" invece di pulsante)
     </label>
@@ -105,14 +122,16 @@ include __DIR__ . '/_dash_header.php';
     </div>
   </form>
   <?php else: ?>
-  <form method="post" class="card">
+  <form method="post" enctype="multipart/form-data" class="card">
     <?= csrfField() ?>
     <input type="hidden" name="action" value="add">
     <label>Etichetta (es. "Ascolta su Spotify", "Instagram")</label>
     <input type="text" name="label" required>
     <label>URL</label>
     <input type="url" name="url" placeholder="https://..." required>
-    <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+    <label>Copertina quadrata (opzionale, jpg/png/webp)</label>
+    <input type="file" name="cover" accept="image/*">
+    <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;margin-top:10px;">
       <input type="checkbox" name="is_website_icon" value="1" style="width:auto;">
       È il tuo sito web personale? (comparirà come icona "sito web" invece di pulsante)
     </label>
@@ -130,12 +149,17 @@ include __DIR__ . '/_dash_header.php';
   </p>
   <?php foreach ($links as $i => $l): ?>
     <div class="link-item">
-      <div>
-        <strong><?= e($l['label']) ?></strong>
-        <?php if (!empty($l['is_website_icon'])): ?><span style="color:var(--accent);font-size:12px;"> · icona sito web</span><?php endif; ?>
-        <?php if (!$l['is_active']): ?><span style="color:#ff8a8a;font-size:12px;"> · nascosto</span><?php endif; ?>
-        <br>
-        <small style="color:var(--text-muted)"><?= e($l['url']) ?> · <?= (int)$l['click_count'] ?> click</small>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <?php if ($l['cover_path']): ?>
+          <img src="/<?= e($l['cover_path']) ?>" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;">
+        <?php endif; ?>
+        <div>
+          <strong><?= e($l['label']) ?></strong>
+          <?php if (!empty($l['is_website_icon'])): ?><span style="color:var(--accent);font-size:12px;"> · icona sito web</span><?php endif; ?>
+          <?php if (!$l['is_active']): ?><span style="color:#ff8a8a;font-size:12px;"> · nascosto</span><?php endif; ?>
+          <br>
+          <small style="color:var(--text-muted)"><?= e($l['url']) ?> · <?= (int)$l['click_count'] ?> click</small>
+        </div>
       </div>
       <div class="icon-btn-group">
         <form method="post" title="Sposta su">

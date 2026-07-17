@@ -147,7 +147,7 @@ include __DIR__ . '/_admin_header.php';
     </div>
   <?php endforeach; ?>
 
-  <div class="section-title">Concerti (<?= count($events) ?>)</div>
+  <div class="section-title">Eventi (<?= count($events) ?>)</div>
   <?php if (!$events): ?><div class="card">Nessun evento creato.</div><?php endif; ?>
   <?php foreach ($events as $ev): ?>
     <div class="event-item">

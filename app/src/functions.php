@@ -230,15 +230,16 @@ const COLORFUL_PALETTE = ['#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF', '#A0C4FF',
 // Il tab "Spotify" compare solo se l'artista ha collegato un profilo Spotify dalla dashboard.
 function publicNav(string $slug, string $active, bool $hasSpotify = false): string {
     $tabs = [
-        'home'     => ['label' => 'Home', 'url' => '/' . $slug],
-        'blog'     => ['label' => 'Blog', 'url' => '/' . $slug . '/blog'],
-        'brani'    => ['label' => 'Brani', 'url' => '/' . $slug . '/brani'],
-        'eventi'   => ['label' => 'Eventi', 'url' => '/' . $slug . '/eventi'],
-        'contatti' => ['label' => 'Contatti', 'url' => '/' . $slug . '/contatti'],
+        'home' => ['label' => 'Home', 'url' => '/' . $slug],
     ];
     if ($hasSpotify) {
         $tabs['spotify'] = ['label' => 'Spotify', 'url' => '/' . $slug . '/spotify'];
     }
+    $tabs['blog'] = ['label' => 'Blog', 'url' => '/' . $slug . '/blog'];
+    $tabs['brani'] = ['label' => 'Brani', 'url' => '/' . $slug . '/brani'];
+    $tabs['eventi'] = ['label' => 'Eventi', 'url' => '/' . $slug . '/eventi'];
+    $tabs['contatti'] = ['label' => 'Contatti', 'url' => '/' . $slug . '/contatti'];
+
     $parts = [];
     foreach ($tabs as $key => $t) {
         // La voce della pagina attiva è bianca, per distinguersi visivamente dalle altre
@@ -384,6 +385,32 @@ function embedTrackingBodyStart(): string {
     return getSiteSetting('gtm_body_script') ?: '';
 }
 
+// Gestisce l'upload di un'immagine di copertina (link, articoli blog, eventi). Restituisce il
+// percorso relativo salvato, o null se non è stato caricato nessun file valido. Non lancia mai
+// errori: un file mancante o non valido significa semplicemente "nessuna copertina".
+function handleCoverUpload(int $userId, string $fileInputName = 'cover'): ?string {
+    if (empty($_FILES[$fileInputName]['name'])) {
+        return null;
+    }
+    $ext = strtolower(pathinfo($_FILES[$fileInputName]['name'], PATHINFO_EXTENSION));
+    if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp'], true) || $_FILES[$fileInputName]['error'] !== UPLOAD_ERR_OK) {
+        return null;
+    }
+    $fname = 'cover_' . $userId . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
+    $dest = dirname(__DIR__) . '/public/uploads/images/' . $fname;
+    if (move_uploaded_file($_FILES[$fileInputName]['tmp_name'], $dest)) {
+        return 'uploads/images/' . $fname;
+    }
+    return null;
+}
+
+// Elimina il file di copertina dal disco, se presente (usato quando si elimina un link/post/evento)
+function deleteCoverFile(?string $coverPath): void {
+    if ($coverPath) {
+        @unlink(dirname(__DIR__) . '/public/' . $coverPath);
+    }
+}
+
 // ===== Sistema "Segui via email" =====
 
 function getFollowerCount(int $artistUserId): int {
@@ -463,7 +490,7 @@ const RESERVED_SLUGS = ['login','register','logout','dashboard','dashboard_profi
     'admin','admin_users','admin_user_detail','admin_privacy','brani','eventi',
     'verify','resend_verification','admin_dashboard','admin_user_edit','admin_contacts','admin_tracking','admin_smtp',
     'admin_spotify','dashboard_spotify','follow','follow_confirm','follow_unsubscribe','dashboard_followers',
-    'admin_import_legacy','admin_profiles','track'];
+    'admin_import_legacy','admin_profiles','track','evento'];
 
 // Genera uno slug univoco per un articolo di un dato utente (title -> slug, con suffisso -2, -3... se già esistente)
 function generateUniquePostSlug(int $userId, string $title, ?int $excludePostId = null): string {

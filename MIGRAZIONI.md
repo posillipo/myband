@@ -122,6 +122,13 @@ account con `is_active = 0` (bloccati, non pubblici, finché non deciso come att
 ALTER TABLE audio_tracks ADD COLUMN cover_path VARCHAR(255) DEFAULT NULL;
 ```
 
+## 15. Copertina per Link, Blog ed Eventi
+```sql
+ALTER TABLE links ADD COLUMN cover_path VARCHAR(255) DEFAULT NULL;
+ALTER TABLE blog_posts ADD COLUMN cover_path VARCHAR(255) DEFAULT NULL;
+ALTER TABLE events ADD COLUMN cover_path VARCHAR(255) DEFAULT NULL;
+```
+
 ---
 
 ## Come aggiungere una nuova voce

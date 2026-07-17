@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS links (
     label VARCHAR(120) NOT NULL,
     url VARCHAR(500) NOT NULL,
     icon VARCHAR(40) DEFAULT 'link',
+    cover_path VARCHAR(255) DEFAULT NULL,
     sort_order INT NOT NULL DEFAULT 0,
     click_count INT NOT NULL DEFAULT 0,
     is_active TINYINT(1) NOT NULL DEFAULT 1,
@@ -66,6 +67,7 @@ CREATE TABLE IF NOT EXISTS events (
     city VARCHAR(100),
     event_date DATETIME NOT NULL,
     ticket_url VARCHAR(500),
+    cover_path VARCHAR(255) DEFAULT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
@@ -76,6 +78,7 @@ CREATE TABLE IF NOT EXISTS blog_posts (
     slug VARCHAR(180) NOT NULL,
     excerpt VARCHAR(300),
     content TEXT NOT NULL,
+    cover_path VARCHAR(255) DEFAULT NULL,
     published_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     UNIQUE KEY uniq_user_slug (user_id, slug)

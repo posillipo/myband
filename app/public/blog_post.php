@@ -35,7 +35,7 @@ $artist = [
 ];
 
 $permalink = siteUrl(blogPostUrl($userSlug, $post));
-$ogImage = $post['avatar_path'] ? siteUrl($post['avatar_path']) : null;
+$ogImage = $post['cover_path'] ? siteUrl($post['cover_path']) : ($post['avatar_path'] ? siteUrl($post['avatar_path']) : null);
 ?>
 <!doctype html>
 <html lang="it">
@@ -52,9 +52,10 @@ $ogImage = $post['avatar_path'] ? siteUrl($post['avatar_path']) : null;
 <meta property="og:site_name" content="myband.it">
 <?php if ($ogImage): ?><meta property="og:image" content="<?= e($ogImage) ?>"><?php endif; ?>
 
-<meta name="twitter:card" content="summary">
+<meta name="twitter:card" content="<?= $ogImage ? 'summary_large_image' : 'summary' ?>">
 <meta name="twitter:title" content="<?= e($post['title']) ?>">
 <meta name="twitter:description" content="<?= e($post['excerpt'] ?: textExcerpt($post['content'])) ?>">
+<?php if ($ogImage): ?><meta name="twitter:image" content="<?= e($ogImage) ?>"><?php endif; ?>
 
 <link rel="canonical" href="<?= e($permalink) ?>">
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
@@ -69,6 +70,10 @@ $ogImage = $post['avatar_path'] ? siteUrl($post['avatar_path']) : null;
   <?= publicProfileHeader($artist, 'blog') ?>
 
   <article class="blog-item" style="border-bottom:none;">
+    <?php if ($post['cover_path']): ?>
+      <img src="/<?= e($post['cover_path']) ?>" alt="<?= e($post['title']) ?>"
+           style="width:100%;max-width:400px;display:block;margin:0 auto 16px;border-radius:14px;object-fit:cover;box-shadow:0 8px 24px rgba(0,0,0,0.15);">
+    <?php endif; ?>
     <div class="date"><?= date('d/m/Y', strtotime($post['published_at'])) ?></div>
     <h2><?= e($post['title']) ?></h2>
     <div><?= nl2br(e($post['content'])) ?></div>

@@ -27,9 +27,9 @@ $pageUrl = siteUrl('/' . $slug . '/eventi');
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Concerti di <?= e($artist['display_name']) ?> — myband.it</title>
+<title>Eventi di <?= e($artist['display_name']) ?> — myband.it</title>
 <meta property="og:type" content="website">
-<meta property="og:title" content="Concerti di <?= e($artist['display_name']) ?>">
+<meta property="og:title" content="Eventi di <?= e($artist['display_name']) ?>">
 <meta property="og:url" content="<?= e($pageUrl) ?>">
 <link rel="canonical" href="<?= e($pageUrl) ?>">
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
@@ -44,20 +44,23 @@ $pageUrl = siteUrl('/' . $slug . '/eventi');
   <?= publicProfileHeader($artist, 'eventi') ?>
 
   <?php if (!$events): ?>
-    <div class="card">Nessun concerto in programma al momento.</div>
+    <div class="card">Nessun evento in programma al momento.</div>
   <?php endif; ?>
 
-  <?php foreach ($events as $ev): ?>
-    <div class="event-item">
-      <div class="date"><?= date('d/m/Y H:i', strtotime($ev['event_date'])) ?></div>
-      <strong><?= e($ev['title']) ?></strong>
-      <?php if ($ev['venue'] || $ev['city']): ?>
-        <div style="color:rgba(34,34,59,0.75);"><?= e($ev['venue']) ?><?= $ev['venue'] && $ev['city'] ? ', ' : '' ?><?= e($ev['city']) ?></div>
+  <?php foreach ($events as $i => $ev): ?>
+    <a href="/<?= e($slug) ?>/eventi/<?= (int)$ev['id'] ?>" class="color-link-btn"
+       style="background:<?= e(COLORFUL_PALETTE[$i % count(COLORFUL_PALETTE)]) ?>; display:flex; align-items:center; gap:12px; text-align:left;">
+      <?php if ($ev['cover_path']): ?>
+        <img src="/<?= e($ev['cover_path']) ?>" style="width:56px;height:56px;border-radius:8px;object-fit:cover;flex-shrink:0;">
       <?php endif; ?>
-      <?php if ($ev['ticket_url']): ?>
-        <a href="<?= e($ev['ticket_url']) ?>" target="_blank">Biglietti →</a>
-      <?php endif; ?>
-    </div>
+      <span style="flex:1;min-width:0;">
+        <small style="display:block;opacity:.75;"><?= date('d/m/Y H:i', strtotime($ev['event_date'])) ?></small>
+        <strong style="display:block;"><?= e($ev['title']) ?></strong>
+        <?php if ($ev['venue'] || $ev['city']): ?>
+          <small style="opacity:.75;"><?= e($ev['venue']) ?><?= $ev['venue'] && $ev['city'] ? ', ' : '' ?><?= e($ev['city']) ?></small>
+        <?php endif; ?>
+      </span>
+    </a>
   <?php endforeach; ?>
 </div>
 <?= renderFooterLinks() ?>
