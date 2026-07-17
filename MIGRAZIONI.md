@@ -100,6 +100,23 @@ CREATE TABLE IF NOT EXISTS followers (
 ) ENGINE=InnoDB;
 ```
 
+## 13. Import dati legacy (vecchio myband.it)
+```sql
+ALTER TABLE users
+  ADD COLUMN legacy_gestore_id INT DEFAULT NULL,
+  ADD COLUMN legacy_band_id INT DEFAULT NULL,
+  ADD COLUMN legacy_stato VARCHAR(20) DEFAULT NULL;
+
+ALTER TABLE profiles
+  ADD COLUMN genere VARCHAR(100) DEFAULT NULL,
+  ADD COLUMN citta VARCHAR(100) DEFAULT NULL,
+  ADD COLUMN provincia VARCHAR(50) DEFAULT NULL,
+  ADD COLUMN telefono VARCHAR(50) DEFAULT NULL;
+```
+Dopo questo comando, l'importazione vera e propria (1.835 record) si esegue da
+**Area Admin → Import legacy**, non via SQL diretto — legge il CSV incluso nel codice e crea gli
+account con `is_active = 0` (bloccati, non pubblici, finché non deciso come attivarli).
+
 ---
 
 ## Come aggiungere una nuova voce

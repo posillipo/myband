@@ -11,6 +11,9 @@ CREATE TABLE IF NOT EXISTS users (
     email_verified TINYINT(1) NOT NULL DEFAULT 1,
     verification_token VARCHAR(64) DEFAULT NULL,
     verification_expires DATETIME DEFAULT NULL,
+    legacy_gestore_id INT DEFAULT NULL,
+    legacy_band_id INT DEFAULT NULL,
+    legacy_stato VARCHAR(20) DEFAULT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
@@ -23,6 +26,10 @@ CREATE TABLE IF NOT EXISTS profiles (
     dashboard_theme VARCHAR(10) NOT NULL DEFAULT 'dark',
     spotify_artist_id VARCHAR(50) DEFAULT NULL,
     spotify_artist_name VARCHAR(200) DEFAULT NULL,
+    genere VARCHAR(100) DEFAULT NULL,
+    citta VARCHAR(100) DEFAULT NULL,
+    provincia VARCHAR(50) DEFAULT NULL,
+    telefono VARCHAR(50) DEFAULT NULL,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;

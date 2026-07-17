@@ -8,6 +8,7 @@ RUN docker-php-ext-install pdo pdo_mysql mysqli \
 # Copia applicazione
 COPY public/ /var/www/html/
 COPY src/ /var/www/src/
+COPY import/ /var/www/import/
 
 # Entrypoint personalizzato: sistema i permessi della cartella uploads ad ogni avvio,
 # indipendentemente da come il bind mount è stato inizializzato sull'host (evita l'errore
