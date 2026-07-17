@@ -28,6 +28,8 @@ CREATE TABLE IF NOT EXISTS profiles (
     dashboard_theme VARCHAR(10) NOT NULL DEFAULT 'dark',
     spotify_artist_id VARCHAR(50) DEFAULT NULL,
     spotify_artist_name VARCHAR(200) DEFAULT NULL,
+    spotify_show_id VARCHAR(50) DEFAULT NULL,
+    spotify_show_name VARCHAR(200) DEFAULT NULL,
     youtube_channel_id VARCHAR(50) DEFAULT NULL,
     youtube_channel_name VARCHAR(200) DEFAULT NULL,
     genere VARCHAR(100) DEFAULT NULL,

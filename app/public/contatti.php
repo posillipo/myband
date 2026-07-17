@@ -6,7 +6,7 @@ header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 
 $userSlug = $_GET['slug'] ?? '';
-$stmt = getDB()->prepare('SELECT u.id, u.slug, u.email, p.display_name, p.avatar_path, p.theme_color, p.spotify_artist_id, p.youtube_channel_id
+$stmt = getDB()->prepare('SELECT u.id, u.slug, u.email, p.display_name, p.avatar_path, p.theme_color, p.spotify_artist_id, p.spotify_show_id, p.youtube_channel_id
                           FROM users u JOIN profiles p ON p.user_id = u.id
                           WHERE u.slug = ? AND u.is_active = 1');
 $stmt->execute([$userSlug]);
@@ -83,7 +83,6 @@ $pageUrl = siteUrl('/' . $userSlug . '/contatti');
     </form>
   <?php endif; ?>
 </div>
-<?= renderFooterLinks() ?>
-<?= renderJoinBar() ?>
+<?= renderSiteFooterBar() ?>
 </body>
 </html>

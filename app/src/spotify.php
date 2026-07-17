@@ -156,3 +156,56 @@ function spotifyGetArtistTopTracks(string $artistId): array {
     }
     return $tracks;
 }
+
+// Cerca podcast (show) per nome. Stessa logica di spotifySearchArtist, ma su type=show.
+function spotifySearchShow(string $query): array {
+    $token = getSpotifyAppToken();
+    if (!$token || trim($query) === '') {
+        return [];
+    }
+    $url = 'https://api.spotify.com/v1/search?type=show&market=US&limit=10&q=' . urlencode($query);
+    $response = httpRequest('GET', $url, ['Authorization: Bearer ' . $token]);
+    if (!$response) {
+        return [];
+    }
+    $data = json_decode($response, true);
+    $results = [];
+    foreach (($data['shows']['items'] ?? []) as $s) {
+        $results[] = [
+            'id' => $s['id'],
+            'name' => $s['name'],
+            'publisher' => $s['publisher'] ?? '',
+            'image' => $s['images'][1]['url'] ?? ($s['images'][0]['url'] ?? null),
+            'spotify_url' => $s['external_urls']['spotify'] ?? null,
+            'description' => $s['description'] ?? '',
+        ];
+    }
+    return $results;
+}
+
+// Episodi più recenti di un podcast (show).
+function spotifyGetShowEpisodes(string $showId, int $max = 10): array {
+    $token = getSpotifyAppToken();
+    if (!$token) {
+        return [];
+    }
+    $url = 'https://api.spotify.com/v1/shows/' . urlencode($showId) . '/episodes?market=US&limit=' . $max;
+    $response = httpRequest('GET', $url, ['Authorization: Bearer ' . $token]);
+    if (!$response) {
+        return [];
+    }
+    $data = json_decode($response, true);
+    $episodes = [];
+    foreach (($data['items'] ?? []) as $ep) {
+        $episodes[] = [
+            'id' => $ep['id'],
+            'name' => $ep['name'],
+            'description' => textExcerpt($ep['description'] ?? '', 160),
+            'image' => $ep['images'][1]['url'] ?? ($ep['images'][0]['url'] ?? null),
+            'release_date' => $ep['release_date'] ?? null,
+            'spotify_url' => $ep['external_urls']['spotify'] ?? null,
+            'duration_ms' => $ep['duration_ms'] ?? 0,
+        ];
+    }
+    return $episodes;
+}

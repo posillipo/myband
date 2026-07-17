@@ -32,5 +32,8 @@ RewriteRule ^([a-zA-Z0-9_-]+)/spotify/?$ artist_spotify.php?slug=$1 [L,QSA]
 # /nomeartista/video -> pagina video YouTube
 RewriteRule ^([a-zA-Z0-9_-]+)/video/?$ video.php?slug=$1 [L,QSA]
 
+# /nomeartista/podcast -> pagina episodi podcast Spotify
+RewriteRule ^([a-zA-Z0-9_-]+)/podcast/?$ podcast.php?slug=$1 [L,QSA]
+
 # /nomeartista -> pagina profilo pubblica (regola generica, deve restare per ultima)
 RewriteRule ^([a-zA-Z0-9_-]+)/?$ u.php?slug=$1 [L,QSA]

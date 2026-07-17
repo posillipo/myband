@@ -145,6 +145,15 @@ ALTER TABLE users
   ADD COLUMN reset_token_expires DATETIME DEFAULT NULL;
 ```
 
+## 18. Podcast collegato a Spotify
+```sql
+ALTER TABLE profiles
+  ADD COLUMN spotify_show_id VARCHAR(50) DEFAULT NULL,
+  ADD COLUMN spotify_show_name VARCHAR(200) DEFAULT NULL;
+```
+Nessuna nuova credenziale da configurare: riusa la stessa API Key Spotify già impostata in
+Area Admin → Spotify.
+
 ---
 
 ## Come aggiungere una nuova voce

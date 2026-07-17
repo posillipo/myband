@@ -234,27 +234,51 @@ body.colorful-page {
 .avatar-wrap:hover .avatar-bio-tooltip,
 .avatar-wrap:focus-within .avatar-bio-tooltip { display: block; }
 
-/* Barra fissa "Unisciti a myBand" sempre visibile in fondo alla pagina */
-.join-bar {
+/* Blocco fisso in fondo a tutte le pagine pubbliche: link Cookie/Privacy/myBand + invito
+   registrazione, sempre uniti insieme (uno sopra l'altro) indipendentemente da quanto
+   contenuto ha la pagina sopra di essi. */
+.site-footer-fixed {
   position: fixed;
   left: 0; right: 0; bottom: 0;
-  display: block;
-  text-align: center;
-  background: var(--accent, #6C5CE7);
-  color: #fff;
-  font-weight: 700;
-  padding: 14px 20px;
-  text-decoration: none;
   z-index: 50;
   box-shadow: 0 -4px 16px rgba(0,0,0,0.15);
 }
-.join-bar:hover { opacity: 0.92; color: #fff; }
-.colorful-page { padding-bottom: 60px; } /* spazio per non far coprire il contenuto dalla barra fissa */
+.colorful-page { padding-bottom: 110px; } /* spazio per non far coprire il contenuto dal blocco fisso */
 
-/* Riga di link orizzontali nel footer (cookie, privacy, home) */
-.footer-links { margin-bottom: 8px; text-align: center; }
-.footer-links a { color: inherit; text-decoration: underline; }
-.footer-links span { opacity: 0.5; }
+/* Riga di link orizzontali (cookie, privacy, home) — sempre bianchi, in ogni stato */
+.site-footer-fixed .footer-links {
+  background: var(--accent, #6C5CE7);
+  text-align: center;
+  padding: 10px 20px 4px;
+  margin-bottom: 0;
+}
+.site-footer-fixed .footer-links a,
+.site-footer-fixed .footer-links a:link,
+.site-footer-fixed .footer-links a:visited,
+.site-footer-fixed .footer-links a:hover,
+.site-footer-fixed .footer-links a:active,
+.site-footer-fixed .footer-links a:focus {
+  color: #ffffff !important;
+  text-decoration: underline;
+}
+.site-footer-fixed .footer-links span { opacity: 0.7; color: #ffffff; }
+
+/* Barra "Unisciti a myBand", ora dentro lo stesso blocco fisso (non più fixed da sola) */
+.site-footer-fixed .join-bar {
+  display: block;
+  text-align: center;
+  background: var(--accent, #6C5CE7);
+  color: #ffffff;
+  font-weight: 700;
+  padding: 10px 20px 14px;
+  text-decoration: none;
+}
+.site-footer-fixed .join-bar:hover,
+.site-footer-fixed .join-bar:visited,
+.site-footer-fixed .join-bar:active {
+  color: #ffffff;
+  opacity: 0.92;
+}
 
 .colorful-nav a { color: #22223b; font-weight: 700; }
 .colorful-nav span { color: rgba(34,34,59,0.5); }

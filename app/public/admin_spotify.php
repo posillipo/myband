@@ -49,6 +49,11 @@ include __DIR__ . '/_admin_header.php';
       richiede il login Spotify degli utenti: usa solo l'accesso al catalogo pubblico.
     </p>
     <p style="color:var(--text-muted)">
+      La stessa integrazione permette anche di collegare un eventuale <strong>podcast</strong>
+      dell'artista (Dashboard → Podcast) — nessuna credenziale aggiuntiva da configurare qui,
+      usa questa stessa chiave.
+    </p>
+    <p style="color:var(--text-muted)">
       Per ottenere le credenziali: vai su
       <a href="https://developer.spotify.com/dashboard" target="_blank">developer.spotify.com/dashboard</a>,
       crea una nuova app (gratuito), e copia <strong>Client ID</strong> e

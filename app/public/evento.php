@@ -7,7 +7,7 @@ header('Pragma: no-cache');
 $slug = $_GET['slug'] ?? '';
 $eventId = (int) ($_GET['id'] ?? 0);
 
-$stmt = getDB()->prepare('SELECT u.slug, p.display_name, p.avatar_path, p.theme_color, p.spotify_artist_id, p.youtube_channel_id, ev.*
+$stmt = getDB()->prepare('SELECT u.slug, p.display_name, p.avatar_path, p.theme_color, p.spotify_artist_id, p.spotify_show_id, p.youtube_channel_id, ev.*
                           FROM events ev
                           JOIN users u ON u.id = ev.user_id
                           JOIN profiles p ON p.user_id = u.id
@@ -25,6 +25,7 @@ $artist = [
     'display_name' => $event['display_name'],
     'avatar_path' => $event['avatar_path'],
     'spotify_artist_id' => $event['spotify_artist_id'],
+    'spotify_show_id' => $event['spotify_show_id'],
     'youtube_channel_id' => $event['youtube_channel_id'],
 ];
 
@@ -86,7 +87,6 @@ $ogDescription = trim($event['display_name'] . ' — ' . date('d/m/Y H:i', strto
 
   <p><a href="/<?= e($slug) ?>/eventi">← Tutti gli eventi di <?= e($event['display_name']) ?></a></p>
 </div>
-<?= renderFooterLinks() ?>
-<?= renderJoinBar() ?>
+<?= renderSiteFooterBar() ?>
 </body>
 </html>
