@@ -92,8 +92,12 @@ function processBatch(string $path, int $offset, int $batchSize): array {
 
             $stmt = $db->prepare('INSERT INTO users
                 (slug, email, password_hash, is_active, is_admin, email_verified, legacy_gestore_id, legacy_band_id, legacy_stato, created_at)
-                VALUES (?, ?, ?, 0, 0, 0, ?, ?, ?, ?)');
-            $stmt->execute([$slug, $email, $randomPassword, $legacyGestoreId, (int)$data['legacy_band_id'], $data['legacy_stato'] ?: null, $createdAt]);
+                VALUES (?, ?, ?, 0, 0, ?, ?, ?, ?, ?)');
+            // Chi risultava "OK" nel vecchio sistema aveva già confermato/attivato la propria
+            // registrazione a suo tempo: lo trattiamo come email già verificata, non da rifare
+            // da capo. Tutti gli altri stati (no, ATTESA, ELIMINATO, ecc.) restano da verificare.
+            $emailVerified = (trim((string)($data['legacy_stato'] ?? '')) === 'OK') ? 1 : 0;
+            $stmt->execute([$slug, $email, $randomPassword, $emailVerified, $legacyGestoreId, (int)$data['legacy_band_id'], $data['legacy_stato'] ?: null, $createdAt]);
             $userId = (int) $db->lastInsertId();
 
             $stmt = $db->prepare('INSERT INTO profiles (user_id, display_name, bio, genere, citta, provincia, telefono) VALUES (?, ?, ?, ?, ?, ?, ?)');
