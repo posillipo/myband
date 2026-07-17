@@ -6,130 +6,161 @@ $activeAdminTab = 'import_legacy';
 $pageTitle = 'Import dati legacy';
 
 const CSV_PATH = '/var/www/import/legacy_import_ready.csv';
+const BATCH_SIZE = 150; // righe elaborate per singola richiesta, per non superare i timeout
 
-$result = null;
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'run_import') {
-    checkCsrf();
-
-    if (!is_readable(CSV_PATH)) {
-        $result = ['error' => 'File CSV non trovato in ' . CSV_PATH . ' — verifica che il redeploy sia andato a buon fine.'];
-    } else {
-        $db = getDB();
-        $handle = fopen(CSV_PATH, 'r');
-        $header = fgetcsv($handle);
-
-        $imported = 0;
-        $skippedAlready = 0;
-        $skippedEmailTaken = 0;
-        $skippedSlugTaken = 0;
-        $skippedBadRow = 0;
-        $errors = [];
-
-        while (($row = fgetcsv($handle)) !== false) {
-            if (count($row) !== count($header)) {
-                $skippedBadRow++;
-                continue;
-            }
-            $data = array_combine($header, $row);
-
-            $legacyGestoreId = (int) $data['legacy_gestore_id'];
-
-            // Idempotenza: se questo gestore è già stato importato in un run precedente, salta
-            $stmt = $db->prepare('SELECT id FROM users WHERE legacy_gestore_id = ?');
-            $stmt->execute([$legacyGestoreId]);
-            if ($stmt->fetch()) {
-                $skippedAlready++;
-                continue;
-            }
-
-            $email = strtolower(trim($data['email']));
-            $stmt = $db->prepare('SELECT id FROM users WHERE email = ?');
-            $stmt->execute([$email]);
-            if ($stmt->fetch()) {
-                $skippedEmailTaken++;
-                continue;
-            }
-
-            $slug = trim($data['slug']);
-            $stmt = $db->prepare('SELECT id FROM users WHERE slug = ?');
-            $stmt->execute([$slug]);
-            if ($stmt->fetch()) {
-                // Lo slug (derivato dal nome band) collide con un account già esistente (reale
-                // o già importato prima con testi diversi): rendiamolo univoco aggiungendo l'ID
-                // legacy, piuttosto che scartare il record
-                $slug = $slug . '-' . $legacyGestoreId;
-            }
-
-            try {
-                $db->beginTransaction();
-
-                // Password inutilizzabile: l'account resta bloccato (is_active=0) finché non
-                // sarà eventualmente attivato tramite un flusso dedicato futuro
-                $randomPassword = password_hash(bin2hex(random_bytes(32)), PASSWORD_BCRYPT);
-
-                $createdAt = null;
-                if (!empty($data['created_at'])) {
-                    $ts = strtotime($data['created_at']);
-                    if ($ts) {
-                        $createdAt = date('Y-m-d H:i:s', $ts);
-                    }
-                }
-
-                $stmt = $db->prepare('INSERT INTO users
-                    (slug, email, password_hash, is_active, is_admin, email_verified, legacy_gestore_id, legacy_band_id, legacy_stato, created_at)
-                    VALUES (?, ?, ?, 0, 0, 0, ?, ?, ?, ?)');
-                $stmt->execute([
-                    $slug,
-                    $email,
-                    $randomPassword,
-                    $legacyGestoreId,
-                    (int) $data['legacy_band_id'],
-                    $data['legacy_stato'] ?: null,
-                    $createdAt ?: date('Y-m-d H:i:s'),
-                ]);
-                $userId = (int) $db->lastInsertId();
-
-                $stmt = $db->prepare('INSERT INTO profiles
-                    (user_id, display_name, bio, genere, citta, provincia, telefono)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)');
-                $stmt->execute([
-                    $userId,
-                    $data['display_name'],
-                    $data['bio'] ?: null,
-                    $data['genere'] ?: null,
-                    $data['citta'] ?: null,
-                    $data['provincia'] ?: null,
-                    $data['telefono'] ?: null,
-                ]);
-
-                // Il sito ufficiale del vecchio profilo diventa un link nella nuova pagina pubblica
-                if (!empty($data['sito_ufficiale']) && filter_var($data['sito_ufficiale'], FILTER_VALIDATE_URL)) {
-                    $stmt = $db->prepare('INSERT INTO links (user_id, label, url, sort_order) VALUES (?, ?, ?, 1)');
-                    $stmt->execute([$userId, 'Sito ufficiale', $data['sito_ufficiale']]);
-                }
-
-                $db->commit();
-                $imported++;
-            } catch (Exception $e) {
-                $db->rollBack();
-                $errors[] = "Gestore {$legacyGestoreId}: " . $e->getMessage();
-            }
-        }
-        fclose($handle);
-
-        $result = [
-            'imported' => $imported,
-            'skippedAlready' => $skippedAlready,
-            'skippedEmailTaken' => $skippedEmailTaken,
-            'skippedSlugTaken' => $skippedSlugTaken,
-            'skippedBadRow' => $skippedBadRow,
-            'errors' => $errors,
-        ];
+// Conta il totale delle righe dati nel CSV (una sola volta, per la barra di avanzamento)
+function countCsvRows(string $path): int {
+    $count = 0;
+    $handle = fopen($path, 'r');
+    fgetcsv($handle); // salta l'intestazione
+    while (fgetcsv($handle) !== false) {
+        $count++;
     }
+    fclose($handle);
+    return $count;
 }
 
-// Statistiche correnti (utile anche solo per vedere se l'import è già stato fatto)
+// Elabora un lotto di righe a partire da $offset (0-based, righe dati, intestazione esclusa).
+function processBatch(string $path, int $offset, int $batchSize): array {
+    $db = getDB();
+    $handle = fopen($path, 'r');
+    $header = fgetcsv($handle);
+
+    for ($i = 0; $i < $offset; $i++) {
+        if (fgetcsv($handle) === false) {
+            fclose($handle);
+            return ['done' => true, 'newOffset' => $offset, 'imported' => 0, 'skipped' => 0, 'errors' => []];
+        }
+    }
+
+    $imported = 0;
+    $skipped = 0;
+    $errors = [];
+    $processedInBatch = 0;
+    $reachedEnd = false;
+
+    while ($processedInBatch < $batchSize) {
+        $row = fgetcsv($handle);
+        if ($row === false) {
+            $reachedEnd = true;
+            break;
+        }
+        $processedInBatch++;
+
+        if (count($row) !== count($header)) {
+            $skipped++;
+            continue;
+        }
+        $data = array_combine($header, $row);
+        $legacyGestoreId = (int) $data['legacy_gestore_id'];
+
+        $stmt = $db->prepare('SELECT id FROM users WHERE legacy_gestore_id = ?');
+        $stmt->execute([$legacyGestoreId]);
+        if ($stmt->fetch()) {
+            $skipped++;
+            continue;
+        }
+
+        $email = strtolower(trim($data['email']));
+        $stmt = $db->prepare('SELECT id FROM users WHERE email = ?');
+        $stmt->execute([$email]);
+        if ($stmt->fetch()) {
+            $skipped++;
+            continue;
+        }
+
+        $slug = trim($data['slug']);
+        $stmt = $db->prepare('SELECT id FROM users WHERE slug = ?');
+        $stmt->execute([$slug]);
+        if ($stmt->fetch()) {
+            $slug = $slug . '-' . $legacyGestoreId;
+        }
+
+        try {
+            $db->beginTransaction();
+            $randomPassword = password_hash(bin2hex(random_bytes(32)), PASSWORD_BCRYPT);
+
+            $createdAt = date('Y-m-d H:i:s');
+            if (!empty($data['created_at'])) {
+                $ts = strtotime($data['created_at']);
+                if ($ts) {
+                    $createdAt = date('Y-m-d H:i:s', $ts);
+                }
+            }
+
+            $stmt = $db->prepare('INSERT INTO users
+                (slug, email, password_hash, is_active, is_admin, email_verified, legacy_gestore_id, legacy_band_id, legacy_stato, created_at)
+                VALUES (?, ?, ?, 0, 0, 0, ?, ?, ?, ?)');
+            $stmt->execute([$slug, $email, $randomPassword, $legacyGestoreId, (int)$data['legacy_band_id'], $data['legacy_stato'] ?: null, $createdAt]);
+            $userId = (int) $db->lastInsertId();
+
+            $stmt = $db->prepare('INSERT INTO profiles (user_id, display_name, bio, genere, citta, provincia, telefono) VALUES (?, ?, ?, ?, ?, ?, ?)');
+            $stmt->execute([$userId, $data['display_name'], $data['bio'] ?: null, $data['genere'] ?: null, $data['citta'] ?: null, $data['provincia'] ?: null, $data['telefono'] ?: null]);
+
+            if (!empty($data['sito_ufficiale']) && filter_var($data['sito_ufficiale'], FILTER_VALIDATE_URL)) {
+                $stmt = $db->prepare('INSERT INTO links (user_id, label, url, sort_order) VALUES (?, ?, ?, 1)');
+                $stmt->execute([$userId, 'Sito ufficiale', $data['sito_ufficiale']]);
+            }
+
+            $db->commit();
+            $imported++;
+        } catch (Exception $e) {
+            $db->rollBack();
+            $errors[] = "Gestore {$legacyGestoreId}: " . $e->getMessage();
+        }
+    }
+    fclose($handle);
+
+    return [
+        'done' => $reachedEnd,
+        'newOffset' => $offset + $processedInBatch,
+        'imported' => $imported,
+        'skipped' => $skipped,
+        'errors' => $errors,
+    ];
+}
+
+$fileOk = is_readable(CSV_PATH);
+$batchResult = null;
+
+$isPostStart = $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'start_import';
+$isGetContinue = isset($_GET['run']) && isset($_GET['csrf']);
+
+$started = false;
+if ($isPostStart) {
+    checkCsrf(); // form classico: controlla $_POST['csrf']
+    $started = true;
+} elseif ($isGetContinue) {
+    // La prosecuzione automatica arriva come link (GET), non come form: verifichiamo il
+    // token CSRF manualmente dalla query string invece che dal corpo POST.
+    if (!isset($_SESSION['csrf']) || !hash_equals($_SESSION['csrf'], $_GET['csrf'])) {
+        http_response_code(403);
+        exit('Richiesta non valida (CSRF).');
+    }
+    $started = true;
+}
+
+if ($fileOk && $started) {
+    if (!isset($_SESSION['legacy_import'])) {
+        $_SESSION['legacy_import'] = [
+            'total' => countCsvRows(CSV_PATH),
+            'offset' => 0,
+            'imported' => 0,
+            'skipped' => 0,
+            'errors' => [],
+        ];
+    }
+
+    $state = &$_SESSION['legacy_import'];
+    $batchResult = processBatch(CSV_PATH, $state['offset'], BATCH_SIZE);
+
+    $state['offset'] = $batchResult['newOffset'];
+    $state['imported'] += $batchResult['imported'];
+    $state['skipped'] += $batchResult['skipped'];
+    $state['errors'] = array_merge($state['errors'], $batchResult['errors']);
+}
+
+$state = $_SESSION['legacy_import'] ?? null;
 $stmt = getDB()->query('SELECT COUNT(*) c FROM users WHERE legacy_gestore_id IS NOT NULL');
 $alreadyImported = (int) $stmt->fetch()['c'];
 
@@ -138,47 +169,64 @@ include __DIR__ . '/_admin_header.php';
   <div class="card">
     <strong>Cosa fa questa importazione</strong>
     <p style="color:var(--text-muted)">
-      Importa i profili band dal vecchio database (1.835 record puliti e pronti, uno per
-      gestore, il primo in caso di gestori con più band). Ogni account viene creato con
-      <strong>is_active = 0</strong> (non visibile pubblicamente, non può fare login) finché non
-      deciderai come attivarli. È sicuro rilanciare questa pagina più volte: i gestori già
-      importati vengono riconosciuti e saltati automaticamente.
+      Importa i profili band dal vecchio database (1.835 record, uno per gestore). Ogni account
+      viene creato con <strong>is_active = 0</strong> (non visibile pubblicamente, non può fare
+      login) finché non deciderai come attivarli. Procede automaticamente a lotti di
+      <?= BATCH_SIZE ?> righe per volta (evita i timeout), senza bisogno di ricaricare
+      manualmente la pagina.
     </p>
   </div>
 
   <div class="card">
-    <strong>Già importati finora:</strong> <?= $alreadyImported ?> account
+    <strong>Account già importati in totale (anche da run precedenti):</strong> <?= $alreadyImported ?>
   </div>
 
-  <?php if ($result): ?>
-    <?php if (isset($result['error'])): ?>
-      <div class="alert error"><?= e($result['error']) ?></div>
-    <?php else: ?>
-      <div class="alert success">
-        Importazione completata:
-        <strong><?= $result['imported'] ?></strong> nuovi account creati.
+  <?php if (!$fileOk): ?>
+    <div class="alert error">File CSV non trovato in <?= e(CSV_PATH) ?> — verifica che il redeploy sia andato a buon fine.</div>
+  <?php elseif ($state && $batchResult && !$batchResult['done']): ?>
+    <div class="card">
+      <strong>Importazione in corso...</strong>
+      <p>
+        <?= $state['offset'] ?> / <?= $state['total'] ?> righe elaborate
+        (<?= $state['total'] > 0 ? round($state['offset'] / $state['total'] * 100) : 0 ?>%)
+        — <?= $state['imported'] ?> account creati finora, <?= $state['skipped'] ?> saltati
+      </p>
+      <div style="background:#26262f;border-radius:8px;overflow:hidden;height:14px;">
+        <div style="background:var(--accent);height:100%;width:<?= $state['total'] > 0 ? round($state['offset'] / $state['total'] * 100) : 0 ?>%;"></div>
       </div>
+      <p style="color:var(--text-muted);font-size:13px;">
+        Questa pagina si aggiorna automaticamente tra un secondo — non chiuderla e non serve
+        premere nulla.
+      </p>
+    </div>
+    <script>
+      setTimeout(function () {
+        window.location.href = '/admin_import_legacy.php?run=1&csrf=<?= urlencode(csrfToken()) ?>';
+      }, 800);
+    </script>
+  <?php elseif ($state && $batchResult && $batchResult['done']): ?>
+    <div class="alert success">
+      Importazione completata: <strong><?= $state['imported'] ?></strong> account creati,
+      <?= $state['skipped'] ?> righe saltate (già importate in precedenza, email duplicata, o
+      malformate).
+    </div>
+    <?php if ($state['errors']): ?>
       <div class="card">
-        <strong>Dettaglio</strong>
-        <p style="color:var(--text-muted)">
-          Saltati perché già importati in precedenza: <?= $result['skippedAlready'] ?><br>
-          Saltati per email già in uso da un account esistente: <?= $result['skippedEmailTaken'] ?><br>
-          Righe malformate nel CSV: <?= $result['skippedBadRow'] ?><br>
-          Errori durante l'inserimento: <?= count($result['errors']) ?>
-        </p>
-        <?php if ($result['errors']): ?>
-          <details>
-            <summary>Vedi dettaglio errori</summary>
-            <pre style="white-space:pre-wrap;font-size:12px;"><?= e(implode("\n", array_slice($result['errors'], 0, 50))) ?></pre>
-          </details>
-        <?php endif; ?>
+        <strong>Errori riscontrati (<?= count($state['errors']) ?>)</strong>
+        <details>
+          <summary>Vedi dettaglio</summary>
+          <pre style="white-space:pre-wrap;font-size:12px;"><?= e(implode("\n", array_slice($state['errors'], 0, 50))) ?></pre>
+        </details>
       </div>
     <?php endif; ?>
+    <?php unset($_SESSION['legacy_import']); ?>
+  <?php else: ?>
+    <form method="post">
+      <?= csrfField() ?>
+      <input type="hidden" name="action" value="start_import">
+      <button type="submit" class="btn" onclick="return confirm('Avviare l\'importazione dei dati legacy?');">
+        Esegui importazione
+      </button>
+    </form>
   <?php endif; ?>
-
-  <form method="post" onsubmit="return confirm('Avviare l\'importazione dei dati legacy? È un\'operazione sicura da ripetere, ma leggi bene cosa fa prima di procedere.');">
-    <?= csrfField() ?>
-    <input type="hidden" name="action" value="run_import">
-    <button type="submit" class="btn">Esegui importazione</button>
-  </form>
 <?php include __DIR__ . '/_admin_footer.php'; ?>
