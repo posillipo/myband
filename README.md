@@ -120,6 +120,12 @@ docker compose exec db mysqldump -u root -p myband > backup_$(date +%F).sql
 - Statistiche dettagliate sui click (per link, per periodo)
 - Piano gratuito/premium con limiti su numero di brani/eventi
 - Invio email automatico (SMTP) quando arriva una richiesta di contatto
+- **Formazione della band** (componenti con nome, ruolo/strumento, foto) — funzionalità
+  identificata come "fondamentale per una band" e pianificata, da realizzare con un **sistema di
+  invito**: ogni componente riceve un invito via email per gestire/confermare il proprio profilo
+  all'interno della band, invece di essere inserito manualmente dal band manager. Nel vecchio
+  myband.it esisteva un concetto analogo (tabella `musicisti` collegata alla band tramite
+  `id_band`)
 
 ## 9. Decisioni di prodotto scartate
 
