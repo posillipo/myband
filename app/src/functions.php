@@ -379,8 +379,28 @@ function notifyEmailVerification(string $toEmail, string $toName, string $token)
     return $mailer->send($cfg['from'], $cfg['fromName'], $toEmail, $toName, $subject, $body);
 }
 
-// Script di tracking globali (Google Tag Manager, Facebook Pixel) impostati dall'admin,
-// iniettati automaticamente in tutte le pagine pubbliche.
+// Invia l'email con il link per reimpostare la password (valido 1 ora, più breve della verifica
+// email perché un link di reset password è più sensibile). Come le altre notifiche: se l'SMTP
+// non è configurato, non fa nulla (nessun errore).
+function notifyPasswordReset(string $toEmail, string $toName, string $token): bool {
+    $cfg = getSmtpConfig();
+    if (!$cfg['host']) {
+        return false;
+    }
+
+    require_once __DIR__ . '/mailer.php';
+    $mailer = new SimpleSmtpMailer($cfg['host'], $cfg['port'], $cfg['user'], $cfg['pass'], $cfg['secure'], $cfg['verifyCert']);
+
+    $link = siteUrl('/reset_password.php?token=' . $token);
+    $subject = "Reimposta la tua password su myband.it";
+    $body = "Ciao {$toName},\n\n"
+          . "Hai richiesto di reimpostare la password del tuo account myband.it. Clicca questo\n"
+          . "link per scegliere una nuova password (valido 1 ora):\n\n{$link}\n\n"
+          . "Se non hai richiesto tu il reset, ignora pure questa email: la tua password attuale\n"
+          . "resta invariata.";
+
+    return $mailer->send($cfg['from'], $cfg['fromName'], $toEmail, $toName, $subject, $body);
+}
 function embedTrackingHead(): string {
     $gtm = getSiteSetting('gtm_head_script') ?: '';
     $pixel = getSiteSetting('fb_pixel_script') ?: '';
@@ -496,7 +516,8 @@ const RESERVED_SLUGS = ['login','register','logout','dashboard','dashboard_profi
     'admin','admin_users','admin_user_detail','admin_privacy','brani','eventi',
     'verify','resend_verification','admin_dashboard','admin_user_edit','admin_contacts','admin_tracking','admin_smtp',
     'admin_spotify','dashboard_spotify','follow','follow_confirm','follow_unsubscribe','dashboard_followers',
-    'admin_import_legacy','admin_profiles','track','evento','admin_youtube','dashboard_youtube','video'];
+    'admin_import_legacy','admin_profiles','track','evento','admin_youtube','dashboard_youtube','video',
+    'forgot_password','reset_password'];
 
 // Genera uno slug univoco per un articolo di un dato utente (title -> slug, con suffisso -2, -3... se già esistente)
 function generateUniquePostSlug(int $userId, string $title, ?int $excludePostId = null): string {

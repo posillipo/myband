@@ -138,6 +138,13 @@ ALTER TABLE profiles
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('youtube_api_key', '');
 ```
 
+## 17. Recupero password
+```sql
+ALTER TABLE users
+  ADD COLUMN reset_token VARCHAR(64) DEFAULT NULL,
+  ADD COLUMN reset_token_expires DATETIME DEFAULT NULL;
+```
+
 ---
 
 ## Come aggiungere una nuova voce

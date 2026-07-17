@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS users (
     email_verified TINYINT(1) NOT NULL DEFAULT 1,
     verification_token VARCHAR(64) DEFAULT NULL,
     verification_expires DATETIME DEFAULT NULL,
+    reset_token VARCHAR(64) DEFAULT NULL,
+    reset_token_expires DATETIME DEFAULT NULL,
     legacy_gestore_id INT DEFAULT NULL,
     legacy_band_id INT DEFAULT NULL,
     legacy_stato VARCHAR(20) DEFAULT NULL,
