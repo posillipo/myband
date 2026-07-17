@@ -105,17 +105,17 @@ $followErr = ($_GET['follow_err'] ?? '0') === '1';
 
   <?php if ($actionLinks): ?>
     <?php foreach ($actionLinks as $i => $l): ?>
-      <a class="color-link-btn" style="background:<?= e(COLORFUL_PALETTE[$i % count(COLORFUL_PALETTE)]) ?>; display:flex; align-items:center; gap:12px; text-align:left;"
+      <a class="color-link-btn" style="background:<?= e(COLORFUL_PALETTE[$i % count(COLORFUL_PALETTE)]) ?>;"
          target="_blank" rel="noopener"
          href="/link.php?id=<?= (int)$l['id'] ?>">
         <?php if ($l['cover_path']): ?>
-          <img src="/<?= e($l['cover_path']) ?>" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;">
+          <img src="/<?= e($l['cover_path']) ?>" class="btn-cover-icon">
         <?php endif; ?>
-        <span><?= e($l['label']) ?></span>
+        <?= e($l['label']) ?>
       </a>
     <?php endforeach; ?>
   <?php endif; ?>
 </div>
-<?= renderSiteFooterBar() ?>
+<?= renderSiteFooterBar($slug) ?>
 </body>
 </html>

@@ -77,6 +77,6 @@ $pageUrl = siteUrl('/' . $slug . '/podcast');
     </a>
   </div>
 </div>
-<?= renderSiteFooterBar() ?>
+<?= renderSiteFooterBar($slug) ?>
 </body>
 </html>

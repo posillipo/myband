@@ -86,6 +86,6 @@ $ogImage = $post['cover_path'] ? siteUrl($post['cover_path']) : ($post['avatar_p
     <small style="color:rgba(34,34,59,0.75);"><?= e($permalink) ?></small>
   </div>
 </div>
-<?= renderSiteFooterBar() ?>
+<?= renderSiteFooterBar($userSlug) ?>
 </body>
 </html>

@@ -87,6 +87,6 @@ $ogDescription = trim($event['display_name'] . ' — ' . date('d/m/Y H:i', strto
 
   <p><a href="/<?= e($slug) ?>/eventi">← Tutti gli eventi di <?= e($event['display_name']) ?></a></p>
 </div>
-<?= renderSiteFooterBar() ?>
+<?= renderSiteFooterBar($slug) ?>
 </body>
 </html>

@@ -83,6 +83,6 @@ $pageUrl = siteUrl('/' . $userSlug . '/contatti');
     </form>
   <?php endif; ?>
 </div>
-<?= renderSiteFooterBar() ?>
+<?= renderSiteFooterBar($userSlug) ?>
 </body>
 </html>

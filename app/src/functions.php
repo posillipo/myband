@@ -285,8 +285,9 @@ function publicProfileHeader(array $artist, string $active, bool $showBio = fals
 // pubbliche del sito.
 // Blocco fisso in fondo a tutte le pagine pubbliche: link Cookie/Privacy/myBand + invito
 // registrazione, sempre uniti insieme in un unico contenitore (mai più separati da uno spazio
-// vuoto quando la pagina sopra ha poco contenuto).
-function renderSiteFooterBar(): string {
+// vuoto quando la pagina sopra ha poco contenuto). Se viene passato lo slug dell'artista, mostra
+// anche un badge fluttuante "myband.it/slug" in stile Linktree, sopra il blocco.
+function renderSiteFooterBar(string $slug = ''): string {
     $privacyUrl = getSiteSetting('privacy_policy_url') ?: '';
     $parts = [];
     // CookieYes intercetta automaticamente qualsiasi elemento con questa classe per riaprire
@@ -300,7 +301,8 @@ function renderSiteFooterBar(): string {
     $parts[] = '<a href="/">myBand</a>';
     $linksRow = '<div class="footer-links">' . implode('<span> · </span>', $parts) . '</div>';
     $joinRow = '<a href="/register.php" class="join-bar">Unisciti a myBand</a>';
-    return '<div class="site-footer-fixed">' . $linksRow . $joinRow . '</div>';
+    $badge = $slug !== '' ? '<div class="short-link-badge">myband.it/' . e($slug) . '</div>' : '';
+    return '<div class="site-footer-fixed">' . $badge . $linksRow . $joinRow . '</div>';
 }
 
 // Legge la configurazione SMTP: priorità alle impostazioni salvate dall'admin nel database,

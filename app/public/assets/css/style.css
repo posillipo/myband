@@ -245,7 +245,7 @@ body.colorful-page {
 }
 .colorful-page { padding-bottom: 110px; } /* spazio per non far coprire il contenuto dal blocco fisso */
 
-/* Riga di link orizzontali (cookie, privacy, home) — sempre bianchi, in ogni stato */
+/* Riga di link orizzontali (cookie, privacy, home) — nero, in ogni stato */
 .site-footer-fixed .footer-links {
   background: var(--accent, #6C5CE7);
   text-align: center;
@@ -258,10 +258,26 @@ body.colorful-page {
 .site-footer-fixed .footer-links a:hover,
 .site-footer-fixed .footer-links a:active,
 .site-footer-fixed .footer-links a:focus {
-  color: #ffffff !important;
+  color: #000000 !important;
   text-decoration: underline;
 }
-.site-footer-fixed .footer-links span { opacity: 0.7; color: #ffffff; }
+.site-footer-fixed .footer-links span { opacity: 0.6; color: #000000; }
+
+/* Badge tipo "myband.it/tuoslug", in stile Linktree, che fluttua sopra il blocco fisso */
+.short-link-badge {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  color: #22223b;
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+  white-space: nowrap;
+}
 
 /* Barra "Unisciti a myBand", ora dentro lo stesso blocco fisso (non più fixed da sola) */
 .site-footer-fixed .join-bar {
@@ -303,6 +319,7 @@ body.colorful-page {
 .social-icon-btn:hover { transform: translateY(-3px) scale(1.05); }
 
 .color-link-btn {
+  position: relative;
   display: block;
   border-radius: 20px;
   padding: 18px 22px;
@@ -314,6 +331,19 @@ body.colorful-page {
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .color-link-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.16); }
+
+/* Copertina/icona del pulsante ancorata a sinistra, il testo resta sempre centrato nel
+   pulsante indipendentemente dalla presenza dell'immagine (stile Linktree) */
+.color-link-btn .btn-cover-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+}
 
 .colorful-page .card {
   background: rgba(255,255,255,0.6);

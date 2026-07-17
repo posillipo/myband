@@ -49,17 +49,15 @@ $pageUrl = siteUrl('/' . $userSlug . '/blog');
 
   <?php foreach ($posts as $i => $p): ?>
     <a href="<?= e(blogPostUrl($userSlug, $p)) ?>" class="color-link-btn"
-       style="background:<?= e(COLORFUL_PALETTE[$i % count(COLORFUL_PALETTE)]) ?>; display:flex; align-items:center; gap:12px; text-align:left;">
+       style="background:<?= e(COLORFUL_PALETTE[$i % count(COLORFUL_PALETTE)]) ?>;">
       <?php if ($p['cover_path']): ?>
-        <img src="/<?= e($p['cover_path']) ?>" style="width:56px;height:56px;border-radius:8px;object-fit:cover;flex-shrink:0;">
+        <img src="/<?= e($p['cover_path']) ?>" class="btn-cover-icon">
       <?php endif; ?>
-      <span style="flex:1;min-width:0;">
-        <strong style="display:block;"><?= e($p['title']) ?></strong>
-        <small style="opacity:.75;"><?= date('d/m/Y', strtotime($p['published_at'])) ?></small>
-      </span>
+      <strong style="display:block;"><?= e($p['title']) ?></strong>
+      <small style="opacity:.75;"><?= date('d/m/Y', strtotime($p['published_at'])) ?></small>
     </a>
   <?php endforeach; ?>
 </div>
-<?= renderSiteFooterBar() ?>
+<?= renderSiteFooterBar($userSlug) ?>
 </body>
 </html>

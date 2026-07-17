@@ -49,20 +49,18 @@ $pageUrl = siteUrl('/' . $slug . '/eventi');
 
   <?php foreach ($events as $i => $ev): ?>
     <a href="/<?= e($slug) ?>/eventi/<?= (int)$ev['id'] ?>" class="color-link-btn"
-       style="background:<?= e(COLORFUL_PALETTE[$i % count(COLORFUL_PALETTE)]) ?>; display:flex; align-items:center; gap:12px; text-align:left;">
+       style="background:<?= e(COLORFUL_PALETTE[$i % count(COLORFUL_PALETTE)]) ?>;">
       <?php if ($ev['cover_path']): ?>
-        <img src="/<?= e($ev['cover_path']) ?>" style="width:56px;height:56px;border-radius:8px;object-fit:cover;flex-shrink:0;">
+        <img src="/<?= e($ev['cover_path']) ?>" class="btn-cover-icon">
       <?php endif; ?>
-      <span style="flex:1;min-width:0;">
-        <small style="display:block;opacity:.75;"><?= date('d/m/Y H:i', strtotime($ev['event_date'])) ?></small>
-        <strong style="display:block;"><?= e($ev['title']) ?></strong>
-        <?php if ($ev['venue'] || $ev['city']): ?>
-          <small style="opacity:.75;"><?= e($ev['venue']) ?><?= $ev['venue'] && $ev['city'] ? ', ' : '' ?><?= e($ev['city']) ?></small>
-        <?php endif; ?>
-      </span>
+      <small style="display:block;opacity:.75;"><?= date('d/m/Y H:i', strtotime($ev['event_date'])) ?></small>
+      <strong style="display:block;"><?= e($ev['title']) ?></strong>
+      <?php if ($ev['venue'] || $ev['city']): ?>
+        <small style="opacity:.75;"><?= e($ev['venue']) ?><?= $ev['venue'] && $ev['city'] ? ', ' : '' ?><?= e($ev['city']) ?></small>
+      <?php endif; ?>
     </a>
   <?php endforeach; ?>
 </div>
-<?= renderSiteFooterBar() ?>
+<?= renderSiteFooterBar($slug) ?>
 </body>
 </html>

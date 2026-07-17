@@ -89,6 +89,6 @@ $pageUrl = siteUrl('/' . $slug . '/spotify');
     </a>
   </div>
 </div>
-<?= renderSiteFooterBar() ?>
+<?= renderSiteFooterBar($slug) ?>
 </body>
 </html>

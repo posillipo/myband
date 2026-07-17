@@ -64,6 +64,6 @@ $pageUrl = siteUrl('/' . $slug . '/brani');
     </div>
   <?php endforeach; ?>
 </div>
-<?= renderSiteFooterBar() ?>
+<?= renderSiteFooterBar($slug) ?>
 </body>
 </html>
