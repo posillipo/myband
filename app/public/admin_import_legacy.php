@@ -70,10 +70,12 @@ function processBatch(string $path, int $offset, int $batchSize): array {
         }
 
         $slug = trim($data['slug']);
+        $slug = mb_substr($slug, 0, 50); // margine di sicurezza per un eventuale suffisso
         $stmt = $db->prepare('SELECT id FROM users WHERE slug = ?');
         $stmt->execute([$slug]);
         if ($stmt->fetch()) {
-            $slug = $slug . '-' . $legacyGestoreId;
+            $suffix = '-' . $legacyGestoreId;
+            $slug = mb_substr($slug, 0, 60 - mb_strlen($suffix)) . $suffix;
         }
 
         try {
