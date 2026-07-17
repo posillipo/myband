@@ -15,8 +15,11 @@ function e(?string $s): string {
 // Aggiunge un parametro di versione basato sulla data di modifica del file (cache-busting),
 // così quando aggiorniamo il CSS il browser scarica sempre la versione corretta invece di
 // usare una copia vecchia in cache.
+// Nota: il percorso è quello reale della document root DENTRO il container Docker
+// (/var/www/html, impostato dal Dockerfile) — non il percorso relativo del repository, che è
+// diverso (src/ e public/ vengono copiati in due cartelle separate, non una dentro l'altra).
 function assetUrl(string $path): string {
-    $file = dirname(__DIR__) . '/public' . $path;
+    $file = '/var/www/html' . $path;
     $v = @filemtime($file);
     return $path . ($v ? ('?v=' . $v) : '');
 }
@@ -397,7 +400,7 @@ function handleCoverUpload(int $userId, string $fileInputName = 'cover'): ?strin
         return null;
     }
     $fname = 'cover_' . $userId . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
-    $dest = dirname(__DIR__) . '/public/uploads/images/' . $fname;
+    $dest = '/var/www/html/uploads/images/' . $fname;
     if (move_uploaded_file($_FILES[$fileInputName]['tmp_name'], $dest)) {
         return 'uploads/images/' . $fname;
     }
@@ -407,7 +410,7 @@ function handleCoverUpload(int $userId, string $fileInputName = 'cover'): ?strin
 // Elimina il file di copertina dal disco, se presente (usato quando si elimina un link/post/evento)
 function deleteCoverFile(?string $coverPath): void {
     if ($coverPath) {
-        @unlink(dirname(__DIR__) . '/public/' . $coverPath);
+        @unlink('/var/www/html/' . $coverPath);
     }
 }
 
