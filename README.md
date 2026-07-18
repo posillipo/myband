@@ -126,6 +126,10 @@ docker compose exec db mysqldump -u root -p myband > backup_$(date +%F).sql
   all'interno della band, invece di essere inserito manualmente dal band manager. Nel vecchio
   myband.it esisteva un concetto analogo (tabella `musicisti` collegata alla band tramite
   `id_band`)
+- **Footer pagina pubblica, ispirato all'analisi di un esempio Linktree**: badge "myband.it/tu"
+  chiudibile con una X (oggi non è possibile nasconderlo); sfondo del blocco finale a
+  **dissolvenza graduale** (dal colore della pagina verso uno scuro) invece dell'attuale blocco
+  di colore pieno, per un aspetto più morbido e integrato con il resto della pagina
 
 ## 9. Decisioni di prodotto scartate
 
