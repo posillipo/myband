@@ -251,11 +251,12 @@ function publicNav(string $slug, string $active, bool $hasSpotify = false, bool 
 
     $parts = [];
     foreach ($tabs as $key => $t) {
-        // La voce della pagina attiva è bianca, per distinguersi visivamente dalle altre
+        // La voce della pagina attiva ha lo sfondo colorato (gestito via CSS sull'attributo
+        // style), le altre restano pillole chiare trasparenti
         $activeAttr = $key === $active ? ' style="font-weight:900;color:#fff;"' : '';
         $parts[] = '<a href="' . e($t['url']) . '"' . $activeAttr . '>' . e($t['label']) . '</a>';
     }
-    return '<p class="colorful-nav" style="margin-top:10px;">' . implode('<span> | </span>', $parts) . '</p>';
+    return '<nav class="colorful-nav">' . implode('', $parts) . '</nav>';
 }
 
 // Blocco identità condiviso (avatar + nome + eventuale bio + menu) stampato in cima ad ogni

@@ -296,25 +296,36 @@ body.colorful-page {
   96%, 100% { transform: translateX(0) rotate(0deg); }
 }
 
-.colorful-nav a { color: #22223b; font-weight: 700; }
-.colorful-nav span { color: rgba(34,34,59,0.5); }
-
-/* Menu di navigazione della pagina pubblica: mai a capo su più righe. Su schermi stretti si
-   riduce il testo e, se ancora non basta, diventa scorrevole orizzontalmente invece di
-   spezzarsi su due righe. */
+/* Menu di navigazione della pagina pubblica: ogni voce è una piccola "pillola" arrotondata.
+   Con flex-wrap va a capo in modo ordinato quando lo spazio non basta (mai a metà parola, mai
+   fuori schermo), invece di forzare una singola riga che su mobile spezzava il resto del
+   layout. */
 .colorful-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 6px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.colorful-nav a {
+  display: inline-block;
+  color: #22223b;
+  font-weight: 700;
+  font-size: 13.5px;
   white-space: nowrap;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  padding-bottom: 2px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.45);
+  transition: background 0.15s ease;
 }
-.colorful-nav::-webkit-scrollbar { display: none; }
-@media (max-width: 480px) {
-  .colorful-nav { font-size: 13px; }
-}
-@media (max-width: 380px) {
-  .colorful-nav { font-size: 11.5px; }
+.colorful-nav a:hover { background: rgba(255,255,255,0.65); }
+/* La voce attiva (colorata via style inline dal PHP) ha già lo sfondo scuro/accento: qui le
+   diamo anche lo stesso arrotondamento delle altre pillole per coerenza visiva */
+.colorful-nav a[style*="color:#fff"] { background: var(--accent, #6C5CE7); }
+@media (max-width: 400px) {
+  .colorful-nav a { font-size: 12.5px; padding: 4px 10px; }
 }
 
 .social-icons-row {
