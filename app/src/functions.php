@@ -283,9 +283,10 @@ function publicProfileHeader(array $artist, string $active, bool $showBio = fals
 
 // Barra fissa in fondo alla pagina che invita alla registrazione, presente su tutte le pagine
 // pubbliche del sito.
-// Blocco fisso in fondo a tutte le pagine pubbliche: pulsante promozionale "myband.it/tu" +
-// link Cookie/Privacy/myBand + invito registrazione, tutti sullo stesso piano in un unico
-// contenitore (nessun elemento "galleggiante" sopra gli altri, per evitare l'effetto scalino).
+// Footer di tutte le pagine pubbliche: pulsante promozionale "myband.it/tu" (sopra) + link
+// Cookie/Privacy/myBand-o-Dashboard (sotto). È un blocco normale nel flusso della pagina (non
+// più "fixed"), quindi non copre mai il contenuto — resta comunque sempre visibile in fondo
+// alla pagina anche a contenuto vuoto, grazie al layout flessibile di body.colorful-page.
 function renderSiteFooterBar(): string {
     $privacyUrl = getSiteSetting('privacy_policy_url') ?: '';
     $parts = [];
@@ -297,13 +298,18 @@ function renderSiteFooterBar(): string {
     } else {
         $parts[] = '<a href="/">Privacy</a>';
     }
-    $parts[] = '<a href="/">myBand</a>';
+    // L'ultimo link cambia in base a chi sta navigando: un visitatore qualsiasi vede "myBand"
+    // (torna alla home), chi è già loggato vede "Dashboard" (va alla propria area privata).
+    if (!empty($_SESSION['user_id'])) {
+        $parts[] = '<a href="/dashboard_profile.php">Dashboard</a>';
+    } else {
+        $parts[] = '<a href="/">myBand</a>';
+    }
     $linksRow = '<div class="footer-links">' . implode('<span> · </span>', $parts) . '</div>';
-    $joinRow = '<a href="/register.php" class="join-bar">Unisciti a myBand</a>';
     // Testo statico "myband.it/tu" (non lo slug del profilo che si sta visitando): è un invito
     // promozionale rivolto al visitatore, non un link di condivisione della pagina corrente.
     $badge = '<a href="/register.php" class="short-link-badge">myband.it/tu</a>';
-    return '<div class="site-footer-fixed">' . $badge . $linksRow . $joinRow . '</div>';
+    return '<div class="site-footer-fixed">' . $badge . $linksRow . '</div>';
 }
 
 // Legge la configurazione SMTP: priorità alle impostazioni salvate dall'admin nel database,

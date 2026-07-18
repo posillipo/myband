@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once __DIR__ . '/../src/functions.php';
 require_once __DIR__ . '/../src/spotify.php';
 
@@ -6,7 +7,7 @@ header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 
 $slug = $_GET['slug'] ?? '';
-$stmt = getDB()->prepare('SELECT u.id, u.slug, p.display_name, p.avatar_path, p.theme_color, p.spotify_show_id, p.spotify_show_name, p.youtube_channel_id
+$stmt = getDB()->prepare('SELECT u.id, u.slug, p.display_name, p.avatar_path, p.theme_color, p.spotify_artist_id, p.spotify_show_id, p.spotify_show_name, p.youtube_channel_id
                           FROM users u JOIN profiles p ON p.user_id = u.id
                           WHERE u.slug = ? AND u.is_active = 1');
 $stmt->execute([$slug]);

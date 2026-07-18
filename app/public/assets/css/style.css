@@ -190,7 +190,15 @@ body.colorful-page {
   background: linear-gradient(160deg, var(--cf-1, #FFD6A5) 0%, var(--cf-2, #A0C4FF) 55%, var(--cf-3, #BDB2FF) 100%);
   color: #22223b;
   min-height: 100vh;
+  margin: 0;
+  /* Colonna verticale a tutta altezza: il footer (ultimo figlio diretto del body) viene
+     spinto naturalmente in fondo alla pagina quando il contenuto è poco, ma scorre insieme
+     al resto quando il contenuto è tanto — non "galleggia" mai sopra nulla, è parte
+     integrante del flusso della pagina. */
+  display: flex;
+  flex-direction: column;
 }
+.colorful-page .container { flex: 1 0 auto; }
 .colorful-page footer.site { color: rgba(34,34,59,0.6); }
 .colorful-page .profile-header { padding-top: 20px; }
 .colorful-page .avatar {
@@ -234,26 +242,20 @@ body.colorful-page {
 .avatar-wrap:hover .avatar-bio-tooltip,
 .avatar-wrap:focus-within .avatar-bio-tooltip { display: block; }
 
-/* Blocco fisso in fondo a tutte le pagine pubbliche: link Cookie/Privacy/myBand + invito
-   registrazione, sempre uniti insieme (uno sopra l'altro) indipendentemente da quanto
-   contenuto ha la pagina sopra di essi. */
+/* Footer di tutte le pagine pubbliche: link Cookie/Privacy/myBand + pulsante promozionale
+   "myband.it/tu". È un blocco normale nel flusso della pagina (non "fixed"), quindi non copre
+   mai il contenuto sopra di esso — resta comunque sempre visibile in fondo alla pagina anche a
+   contenuto vuoto, grazie al layout flessibile impostato su body.colorful-page. */
 .site-footer-fixed {
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  z-index: 50;
   text-align: center;
+  padding: 16px 20px 20px;
   background: var(--accent, #6C5CE7); /* colore unico per tutto il blocco, nessuna cucitura tra le righe interne */
-  box-shadow: 0 -4px 16px rgba(0,0,0,0.15);
 }
-.colorful-page { padding-bottom: 110px; } /* spazio per non far coprire il contenuto dal blocco fisso */
 
-/* Riga di link orizzontali (cookie, privacy, home) — nero, in ogni stato. Nessuno sfondo
-   proprio: eredita quello unico impostato su .site-footer-fixed, per evitare qualsiasi
-   cucitura di colore tra questa riga e quella sottostante. */
+/* Riga di link orizzontali (cookie, privacy, home/dashboard) — nero, in ogni stato */
 .site-footer-fixed .footer-links {
   background: transparent;
   text-align: center;
-  padding: 10px 20px 4px;
   margin-bottom: 0;
 }
 .site-footer-fixed .footer-links a,
@@ -267,12 +269,11 @@ body.colorful-page {
 }
 .site-footer-fixed .footer-links span { opacity: 0.6; color: #000000; }
 
-/* Badge tipo "myband.it/tuoslug", in stile Linktree, che fluttua sopra il blocco fisso */
-/* Pulsante "myband.it/tu", stesso piano del resto del blocco (nessun posizionamento assoluto
-   che lo faccia "galleggiare" sopra, creando uno scalino visivo con la pagina) */
+/* Pulsante "myband.it/tu", posizionato sopra la riga Cookie/Privacy, con un piccolo richiamo
+   visivo periodico (una breve vibrazione ogni pochi secondi, non continua) */
 .short-link-badge {
   display: inline-block;
-  margin: 10px auto 0;
+  margin: 0 auto 12px;
   background: #ffffff;
   color: #22223b;
   border-radius: 999px;
@@ -281,25 +282,18 @@ body.colorful-page {
   font-weight: 700;
   text-decoration: none;
   white-space: nowrap;
+  animation: badge-attention-shake 6s ease-in-out infinite;
 }
 .short-link-badge:hover, .short-link-badge:visited, .short-link-badge:active { color: #22223b; }
 
-/* Barra "Unisciti a myBand", ora dentro lo stesso blocco fisso (non più fixed da sola).
-   Nessuno sfondo proprio, per lo stesso motivo di .footer-links sopra. */
-.site-footer-fixed .join-bar {
-  display: block;
-  text-align: center;
-  background: transparent;
-  color: #ffffff;
-  font-weight: 700;
-  padding: 10px 20px 14px;
-  text-decoration: none;
-}
-.site-footer-fixed .join-bar:hover,
-.site-footer-fixed .join-bar:visited,
-.site-footer-fixed .join-bar:active {
-  color: #ffffff;
-  opacity: 0.92;
+@keyframes badge-attention-shake {
+  0%, 90%, 100% { transform: translateX(0) rotate(0deg); }
+  91% { transform: translateX(-3px) rotate(-3deg); }
+  92% { transform: translateX(3px) rotate(3deg); }
+  93% { transform: translateX(-3px) rotate(-3deg); }
+  94% { transform: translateX(3px) rotate(3deg); }
+  95% { transform: translateX(-2px) rotate(-2deg); }
+  96%, 100% { transform: translateX(0) rotate(0deg); }
 }
 
 .colorful-nav a { color: #22223b; font-weight: 700; }
