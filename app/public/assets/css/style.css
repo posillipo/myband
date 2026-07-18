@@ -241,6 +241,7 @@ body.colorful-page {
   position: fixed;
   left: 0; right: 0; bottom: 0;
   z-index: 50;
+  text-align: center;
   background: var(--accent, #6C5CE7); /* colore unico per tutto il blocco, nessuna cucitura tra le righe interne */
   box-shadow: 0 -4px 16px rgba(0,0,0,0.15);
 }
@@ -267,20 +268,21 @@ body.colorful-page {
 .site-footer-fixed .footer-links span { opacity: 0.6; color: #000000; }
 
 /* Badge tipo "myband.it/tuoslug", in stile Linktree, che fluttua sopra il blocco fisso */
+/* Pulsante "myband.it/tu", stesso piano del resto del blocco (nessun posizionamento assoluto
+   che lo faccia "galleggiare" sopra, creando uno scalino visivo con la pagina) */
 .short-link-badge {
-  position: absolute;
-  top: -18px;
-  left: 50%;
-  transform: translateX(-50%);
+  display: inline-block;
+  margin: 10px auto 0;
   background: #ffffff;
   color: #22223b;
   border-radius: 999px;
   padding: 6px 16px;
   font-size: 13px;
   font-weight: 700;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+  text-decoration: none;
   white-space: nowrap;
 }
+.short-link-badge:hover, .short-link-badge:visited, .short-link-badge:active { color: #22223b; }
 
 /* Barra "Unisciti a myBand", ora dentro lo stesso blocco fisso (non più fixed da sola).
    Nessuno sfondo proprio, per lo stesso motivo di .footer-links sopra. */

@@ -283,11 +283,10 @@ function publicProfileHeader(array $artist, string $active, bool $showBio = fals
 
 // Barra fissa in fondo alla pagina che invita alla registrazione, presente su tutte le pagine
 // pubbliche del sito.
-// Blocco fisso in fondo a tutte le pagine pubbliche: link Cookie/Privacy/myBand + invito
-// registrazione, sempre uniti insieme in un unico contenitore (mai più separati da uno spazio
-// vuoto quando la pagina sopra ha poco contenuto). Se viene passato lo slug dell'artista, mostra
-// anche un badge fluttuante "myband.it/slug" in stile Linktree, sopra il blocco.
-function renderSiteFooterBar(string $slug = ''): string {
+// Blocco fisso in fondo a tutte le pagine pubbliche: pulsante promozionale "myband.it/tu" +
+// link Cookie/Privacy/myBand + invito registrazione, tutti sullo stesso piano in un unico
+// contenitore (nessun elemento "galleggiante" sopra gli altri, per evitare l'effetto scalino).
+function renderSiteFooterBar(): string {
     $privacyUrl = getSiteSetting('privacy_policy_url') ?: '';
     $parts = [];
     // CookieYes intercetta automaticamente qualsiasi elemento con questa classe per riaprire
@@ -301,7 +300,9 @@ function renderSiteFooterBar(string $slug = ''): string {
     $parts[] = '<a href="/">myBand</a>';
     $linksRow = '<div class="footer-links">' . implode('<span> · </span>', $parts) . '</div>';
     $joinRow = '<a href="/register.php" class="join-bar">Unisciti a myBand</a>';
-    $badge = $slug !== '' ? '<div class="short-link-badge">myband.it/' . e($slug) . '</div>' : '';
+    // Testo statico "myband.it/tu" (non lo slug del profilo che si sta visitando): è un invito
+    // promozionale rivolto al visitatore, non un link di condivisione della pagina corrente.
+    $badge = '<a href="/register.php" class="short-link-badge">myband.it/tu</a>';
     return '<div class="site-footer-fixed">' . $badge . $linksRow . $joinRow . '</div>';
 }
 
