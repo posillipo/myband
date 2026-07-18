@@ -50,12 +50,20 @@ $pageUrl = siteUrl('/' . $userSlug . '/blog');
 
   <?php foreach ($posts as $i => $p): ?>
     <a href="<?= e(blogPostUrl($userSlug, $p)) ?>" class="color-link-btn"
-       style="background:<?= e(COLORFUL_PALETTE[$i % count(COLORFUL_PALETTE)]) ?>;">
+       style="background:<?= e(COLORFUL_PALETTE[$i % count(COLORFUL_PALETTE)]) ?>; display:flex; align-items:center; gap:14px; text-align:left;">
       <?php if ($p['cover_path']): ?>
-        <img src="/<?= e($p['cover_path']) ?>" class="btn-cover-icon">
+        <img src="/<?= e($p['cover_path']) ?>" style="width:72px;height:72px;border-radius:10px;object-fit:cover;flex-shrink:0;">
+      <?php else: ?>
+        <div style="width:72px;height:72px;border-radius:10px;background:rgba(255,255,255,0.5);flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+          <svg viewBox="0 0 24 24" width="30" height="30" fill="rgba(34,34,59,0.45)">
+            <path d="M9 2L7.17 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3.17L15 2H9zm3 15a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+          </svg>
+        </div>
       <?php endif; ?>
-      <strong style="display:block;"><?= e($p['title']) ?></strong>
-      <small style="opacity:.75;"><?= date('d/m/Y', strtotime($p['published_at'])) ?></small>
+      <span style="flex:1;min-width:0;">
+        <strong style="display:block;"><?= e($p['title']) ?></strong>
+        <small style="opacity:.75;"><?= date('d/m/Y', strtotime($p['published_at'])) ?></small>
+      </span>
     </a>
   <?php endforeach; ?>
 </div>

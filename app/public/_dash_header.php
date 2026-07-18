@@ -41,6 +41,6 @@ $dashTheme = 'light-theme';
       Podcast<?php if (!empty($user['spotify_show_id'])): ?><span title="Podcast collegato" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#1DB954;margin-left:6px;"></span><?php endif; ?>
     </a>
     <a href="/dashboard_youtube.php" class="<?= $activeTab==='youtube'?'active':'' ?>">
-      YouTube<?php if (!empty($user['youtube_channel_id'])): ?><span title="Canale collegato" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#FF0000;margin-left:6px;"></span><?php endif; ?>
+      YouTube<?php if (!empty($user['youtube_channel_id'])): ?><span title="Canale collegato" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#1DB954;margin-left:6px;"></span><?php endif; ?>
     </a>
   </div>

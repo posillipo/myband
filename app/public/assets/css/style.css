@@ -299,6 +299,24 @@ body.colorful-page {
 .colorful-nav a { color: #22223b; font-weight: 700; }
 .colorful-nav span { color: rgba(34,34,59,0.5); }
 
+/* Menu di navigazione della pagina pubblica: mai a capo su più righe. Su schermi stretti si
+   riduce il testo e, se ancora non basta, diventa scorrevole orizzontalmente invece di
+   spezzarsi su due righe. */
+.colorful-nav {
+  white-space: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.colorful-nav::-webkit-scrollbar { display: none; }
+@media (max-width: 480px) {
+  .colorful-nav { font-size: 13px; }
+}
+@media (max-width: 380px) {
+  .colorful-nav { font-size: 11.5px; }
+}
+
 .social-icons-row {
   display: flex;
   justify-content: center;
@@ -357,8 +375,9 @@ body.colorful-page {
 .colorful-page a { color: #6a4c93; }
 .colorful-page form textarea,
 .colorful-page form input {
-  background: rgba(255,255,255,0.7);
-  border: 1px solid rgba(34,34,59,0.15);
+  background: rgba(255,255,255,0.94);
+  border: 1px solid rgba(34,34,59,0.35);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
   color: #22223b;
 }
 .colorful-page form label { color: rgba(34,34,59,0.65); }
