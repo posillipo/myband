@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($_POST['remember'])) {
             issueRememberToken((int) $u['id']);
         }
-        header('Location: /dashboard.php');
+        header('Location: ' . ($u['account_type_chosen'] ? '/dashboard.php' : '/choose_account_type.php'));
         exit;
     }
 }

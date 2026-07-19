@@ -47,7 +47,7 @@ function currentUser(): ?array {
     if (empty($_SESSION['user_id'])) return null;
     static $cache = null;
     if ($cache !== null) return $cache;
-    $stmt = getDB()->prepare('SELECT u.*, p.display_name, p.bio, p.avatar_path, p.theme_color, p.spotify_artist_id, p.spotify_artist_name, p.spotify_show_id, p.spotify_show_name, p.youtube_channel_id, p.youtube_channel_name
+    $stmt = getDB()->prepare('SELECT u.*, p.display_name, p.bio, p.avatar_path, p.theme_color, p.spotify_artist_id, p.spotify_artist_name, p.spotify_show_id, p.spotify_show_name, p.youtube_channel_id, p.youtube_channel_name, p.genere, p.citta, p.provincia, p.telefono
                               FROM users u LEFT JOIN profiles p ON p.user_id = u.id
                               WHERE u.id = ?');
     $stmt->execute([$_SESSION['user_id']]);
@@ -277,6 +277,11 @@ function publicProfileHeader(array $artist, string $active, bool $showBio = fals
         $html .= '<p>' . nl2br(e($artist['bio'])) . '</p>';
     }
     $html .= '<h1>' . e($artist['display_name']) . '</h1>';
+    $html .= '<p class="profile-meta">@' . e($artist['slug']);
+    if (!empty($artist['genere'])) {
+        $html .= '<span> · </span>' . e($artist['genere']);
+    }
+    $html .= '</p>';
     $html .= publicNav($artist['slug'], $active, !empty($artist['spotify_artist_id']), !empty($artist['youtube_channel_id']), !empty($artist['spotify_show_id']));
     $html .= '</div>';
     return $html;
@@ -530,7 +535,8 @@ const RESERVED_SLUGS = ['login','register','logout','dashboard','dashboard_profi
     'verify','resend_verification','admin_dashboard','admin_user_edit','admin_contacts','admin_tracking','admin_smtp',
     'admin_spotify','dashboard_spotify','follow','follow_confirm','follow_unsubscribe','dashboard_followers',
     'admin_import_legacy','admin_profiles','track','evento','admin_youtube','dashboard_youtube','video',
-    'forgot_password','reset_password','dashboard_podcast','podcast'];
+    'forgot_password','reset_password','dashboard_podcast','podcast',
+    'choose_account_type','dashboard_fan_bands'];
 
 // Genera uno slug univoco per un articolo di un dato utente (title -> slug, con suffisso -2, -3... se già esistente)
 function generateUniquePostSlug(int $userId, string $title, ?int $excludePostId = null): string {

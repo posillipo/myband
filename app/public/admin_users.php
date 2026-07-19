@@ -78,7 +78,7 @@ $page = min($page, $totalPages);
 $offset = ($page - 1) * $perPage;
 
 $stmt = getDB()->prepare("SELECT u.id, u.slug, u.email, u.created_at, u.is_active, u.is_admin, u.email_verified,
-        u.legacy_gestore_id, u.legacy_stato, p.display_name, p.citta
+        u.legacy_gestore_id, u.legacy_stato, u.account_type, p.display_name, p.citta
     FROM users u JOIN profiles p ON p.user_id = u.id
     {$whereSql}
     ORDER BY {$orderBySql}
@@ -144,6 +144,7 @@ include __DIR__ . '/_admin_header.php';
           <th><?= sortHeader('Email', 'email', $sort, $dir) ?></th>
           <th><?= sortHeader('Slug', 'slug', $sort, $dir) ?></th>
           <th><?= sortHeader('Città', 'citta', $sort, $dir) ?></th>
+          <th>Tipo</th>
           <th><?= sortHeader('Stato', 'is_active', $sort, $dir) ?></th>
           <th><?= sortHeader('Email verif.', 'email_verified', $sort, $dir) ?></th>
           <th>Origine</th>
@@ -162,6 +163,12 @@ include __DIR__ . '/_admin_header.php';
             <td><?= e($u['email']) ?></td>
             <td><a href="/<?= e($u['slug']) ?>" target="_blank"><?= e($u['slug']) ?></a></td>
             <td><?= e($u['citta'] ?: '—') ?></td>
+            <td>
+              <?php
+                $typeLabels = ['band' => 'Band/Artista', 'fan' => 'Fan', 'label' => 'Etichetta'];
+                echo e($typeLabels[$u['account_type']] ?? 'Band/Artista');
+              ?>
+            </td>
             <td>
               <?php if ($u['is_active']): ?>
                 <span class="badge badge-success">Attivo</span>

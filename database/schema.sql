@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS users (
     email_verified TINYINT(1) NOT NULL DEFAULT 1,
     verification_token VARCHAR(64) DEFAULT NULL,
     verification_expires DATETIME DEFAULT NULL,
+    account_type ENUM('band','fan','label') NOT NULL DEFAULT 'band',
+    account_type_chosen TINYINT(1) NOT NULL DEFAULT 0,
     reset_token VARCHAR(64) DEFAULT NULL,
     reset_token_expires DATETIME DEFAULT NULL,
     legacy_gestore_id INT DEFAULT NULL,
@@ -134,6 +136,20 @@ CREATE TABLE IF NOT EXISTS followers (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- Lista libera di band/artisti Spotify che un account "Fan" sceglie di seguire come preferiti
+-- sulla propria pagina pubblica — non necessariamente band registrate su myband.it, qualsiasi
+-- artista/band presente nel catalogo pubblico Spotify.
+CREATE TABLE IF NOT EXISTS fan_favorite_bands (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    spotify_artist_id VARCHAR(50) NOT NULL,
+    spotify_artist_name VARCHAR(200) NOT NULL,
+    artist_image VARCHAR(500) DEFAULT NULL,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_user_artist (user_id, spotify_artist_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('privacy_script', '');
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('gtm_head_script', '');
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('gtm_body_script', '');

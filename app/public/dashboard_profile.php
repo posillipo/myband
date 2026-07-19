@@ -12,6 +12,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $displayName = trim($_POST['display_name'] ?? '');
     $bio = trim($_POST['bio'] ?? '');
     $themeColor = trim($_POST['theme_color'] ?? '#6C5CE7');
+    $genere = trim($_POST['genere'] ?? '');
+    $citta = trim($_POST['citta'] ?? '');
+    $provincia = trim($_POST['provincia'] ?? '');
+    $telefono = trim($_POST['telefono'] ?? '');
     $avatarPath = $user['avatar_path'];
 
     if (!empty($_FILES['avatar']['name'])) {
@@ -28,8 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$error) {
-        $stmt = getDB()->prepare('UPDATE profiles SET display_name=?, bio=?, avatar_path=?, theme_color=? WHERE user_id=?');
-        $stmt->execute([$displayName, $bio, $avatarPath, $themeColor, $user['id']]);
+        $stmt = getDB()->prepare('UPDATE profiles SET display_name=?, bio=?, avatar_path=?, theme_color=?, genere=?, citta=?, provincia=?, telefono=? WHERE user_id=?');
+        $stmt->execute([$displayName, $bio, $avatarPath, $themeColor, $genere ?: null, $citta ?: null, $provincia ?: null, $telefono ?: null, $user['id']]);
         $success = 'Profilo aggiornato.';
         $user = currentUser();
     }
@@ -47,6 +51,18 @@ include __DIR__ . '/_dash_header.php';
 
     <label>Bio</label>
     <textarea name="bio" rows="4"><?= e($user['bio']) ?></textarea>
+
+    <label>Genere musicale</label>
+    <input type="text" name="genere" value="<?= e($user['genere'] ?? '') ?>" placeholder="es. Rock, Pop, Cantautore...">
+
+    <label>Città</label>
+    <input type="text" name="citta" value="<?= e($user['citta'] ?? '') ?>">
+
+    <label>Provincia</label>
+    <input type="text" name="provincia" value="<?= e($user['provincia'] ?? '') ?>" placeholder="es. Na, Mi, Rm...">
+
+    <label>Telefono</label>
+    <input type="text" name="telefono" value="<?= e($user['telefono'] ?? '') ?>">
 
     <label>Colore tema (pagina pubblica)</label>
     <input type="color" name="theme_color" value="<?= e($user['theme_color'] ?? '#6C5CE7') ?>" style="width:80px;height:44px;padding:4px;">

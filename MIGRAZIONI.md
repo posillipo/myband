@@ -154,6 +154,34 @@ ALTER TABLE profiles
 Nessuna nuova credenziale da configurare: riusa la stessa API Key Spotify già impostata in
 Area Admin → Spotify.
 
+## 19. Campi profilo mancanti in dashboard (genere, città, provincia, telefono)
+Le colonne esistono già dalla migrazione 13 (import legacy) — questa sezione non richiede
+nuovi comandi SQL, solo il nuovo codice che finalmente le espone in Dashboard → Profilo.
+
+## 20. Tipo di account (Band/Fan/Etichetta) e lista "Band che amo" dei Fan
+```sql
+ALTER TABLE users
+  ADD COLUMN account_type ENUM('band','fan','label') NOT NULL DEFAULT 'band',
+  ADD COLUMN account_type_chosen TINYINT(1) NOT NULL DEFAULT 0;
+
+-- IMPORTANTE: segna tutti gli account già esistenti come "tipo già scelto", altrimenti al
+-- prossimo login vedrebbero comparire la schermata di scelta anche se sono account reali già
+-- attivi da tempo (compresi i profili importati dal vecchio sistema)
+UPDATE users SET account_type_chosen = 1 WHERE account_type_chosen = 0;
+
+CREATE TABLE IF NOT EXISTS fan_favorite_bands (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    spotify_artist_id VARCHAR(50) NOT NULL,
+    spotify_artist_name VARCHAR(200) NOT NULL,
+    artist_image VARCHAR(500) DEFAULT NULL,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_user_artist (user_id, spotify_artist_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+```
+
 ---
 
 ## Come aggiungere una nuova voce

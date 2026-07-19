@@ -6,7 +6,7 @@ header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 
 $slug = $_GET['slug'] ?? '';
-$stmt = getDB()->prepare('SELECT u.*, p.display_name, p.bio, p.avatar_path, p.theme_color, p.spotify_artist_id, p.spotify_show_id, p.youtube_channel_id
+$stmt = getDB()->prepare('SELECT u.*, p.display_name, p.bio, p.avatar_path, p.theme_color, p.spotify_artist_id, p.spotify_show_id, p.genere, p.youtube_channel_id
                           FROM users u JOIN profiles p ON p.user_id = u.id
                           WHERE u.slug = ? AND u.is_active = 1');
 $stmt->execute([$slug]);
@@ -35,6 +35,13 @@ $ogDescription = $artist['bio'] ? textExcerpt($artist['bio']) : ('La pagina di '
 $followerCount = getFollowerCount($uid);
 $followMsg = $_GET['follow_msg'] ?? '';
 $followErr = ($_GET['follow_err'] ?? '0') === '1';
+
+$fanFavorites = [];
+if (($artist['account_type'] ?? 'band') === 'fan') {
+    $stmt = getDB()->prepare('SELECT * FROM fan_favorite_bands WHERE user_id=? ORDER BY sort_order ASC');
+    $stmt->execute([$uid]);
+    $fanFavorites = $stmt->fetchAll();
+}
 ?>
 <!doctype html>
 <html lang="it">
@@ -99,6 +106,21 @@ $followErr = ($_GET['follow_err'] ?? '0') === '1';
       <?php foreach ($socialLinks as $l): ?>
         <a class="social-icon-btn" title="<?= e($l['platform']['label']) ?>" target="_blank" rel="noopener"
            href="/link.php?id=<?= (int)$l['id'] ?>"><i class="<?= e($l['platform']['icon_class']) ?>"></i></a>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($fanFavorites): ?>
+    <div class="section-title" style="text-align:center;color:rgba(34,34,59,0.6);margin:18px 0 10px;">Band che amo</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:18px;">
+      <?php foreach ($fanFavorites as $f): ?>
+        <a href="https://open.spotify.com/artist/<?= e($f['spotify_artist_id']) ?>" target="_blank" rel="noopener"
+           class="card" style="text-align:center;text-decoration:none;color:inherit;padding:14px 8px;">
+          <?php if ($f['artist_image']): ?>
+            <img src="<?= e($f['artist_image']) ?>" style="width:64px;height:64px;border-radius:50%;object-fit:cover;margin-bottom:8px;">
+          <?php endif; ?>
+          <div style="font-weight:700;font-size:13px;"><?= e($f['spotify_artist_name']) ?></div>
+        </a>
       <?php endforeach; ?>
     </div>
   <?php endif; ?>

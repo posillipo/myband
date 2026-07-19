@@ -14,7 +14,7 @@ if (!preg_match('/^\d{4}\.\d{2}\.\d{2}\.(.+)$/', $postToken, $m)) {
 }
 $postSlug = $m[1];
 
-$stmt = getDB()->prepare('SELECT u.slug AS user_slug, p.display_name, p.avatar_path, p.theme_color, p.spotify_artist_id, p.spotify_show_id, p.youtube_channel_id, b.*
+$stmt = getDB()->prepare('SELECT u.slug AS user_slug, p.display_name, p.avatar_path, p.theme_color, p.spotify_artist_id, p.spotify_show_id, p.youtube_channel_id, p.genere, b.*
                           FROM blog_posts b
                           JOIN users u ON u.id = b.user_id
                           JOIN profiles p ON p.user_id = u.id
@@ -34,6 +34,7 @@ $artist = [
     'avatar_path' => $post['avatar_path'],
     'spotify_artist_id' => $post['spotify_artist_id'] ?? null,
     'spotify_show_id' => $post['spotify_show_id'] ?? null,
+    'genere' => $post['genere'] ?? null,
     'youtube_channel_id' => $post['youtube_channel_id'] ?? null,
 ];
 
