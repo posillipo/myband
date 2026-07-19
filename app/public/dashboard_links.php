@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $url = trim($_POST['url'] ?? '');
         $isWebsite = isset($_POST['is_website_icon']) ? 1 : 0;
         if ($label !== '' && filter_var($url, FILTER_VALIDATE_URL)) {
-            $coverPath = handleCoverUpload((int) $user['id']);
+            $coverPath = handleCoverUpload($user['slug']);
             $stmt = getDB()->prepare('INSERT INTO links (user_id, label, url, is_website_icon, cover_path, sort_order) VALUES (?,?,?,?,?, (SELECT n FROM (SELECT COALESCE(MAX(sort_order),0)+1 AS n FROM links WHERE user_id=?) t))');
             $stmt->execute([$user['id'], $label, $url, $isWebsite, $coverPath, $user['id']]);
         } else {
@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $url = trim($_POST['url'] ?? '');
         $isWebsite = isset($_POST['is_website_icon']) ? 1 : 0;
         if ($label !== '' && filter_var($url, FILTER_VALIDATE_URL)) {
-            $newCover = handleCoverUpload((int) $user['id']);
+            $newCover = handleCoverUpload($user['slug']);
             if ($newCover) {
                 $stmt = getDB()->prepare('UPDATE links SET label=?, url=?, is_website_icon=?, cover_path=? WHERE id=? AND user_id=?');
                 $stmt->execute([$label, $url, $isWebsite, $newCover, $id, $user['id']]);

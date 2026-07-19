@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $slug = generateUniquePostSlug((int)$user['id'], $title);
             $excerpt = textExcerpt($content, 200);
-            $coverPath = handleCoverUpload((int) $user['id']);
+            $coverPath = handleCoverUpload($user['slug']);
             $stmt = getDB()->prepare('INSERT INTO blog_posts (user_id, title, slug, excerpt, content, cover_path) VALUES (?,?,?,?,?,?)');
             $stmt->execute([$user['id'], $title, $slug, $excerpt, $content, $coverPath]);
 

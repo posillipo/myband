@@ -432,7 +432,7 @@ function embedTrackingBodyStart(): string {
 // Gestisce l'upload di un'immagine di copertina (link, articoli blog, eventi). Restituisce il
 // percorso relativo salvato, o null se non è stato caricato nessun file valido. Non lancia mai
 // errori: un file mancante o non valido significa semplicemente "nessuna copertina".
-function handleCoverUpload(int $userId, string $fileInputName = 'cover'): ?string {
+function handleCoverUpload(string $slug, string $fileInputName = 'cover'): ?string {
     if (empty($_FILES[$fileInputName]['name'])) {
         return null;
     }
@@ -440,10 +440,14 @@ function handleCoverUpload(int $userId, string $fileInputName = 'cover'): ?strin
     if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp'], true) || $_FILES[$fileInputName]['error'] !== UPLOAD_ERR_OK) {
         return null;
     }
-    $fname = 'cover_' . $userId . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
-    $dest = '/var/www/html/uploads/images/' . $fname;
+    $fname = bin2hex(random_bytes(6)) . '.' . $ext;
+    $dir = '/var/www/html/uploads/images/' . $slug;
+    if (!is_dir($dir)) {
+        mkdir($dir, 0775, true);
+    }
+    $dest = $dir . '/' . $fname;
     if (move_uploaded_file($_FILES[$fileInputName]['tmp_name'], $dest)) {
-        return 'uploads/images/' . $fname;
+        return 'uploads/images/' . $slug . '/' . $fname;
     }
     return null;
 }

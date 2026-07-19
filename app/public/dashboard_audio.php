@@ -23,21 +23,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } elseif ($_FILES['audio']['error'] !== UPLOAD_ERR_OK) {
                 $error = 'Errore durante il caricamento del file.';
             } else {
-                $fname = 'u' . $user['id'] . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
-                $dest = __DIR__ . '/uploads/audio/' . $fname;
+                $fname = bin2hex(random_bytes(6)) . '.' . $ext;
+                $audioDir = __DIR__ . '/uploads/audio/' . $user['slug'];
+                if (!is_dir($audioDir)) {
+                    mkdir($audioDir, 0775, true);
+                }
+                $dest = $audioDir . '/' . $fname;
                 if (move_uploaded_file($_FILES['audio']['tmp_name'], $dest)) {
-                    $coverPath = null;
-                    if (!empty($_FILES['cover']['name'])) {
-                        $coverExt = strtolower(pathinfo($_FILES['cover']['name'], PATHINFO_EXTENSION));
-                        if (in_array($coverExt, ['jpg','jpeg','png','webp'], true) && $_FILES['cover']['error'] === UPLOAD_ERR_OK) {
-                            $coverFname = 'cover_' . $user['id'] . '_' . bin2hex(random_bytes(6)) . '.' . $coverExt;
-                            if (move_uploaded_file($_FILES['cover']['tmp_name'], __DIR__ . '/uploads/images/' . $coverFname)) {
-                                $coverPath = 'uploads/images/' . $coverFname;
-                            }
-                        }
-                    }
+                    $coverPath = handleCoverUpload($user['slug']);
                     $stmt = getDB()->prepare('INSERT INTO audio_tracks (user_id, title, file_path, cover_path) VALUES (?,?,?,?)');
-                    $stmt->execute([$user['id'], $title, 'uploads/audio/' . $fname, $coverPath]);
+                    $stmt->execute([$user['id'], $title, 'uploads/audio/' . $user['slug'] . '/' . $fname, $coverPath]);
                 } else {
                     $error = 'Impossibile salvare il file.';
                 }

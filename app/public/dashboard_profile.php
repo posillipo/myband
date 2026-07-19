@@ -21,10 +21,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($_FILES['avatar']['name'])) {
         $ext = strtolower(pathinfo($_FILES['avatar']['name'], PATHINFO_EXTENSION));
         if (in_array($ext, ['jpg','jpeg','png','webp'], true) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
-            $fname = 'u' . $user['id'] . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
-            $dest = __DIR__ . '/uploads/images/' . $fname;
+            $fname = 'avatar_' . bin2hex(random_bytes(6)) . '.' . $ext;
+            $dir = __DIR__ . '/uploads/images/' . $user['slug'];
+            if (!is_dir($dir)) {
+                mkdir($dir, 0775, true);
+            }
+            $dest = $dir . '/' . $fname;
             if (move_uploaded_file($_FILES['avatar']['tmp_name'], $dest)) {
-                $avatarPath = 'uploads/images/' . $fname;
+                $avatarPath = 'uploads/images/' . $user['slug'] . '/' . $fname;
             }
         } else {
             $error = 'Formato immagine non valido (usa jpg, png o webp).';

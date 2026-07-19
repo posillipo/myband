@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($title === '' || $date === '') {
             $error = 'Titolo e data sono obbligatori.';
         } else {
-            $coverPath = handleCoverUpload((int) $user['id']);
+            $coverPath = handleCoverUpload($user['slug']);
             $stmt = getDB()->prepare('INSERT INTO events (user_id, title, venue, city, event_date, ticket_url, cover_path) VALUES (?,?,?,?,?,?,?)');
             $stmt->execute([$user['id'], $title, $venue ?: null, $city ?: null, $date, $ticketUrl ?: null, $coverPath]);
             $newEventId = (int) getDB()->lastInsertId();
