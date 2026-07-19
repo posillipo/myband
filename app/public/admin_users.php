@@ -104,6 +104,7 @@ include __DIR__ . '/_admin_header.php';
 ?>
   <div class="card">
     <a href="/admin_profiles.php" class="btn btn-secondary btn-sm">Vedi tabella profili pubblici →</a>
+    <a href="/admin_apply_percorso.php" class="btn btn-secondary btn-sm">Applica percorso come slug →</a>
   </div>
 
   <form method="get" class="card" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
