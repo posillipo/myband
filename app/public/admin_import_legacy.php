@@ -235,4 +235,13 @@ include __DIR__ . '/_admin_header.php';
       </button>
     </form>
   <?php endif; ?>
+
+  <div class="card" style="margin-top:20px;">
+    <strong>Passo successivo, dopo l'import</strong>
+    <p style="color:var(--text-muted)">
+      Sostituisce lo slug di ogni account importato con il vecchio campo "percorso", per far
+      coincidere gli URL con la struttura multimediale storica.
+    </p>
+    <a href="/admin_apply_percorso.php" class="btn btn-secondary">Applica percorso come slug →</a>
+  </div>
 <?php include __DIR__ . '/_admin_footer.php'; ?>

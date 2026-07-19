@@ -118,6 +118,6 @@ include __DIR__ . '/_admin_header.php';
   <form method="post" onsubmit="return confirm('Sostituire gli slug con i vecchi percorso? Cambierà l\'URL pubblica di 1.835 account (attualmente disattivati e non visibili).');">
     <?= csrfField() ?>
     <input type="hidden" name="action" value="run">
-    <button type="submit" class="btn">Applica percorso come slug</button>
+    <button type="submit" class="btn btn-primary">Applica percorso come slug</button>
   </form>
 <?php include __DIR__ . '/_admin_footer.php'; ?>
