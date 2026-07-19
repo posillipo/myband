@@ -28,9 +28,7 @@ $dashTheme = 'light-theme';
 <div class="container">
   <div class="tabs">
     <a href="/dashboard_profile.php" class="<?= $activeTab==='profile'?'active':'' ?>">Profilo</a>
-    <?php if (($user['account_type'] ?? 'band') === 'fan'): ?>
-      <a href="/dashboard_fan_bands.php" class="<?= $activeTab==='fan_bands'?'active':'' ?>">Band che amo</a>
-    <?php endif; ?>
+    <a href="/dashboard_fan_bands.php" class="<?= $activeTab==='fan_bands'?'active':'' ?>">Band che amo</a>
     <a href="/dashboard_links.php" class="<?= $activeTab==='links'?'active':'' ?>">Link</a>
     <a href="/dashboard_audio.php" class="<?= $activeTab==='audio'?'active':'' ?>">Brani</a>
     <a href="/dashboard_events.php" class="<?= $activeTab==='events'?'active':'' ?>">Eventi</a>

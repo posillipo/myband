@@ -23,6 +23,9 @@ RewriteRule ^([a-zA-Z0-9_-]+)/eventi/([0-9]+)/?$ evento.php?slug=$1&id=$2 [L,QSA
 # /nomeartista/eventi -> pagina concerti
 RewriteRule ^([a-zA-Z0-9_-]+)/eventi/?$ eventi.php?slug=$1 [L,QSA]
 
+# /nomeartista/band-che-amo -> elenco completo band preferite
+RewriteRule ^([a-zA-Z0-9_-]+)/band-che-amo/?$ band_che_amo.php?slug=$1 [L,QSA]
+
 # /nomeartista/contatti -> form di contatto
 RewriteRule ^([a-zA-Z0-9_-]+)/contatti/?$ contatti.php?slug=$1 [L,QSA]
 

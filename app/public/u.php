@@ -37,11 +37,11 @@ $followMsg = $_GET['follow_msg'] ?? '';
 $followErr = ($_GET['follow_err'] ?? '0') === '1';
 
 $fanFavorites = [];
-if (($artist['account_type'] ?? 'band') === 'fan') {
-    $stmt = getDB()->prepare('SELECT * FROM fan_favorite_bands WHERE user_id=? ORDER BY sort_order ASC');
-    $stmt->execute([$uid]);
-    $fanFavorites = $stmt->fetchAll();
-}
+$stmt = getDB()->prepare('SELECT * FROM fan_favorite_bands WHERE user_id=? ORDER BY sort_order ASC');
+$stmt->execute([$uid]);
+$fanFavorites = $stmt->fetchAll();
+$fanFavoritesTotal = count($fanFavorites);
+$fanFavoritesPreview = array_slice($fanFavorites, 0, 6);
 ?>
 <!doctype html>
 <html lang="it">
@@ -90,7 +90,7 @@ if (($artist['account_type'] ?? 'band') === 'fan') {
       <?= csrfField() ?>
       <input type="hidden" name="slug" value="<?= e($slug) ?>">
       <input type="email" name="email" placeholder="La tua email" required style="flex:1;min-width:180px;max-width:280px;margin-bottom:0;">
-      <button type="submit" class="btn">Segui <?= e($artist['display_name']) ?></button>
+      <button type="submit" class="btn" style="background:rgb(108,92,231);">Segui <?= e($artist['display_name']) ?></button>
     </form>
     <p style="color:rgba(34,34,59,0.7);font-size:13px;margin-top:10px;margin-bottom:0;">
       <?php if ($followerCount > 0): ?>
@@ -112,8 +112,8 @@ if (($artist['account_type'] ?? 'band') === 'fan') {
 
   <?php if ($fanFavorites): ?>
     <div class="section-title" style="text-align:center;color:rgba(34,34,59,0.6);margin:18px 0 10px;">Band che amo</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:18px;">
-      <?php foreach ($fanFavorites as $f): ?>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:10px;">
+      <?php foreach ($fanFavoritesPreview as $f): ?>
         <a href="https://open.spotify.com/artist/<?= e($f['spotify_artist_id']) ?>" target="_blank" rel="noopener"
            class="card" style="text-align:center;text-decoration:none;color:inherit;padding:14px 8px;">
           <?php if ($f['artist_image']): ?>
@@ -123,6 +123,11 @@ if (($artist['account_type'] ?? 'band') === 'fan') {
         </a>
       <?php endforeach; ?>
     </div>
+    <?php if ($fanFavoritesTotal > 6): ?>
+      <p style="text-align:center;margin-bottom:18px;">
+        <a href="/<?= e($slug) ?>/band-che-amo">Vedi tutte (<?= $fanFavoritesTotal ?>) →</a>
+      </p>
+    <?php endif; ?>
   <?php endif; ?>
 
   <?php if ($actionLinks): ?>

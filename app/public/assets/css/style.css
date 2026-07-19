@@ -270,7 +270,7 @@ body.colorful-page {
 .site-footer-fixed {
   text-align: center;
   padding: 16px 20px 20px;
-  background: var(--accent, #6C5CE7); /* colore unico per tutto il blocco, nessuna cucitura tra le righe interne */
+  background: transparent;
 }
 
 /* Riga di link orizzontali (cookie, privacy, home/dashboard) — nero, in ogni stato */
