@@ -148,3 +148,24 @@ docker compose exec db mysqldump -u root -p myband > backup_$(date +%F).sql
 
 Se in futuro si torna a valutare questa funzionalità, l'analisi completa resta valida come
 punto di partenza — evita di rifare da zero la ricerca sui limiti dell'API Spotify.
+
+## 10. Principio guida per le integrazioni esterne: coerenza grafica
+
+**myBand è un "Linktree musicale"**: ogni integrazione con un servizio esterno deve rispettare
+lo stesso linguaggio visivo della piattaforma (card arrotondate, palette coerente, copertine
+quadrate), non introdurre widget/player "estranei" con lo stile grafico del servizio di origine.
+
+Criterio pratico da applicare a ogni nuova integrazione, in ordine di preferenza:
+1. **Solo dati** (titolo, immagine, link, testo) renderizzati con lo stile già esistente di
+   myBand → via preferita, come già fatto per Spotify (Music e Podcast)
+2. **Player nativo necessario** solo se serve davvero riprodurre audio/video e non esiste
+   alternativa (es. YouTube) → eccezione accettabile, minimizzando l'ingombro visivo attorno
+3. **Solo un widget precostituito con lo stile del servizio esterno** (es. l'oEmbed di
+   SoundCloud, con il suo player arancione/nero riconoscibile) → da evitare; se non c'è
+   un'alternativa "a soli dati", meglio non integrare il servizio piuttosto che rompere la
+   coerenza visiva
+
+Esempio applicato: l'integrazione SoundCloud è stata valutata e scartata nella forma "player
+oEmbed incorporato" proprio per questo motivo (richiederebbe l'API a pagamento per accedere solo
+ai dati, l'alternativa gratuita è solo il widget con lo stile SoundCloud).
+
