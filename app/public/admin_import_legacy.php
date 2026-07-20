@@ -243,5 +243,6 @@ include __DIR__ . '/_admin_header.php';
       coincidere gli URL con la struttura multimediale storica.
     </p>
     <a href="/admin_apply_percorso.php" class="btn btn-secondary">Applica percorso come slug →</a>
+    <a href="/admin_link_avatars.php" class="btn btn-secondary">Collega avatar storici →</a>
   </div>
 <?php include __DIR__ . '/_admin_footer.php'; ?>
