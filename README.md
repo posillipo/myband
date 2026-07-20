@@ -149,6 +149,13 @@ docker compose exec db mysqldump -u root -p myband > backup_$(date +%F).sql
 Se in futuro si torna a valutare questa funzionalità, l'analisi completa resta valida come
 punto di partenza — evita di rifare da zero la ricerca sui limiti dell'API Spotify.
 
+**Recupero dei "msgdiretto" della vecchia tabella `timeline`** (scartato): i messaggi diretti
+(1.015 su 4.241 post totali) sono per lo più comunicazioni private tra lo staff del vecchio
+myband.it e i singoli band manager (reset credenziali, avvisi tecnici) — dati sensibili dal
+punto di vista privacy, giudicati irrilevanti da recuperare nel nuovo sistema. Se in futuro si
+valuta un recupero parziale della vecchia timeline (foto, video, link, mp3 pubblicati dalle
+band), i messaggi diretti restano esclusi per principio.
+
 ## 10. Principio guida per le integrazioni esterne: coerenza grafica
 
 **myBand è un "Linktree musicale"**: ogni integrazione con un servizio esterno deve rispettare
