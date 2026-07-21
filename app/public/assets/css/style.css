@@ -219,7 +219,13 @@ body.colorful-page {
   display: flex;
   flex-direction: column;
 }
-.colorful-page .container { flex: 1 0 auto; }
+.colorful-page .container { flex: 1 0 auto; max-width: 100%; }
+/* Il limite di larghezza (uguale alla Home) si applica SOLO da desktop in su — su mobile e
+   tablet il contenitore resta al 100% della larghezza dello schermo, pienamente responsive,
+   esattamente come prima. */
+@media (min-width: 761px) {
+  .colorful-page .container { max-width: 720px; }
+}
 .colorful-page footer.site { color: rgba(34,34,59,0.6); }
 .colorful-page .profile-header { padding-top: 20px; }
 .colorful-page .avatar {
