@@ -219,7 +219,7 @@ body.colorful-page {
   display: flex;
   flex-direction: column;
 }
-.colorful-page .container { flex: 1 0 auto; max-width: 100%; }
+.colorful-page .container { flex: 1 0 auto; }
 .colorful-page footer.site { color: rgba(34,34,59,0.6); }
 .colorful-page .profile-header { padding-top: 20px; }
 .colorful-page .avatar {
