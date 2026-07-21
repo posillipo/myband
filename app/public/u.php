@@ -86,19 +86,35 @@ $fanFavoritesPreview = array_slice($fanFavorites, 0, 6);
   <?php endif; ?>
 
   <div class="card" style="text-align:center;">
-    <form method="post" action="/follow.php" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center;">
-      <?= csrfField() ?>
-      <input type="hidden" name="slug" value="<?= e($slug) ?>">
-      <input type="email" name="email" placeholder="La tua email" required style="flex:1;min-width:180px;max-width:280px;margin-bottom:0;">
-      <button type="submit" class="btn" style="background:rgb(108,92,231);">Segui <?= e($artist['display_name']) ?></button>
-    </form>
-    <p style="color:rgba(34,34,59,0.7);font-size:13px;margin-top:10px;margin-bottom:0;">
-      <?php if ($followerCount > 0): ?>
-        <?= $followerCount ?> <?= $followerCount === 1 ? 'persona segue' : 'persone seguono' ?> questo artista
-      <?php else: ?>
-        Ricevi una notifica quando pubblica novità
-      <?php endif; ?>
-    </p>
+    <?php if (!empty($_SESSION['user_id']) && (int)$_SESSION['user_id'] !== (int)$uid): ?>
+      <?php $alreadyFollowing = isFollowingAccount((int)$_SESSION['user_id'], (int)$uid); ?>
+      <form method="post" action="/follow_account.php">
+        <?= csrfField() ?>
+        <input type="hidden" name="user_id" value="<?= (int)$uid ?>">
+        <input type="hidden" name="action" value="<?= $alreadyFollowing ? 'unfollow' : 'follow' ?>">
+        <input type="hidden" name="redirect" value="/<?= e($slug) ?>">
+        <button type="submit" class="btn" style="background:rgb(108,92,231);">
+          <?= $alreadyFollowing ? 'Segui già ✓ (clicca per smettere)' : 'Segui ' . e($artist['display_name']) ?>
+        </button>
+      </form>
+      <p style="color:rgba(34,34,59,0.7);font-size:13px;margin-top:10px;margin-bottom:0;">
+        <?= getAccountFollowerCount((int)$uid) ?> persone ti seguono su myBand
+      </p>
+    <?php else: ?>
+      <form method="post" action="/follow.php" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center;">
+        <?= csrfField() ?>
+        <input type="hidden" name="slug" value="<?= e($slug) ?>">
+        <input type="email" name="email" placeholder="La tua email" required style="flex:1;min-width:180px;max-width:280px;margin-bottom:0;">
+        <button type="submit" class="btn" style="background:rgb(108,92,231);">Segui <?= e($artist['display_name']) ?></button>
+      </form>
+      <p style="color:rgba(34,34,59,0.7);font-size:13px;margin-top:10px;margin-bottom:0;">
+        <?php if ($followerCount > 0): ?>
+          <?= $followerCount ?> <?= $followerCount === 1 ? 'persona segue' : 'persone seguono' ?> questo artista
+        <?php else: ?>
+          Ricevi una notifica quando pubblica novità
+        <?php endif; ?>
+      </p>
+    <?php endif; ?>
   </div>
 
   <?php if ($socialLinks): ?>

@@ -20,6 +20,9 @@ RewriteRule ^([a-zA-Z0-9_-]+)/brani/?$ brani.php?slug=$1 [L,QSA]
 # /nomeartista/eventi/ID -> pagina dedicata al singolo evento (condivisibile sui social)
 RewriteRule ^([a-zA-Z0-9_-]+)/eventi/([0-9]+)/?$ evento.php?slug=$1&id=$2 [L,QSA]
 
+# /nomeartista/timeline -> timeline unificata blog+brani+eventi+aggiornamenti
+RewriteRule ^([a-zA-Z0-9_-]+)/timeline/?$ timeline.php?slug=$1 [L,QSA]
+
 # /nomeartista/eventi -> pagina concerti
 RewriteRule ^([a-zA-Z0-9_-]+)/eventi/?$ eventi.php?slug=$1 [L,QSA]
 

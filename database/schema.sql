@@ -150,6 +150,32 @@ CREATE TABLE IF NOT EXISTS fan_favorite_bands (
     UNIQUE KEY uniq_user_artist (user_id, spotify_artist_id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+-- Segui tra account (chiunque può seguire chiunque, indipendentemente dal tipo di account),
+-- alimenta il feed "La mia Timeline" aggregato. Diverso dal "Segui via email" (tabella
+-- followers) che resta per i visitatori senza account.
+CREATE TABLE IF NOT EXISTS account_follows (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    follower_user_id INT NOT NULL,
+    followed_user_id INT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_follow (follower_user_id, followed_user_id),
+    FOREIGN KEY (follower_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (followed_user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Aggiornamenti brevi pubblicati direttamente sulla Timeline (un pensiero, una foto con
+-- didascalia, o entrambi) — diverso da un articolo blog completo, pensato per condivisioni
+-- rapide, come il "cosa c'è di nuovo?" del vecchio myband.it.
+CREATE TABLE IF NOT EXISTS timeline_posts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    testo TEXT DEFAULT NULL,
+    image_path VARCHAR(255) DEFAULT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('privacy_script', '');
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('gtm_head_script', '');
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('gtm_body_script', '');

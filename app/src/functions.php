@@ -234,6 +234,7 @@ const COLORFUL_PALETTE = ['#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF', '#A0C4FF',
 function publicNav(string $slug, string $active, bool $hasSpotify = false, bool $hasYoutube = false, bool $hasPodcast = false): string {
     $tabs = [
         'home' => ['label' => 'Home', 'url' => '/' . $slug],
+        'timeline' => ['label' => 'Timeline', 'url' => '/' . $slug . '/timeline'],
     ];
     if ($hasSpotify) {
         $tabs['spotify'] = ['label' => 'Spotify', 'url' => '/' . $slug . '/spotify'];
@@ -459,6 +460,90 @@ function deleteCoverFile(?string $coverPath): void {
     }
 }
 
+// ===== Segui tra account (diverso da "Segui via email") =====
+
+function isFollowingAccount(int $followerId, int $followedId): bool {
+    $stmt = getDB()->prepare('SELECT id FROM account_follows WHERE follower_user_id=? AND followed_user_id=?');
+    $stmt->execute([$followerId, $followedId]);
+    return (bool) $stmt->fetch();
+}
+
+function getFollowedUserIds(int $userId): array {
+    $stmt = getDB()->prepare('SELECT followed_user_id FROM account_follows WHERE follower_user_id = ?');
+    $stmt->execute([$userId]);
+    return array_map('intval', array_column($stmt->fetchAll(), 'followed_user_id'));
+}
+
+function getAccountFollowerCount(int $userId): int {
+    $stmt = getDB()->prepare('SELECT COUNT(*) c FROM account_follows WHERE followed_user_id = ?');
+    $stmt->execute([$userId]);
+    return (int) $stmt->fetch()['c'];
+}
+
+// Feed aggregato "Timeline": unisce blog, brani, eventi e aggiornamenti brevi pubblicati dai
+// profili indicati, ordinati dal più recente. Query separate per tipo di contenuto invece di
+// una UNION, più semplice da leggere e mantenere con colonne diverse per ciascuna.
+function getTimelineFeedForUsers(array $userIds, int $limit = 50): array {
+    $userIds = array_values(array_unique(array_map('intval', $userIds)));
+    if (!$userIds) {
+        return [];
+    }
+    $placeholders = implode(',', array_fill(0, count($userIds), '?'));
+    $db = getDB();
+    $items = [];
+
+    $stmt = $db->prepare("SELECT b.title, b.cover_path, b.slug, b.published_at AS data, u.slug AS user_slug, p.display_name, p.avatar_path
+        FROM blog_posts b JOIN users u ON u.id = b.user_id JOIN profiles p ON p.user_id = u.id
+        WHERE b.user_id IN ($placeholders) ORDER BY b.published_at DESC LIMIT 200");
+    $stmt->execute($userIds);
+    foreach ($stmt->fetchAll() as $r) {
+        $items[] = [
+            'tipo' => 'blog', 'titolo' => $r['title'], 'cover' => $r['cover_path'], 'data' => $r['data'],
+            'user_slug' => $r['user_slug'], 'display_name' => $r['display_name'], 'avatar' => $r['avatar_path'],
+            'url' => blogPostUrl($r['user_slug'], $r),
+        ];
+    }
+
+    $stmt = $db->prepare("SELECT t.id, t.title, t.cover_path, t.created_at AS data, u.slug AS user_slug, p.display_name, p.avatar_path
+        FROM audio_tracks t JOIN users u ON u.id = t.user_id JOIN profiles p ON p.user_id = u.id
+        WHERE t.user_id IN ($placeholders) ORDER BY t.created_at DESC LIMIT 200");
+    $stmt->execute($userIds);
+    foreach ($stmt->fetchAll() as $r) {
+        $items[] = [
+            'tipo' => 'brano', 'titolo' => $r['title'], 'cover' => $r['cover_path'], 'data' => $r['data'],
+            'user_slug' => $r['user_slug'], 'display_name' => $r['display_name'], 'avatar' => $r['avatar_path'],
+            'url' => '/' . $r['user_slug'] . '/brani/' . $r['id'],
+        ];
+    }
+
+    $stmt = $db->prepare("SELECT e.id, e.title, e.cover_path, e.event_date AS data, u.slug AS user_slug, p.display_name, p.avatar_path
+        FROM events e JOIN users u ON u.id = e.user_id JOIN profiles p ON p.user_id = u.id
+        WHERE e.user_id IN ($placeholders) ORDER BY e.event_date DESC LIMIT 200");
+    $stmt->execute($userIds);
+    foreach ($stmt->fetchAll() as $r) {
+        $items[] = [
+            'tipo' => 'evento', 'titolo' => $r['title'], 'cover' => $r['cover_path'], 'data' => $r['data'],
+            'user_slug' => $r['user_slug'], 'display_name' => $r['display_name'], 'avatar' => $r['avatar_path'],
+            'url' => '/' . $r['user_slug'] . '/eventi/' . $r['id'],
+        ];
+    }
+
+    $stmt = $db->prepare("SELECT tp.id, tp.testo, tp.image_path, tp.created_at AS data, u.slug AS user_slug, p.display_name, p.avatar_path
+        FROM timeline_posts tp JOIN users u ON u.id = tp.user_id JOIN profiles p ON p.user_id = u.id
+        WHERE tp.user_id IN ($placeholders) ORDER BY tp.created_at DESC LIMIT 200");
+    $stmt->execute($userIds);
+    foreach ($stmt->fetchAll() as $r) {
+        $items[] = [
+            'tipo' => 'pensiero', 'titolo' => $r['testo'] ? textExcerpt($r['testo'], 100) : '📷 Foto', 'cover' => $r['image_path'], 'data' => $r['data'],
+            'user_slug' => $r['user_slug'], 'display_name' => $r['display_name'], 'avatar' => $r['avatar_path'],
+            'url' => '/' . $r['user_slug'] . '/timeline',
+        ];
+    }
+
+    usort($items, fn($a, $b) => strtotime($b['data']) <=> strtotime($a['data']));
+    return array_slice($items, 0, $limit);
+}
+
 // ===== Sistema "Segui via email" =====
 
 function getFollowerCount(int $artistUserId): int {
@@ -508,7 +593,8 @@ function notifyFollowersNewContent(int $artistUserId, string $artistName, string
     require_once __DIR__ . '/mailer.php';
     $mailer = new SimpleSmtpMailer($cfg['host'], $cfg['port'], $cfg['user'], $cfg['pass'], $cfg['secure'], $cfg['verifyCert']);
 
-    $label = $type === 'evento' ? 'un nuovo concerto' : 'un nuovo articolo';
+    $labels = ['evento' => 'un nuovo concerto', 'timeline' => 'un nuovo aggiornamento'];
+    $label = $labels[$type] ?? 'un nuovo articolo';
     $subject = "{$artistName} ha pubblicato {$label} su myband.it";
 
     foreach ($followers as $f) {
@@ -540,7 +626,8 @@ const RESERVED_SLUGS = ['login','register','logout','dashboard','dashboard_profi
     'admin_spotify','dashboard_spotify','follow','follow_confirm','follow_unsubscribe','dashboard_followers',
     'admin_import_legacy','admin_profiles','track','evento','admin_youtube','dashboard_youtube','video',
     'forgot_password','reset_password','dashboard_podcast','podcast',
-    'choose_account_type','dashboard_fan_bands','band_che_amo','admin_apply_percorso','admin_link_avatars'];
+    'choose_account_type','dashboard_fan_bands','band_che_amo','admin_apply_percorso','admin_link_avatars',
+    'follow_account','dashboard_timeline','timeline','dashboard_post'];
 
 // Genera uno slug univoco per un articolo di un dato utente (title -> slug, con suffisso -2, -3... se già esistente)
 function generateUniquePostSlug(int $userId, string $title, ?int $excludePostId = null): string {
