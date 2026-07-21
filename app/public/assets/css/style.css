@@ -433,38 +433,35 @@ body.colorful-page {
   .colorful-nav a { font-size: 13.5px; padding: 4px 10px; }
 }
 
-/* Su schermi stretti, il menu scorre orizzontalmente invece di andare a capo — contenuto
-   dentro .container, mai propagato al resto della pagina */
-@media (max-width: 600px) {
-  .colorful-nav-wrap { position: relative; }
-  .colorful-nav {
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding-bottom: 4px;
-  }
-  .colorful-nav::-webkit-scrollbar { display: none; }
-  .colorful-nav a { flex-shrink: 0; }
-  .colorful-nav-arrow {
-    display: none;
-    position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 4px;
-    width: 34px;
-    align-items: center;
-    justify-content: flex-end;
-    background: linear-gradient(to right, transparent, rgba(255,255,255,0.85) 55%);
-    color: #6C5CE7;
-    font-size: 13px;
-    pointer-events: none;
-  }
+/* Il menu scorre sempre orizzontalmente invece di andare a capo (su qualunque larghezza di
+   schermo) — contenuto dentro .container, mai propagato al resto della pagina. Necessario
+   anche su desktop dato che il contenitore resta comunque limitato a 720px: con 9 voci nel
+   menu, andare a capo produrrebbe una riga con un solo tab "orfano", poco ordinato. */
+.colorful-nav-wrap { position: relative; }
+.colorful-nav {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 4px;
 }
-@media (min-width: 601px) {
-  .colorful-nav-arrow { display: none !important; }
+.colorful-nav::-webkit-scrollbar { display: none; }
+.colorful-nav a { flex-shrink: 0; }
+.colorful-nav-arrow {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 4px;
+  width: 34px;
+  align-items: center;
+  justify-content: flex-end;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.85) 55%);
+  color: #6C5CE7;
+  font-size: 13px;
+  pointer-events: none;
 }
 
 .social-icons-row {
