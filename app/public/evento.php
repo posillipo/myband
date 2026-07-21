@@ -63,6 +63,7 @@ $ogDescription = trim($event['display_name'] . ' — ' . date('d/m/Y H:i', strto
 
 <link rel="canonical" href="<?= e($pageUrl) ?>">
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
 <style>:root { --accent: <?= e($event['theme_color'] ?: '#6C5CE7') ?>; }</style>
 <?= embedPrivacyScript() ?>
 <?= embedTrackingHead() ?>
@@ -90,6 +91,7 @@ $ogDescription = trim($event['display_name'] . ' — ' . date('d/m/Y H:i', strto
 
   <p><a href="/<?= e($slug) ?>/eventi">← Tutti gli eventi di <?= e($event['display_name']) ?></a></p>
 </div>
+<?= renderFloatingButtons() ?>
 <?= renderSiteFooterBar($slug) ?>
 </body>
 </html>

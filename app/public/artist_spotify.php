@@ -90,6 +90,7 @@ $pageUrl = siteUrl('/' . $slug . '/spotify');
     </a>
   </div>
 </div>
+<?= renderFloatingButtons() ?>
 <?= renderSiteFooterBar($slug) ?>
 </body>
 </html>

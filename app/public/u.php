@@ -160,6 +160,7 @@ $fanFavoritesPreview = array_slice($fanFavorites, 0, 6);
     <?php endforeach; ?>
   <?php endif; ?>
 </div>
+<?= renderFloatingButtons() ?>
 <?= renderSiteFooterBar($slug) ?>
 </body>
 </html>

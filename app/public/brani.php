@@ -66,6 +66,7 @@ $pageUrl = siteUrl('/' . $slug . '/brani');
     </a>
   <?php endforeach; ?>
 </div>
+<?= renderFloatingButtons() ?>
 <?= renderSiteFooterBar() ?>
 </body>
 </html>

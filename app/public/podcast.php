@@ -78,6 +78,7 @@ $pageUrl = siteUrl('/' . $slug . '/podcast');
     </a>
   </div>
 </div>
+<?= renderFloatingButtons() ?>
 <?= renderSiteFooterBar($slug) ?>
 </body>
 </html>

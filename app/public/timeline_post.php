@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once __DIR__ . '/../src/functions.php';
 
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
@@ -50,6 +51,7 @@ $anteprima = $post['testo'] ? textExcerpt($post['testo'], 150) : 'Nuovo aggiorna
 <meta name="twitter:card" content="<?= $ogImage ? 'summary_large_image' : 'summary' ?>">
 <link rel="canonical" href="<?= e($pageUrl) ?>">
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
 <style>:root { --accent: <?= e($post['theme_color'] ?: '#6C5CE7') ?>; }</style>
 <?= embedPrivacyScript() ?>
 <?= embedTrackingHead() ?>
@@ -73,6 +75,7 @@ $anteprima = $post['testo'] ? textExcerpt($post['testo'], 150) : 'Nuovo aggiorna
 
   <p><a href="/<?= e($slug) ?>/timeline">← Tutta la Timeline di <?= e($post['display_name']) ?></a></p>
 </div>
+<?= renderFloatingButtons() ?>
 <?= renderSiteFooterBar() ?>
 </body>
 </html>

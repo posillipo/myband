@@ -72,6 +72,7 @@ $pageUrl = siteUrl('/' . $slug . '/video');
     </a>
   </div>
 </div>
+<?= renderFloatingButtons() ?>
 <?= renderSiteFooterBar($slug) ?>
 </body>
 </html>

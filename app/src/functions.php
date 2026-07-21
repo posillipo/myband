@@ -306,6 +306,34 @@ function publicProfileHeader(array $artist, string $active, bool $showBio = fals
 // Cookie/Privacy/myBand-o-Dashboard (sotto). È un blocco normale nel flusso della pagina (non
 // più "fixed"), quindi non copre mai il contenuto — resta comunque sempre visibile in fondo
 // alla pagina anche a contenuto vuoto, grazie al layout flessibile di body.colorful-page.
+// Pulsanti flottanti condivisi su tutte le pagine pubbliche: "torna su" (compare scrollando
+// molto verso il basso) e, se l'utente è loggato, un'iconcina che riporta alla dashboard.
+function renderFloatingButtons(): string {
+    $dashboardBtn = '';
+    if (!empty($_SESSION['user_id'])) {
+        $dashboardBtn = '<a href="/dashboard.php" id="to-dashboard-btn" class="floating-btn" title="Vai alla dashboard">
+            <i class="fa-solid fa-gauge"></i>
+        </a>';
+    }
+
+    return $dashboardBtn . '
+    <button type="button" id="back-to-top-btn" class="floating-btn" title="Torna su" aria-label="Torna su">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+    <script>
+    (function () {
+        var btn = document.getElementById("back-to-top-btn");
+        if (!btn) return;
+        window.addEventListener("scroll", function () {
+            btn.style.display = window.scrollY > 400 ? "flex" : "none";
+        });
+        btn.addEventListener("click", function () {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+    })();
+    </script>';
+}
+
 function renderSiteFooterBar(): string {
     $privacyUrl = getSiteSetting('privacy_policy_url') ?: '';
     $parts = [];

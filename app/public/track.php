@@ -87,6 +87,7 @@ $ogDescription = $track['display_name'] . ' — ascolta "' . $track['title'] . '
 
   <p><a href="/<?= e($slug) ?>/brani">← Tutti i brani di <?= e($track['display_name']) ?></a></p>
 </div>
+<?= renderFloatingButtons() ?>
 <?= renderSiteFooterBar($slug) ?>
 </body>
 </html>

@@ -32,6 +32,7 @@ $pageUrl = siteUrl('/' . $slug . '/timeline');
 <meta property="og:url" content="<?= e($pageUrl) ?>">
 <link rel="canonical" href="<?= e($pageUrl) ?>">
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
 <style>:root { --accent: <?= e($artist['theme_color'] ?: '#6C5CE7') ?>; }</style>
 <?= embedPrivacyScript() ?>
 <?= embedTrackingHead() ?>
@@ -56,6 +57,7 @@ $pageUrl = siteUrl('/' . $slug . '/timeline');
   <p id="timeline-loading" style="text-align:center;color:rgba(34,34,59,0.5);display:none;">Caricamento...</p>
   <p id="timeline-end" style="text-align:center;color:rgba(34,34,59,0.5);display:none;">Hai visto tutto.</p>
 </div>
+<?= renderFloatingButtons() ?>
 <?= renderSiteFooterBar() ?>
 
 <script>

@@ -292,6 +292,31 @@ body.colorful-page {
 
 /* Pulsante "myband.it/tu", posizionato sopra la riga Cookie/Privacy, con un piccolo richiamo
    visivo periodico (una breve vibrazione ogni pochi secondi, non continua) */
+/* Pulsanti flottanti: torna su + link alla dashboard (se loggato). Sempre sopra a tutto il
+   resto, incluso il badge/footer, e sopra alla barra fissa "Unisciti" se presente. */
+.floating-btn {
+  position: fixed;
+  right: 18px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgb(108,92,231);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  text-decoration: none;
+  font-size: 18px;
+  cursor: pointer;
+  border: none;
+  z-index: 200;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.floating-btn:hover { transform: translateY(-2px); opacity: 0.92; }
+#back-to-top-btn { bottom: 18px; display: none; }
+#to-dashboard-btn { bottom: 74px; background: #22223b; }
+
 .short-link-badge {
   display: inline-block;
   margin: 0 auto 12px;

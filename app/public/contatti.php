@@ -57,6 +57,7 @@ $pageUrl = siteUrl('/' . $userSlug . '/contatti');
 <meta property="og:url" content="<?= e($pageUrl) ?>">
 <link rel="canonical" href="<?= e($pageUrl) ?>">
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
 <style>:root { --accent: <?= e($artist['theme_color'] ?: '#6C5CE7') ?>; }</style>
 <?= embedPrivacyScript() ?>
 <?= embedTrackingHead() ?>
@@ -83,6 +84,7 @@ $pageUrl = siteUrl('/' . $userSlug . '/contatti');
     </form>
   <?php endif; ?>
 </div>
+<?= renderFloatingButtons() ?>
 <?= renderSiteFooterBar($userSlug) ?>
 </body>
 </html>
