@@ -294,6 +294,40 @@ body.colorful-page {
    visivo periodico (una breve vibrazione ogni pochi secondi, non continua) */
 /* Pulsanti flottanti: torna su + link alla dashboard (se loggato). Sempre sopra a tutto il
    resto, incluso il badge/footer, e sopra alla barra fissa "Unisciti" se presente. */
+/* Pillola "Segui" compatta e discreta, con un piccolo luccichio che scorre periodicamente
+   per attirare l'attenzione senza essere invadente */
+.segui-pill {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  background: rgb(108,92,231);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 7px 18px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  list-style: none;
+}
+.segui-pill::-webkit-details-marker { display: none; }
+.segui-pill::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -75%;
+  width: 40%; height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.55), transparent);
+  transform: skewX(-20deg);
+  animation: segui-shimmer 3.5s ease-in-out infinite;
+}
+@keyframes segui-shimmer {
+  0% { left: -75%; }
+  35% { left: 125%; }
+  100% { left: 125%; }
+}
+.segui-pill-details summary { cursor: pointer; }
+.segui-pill-details[open] summary { border-radius: 999px 999px 0 0; }
+
 .floating-btn {
   position: fixed;
   right: 18px;

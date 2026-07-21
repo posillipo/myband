@@ -86,37 +86,49 @@ $fanFavoritesPreview = array_slice($fanFavorites, 0, 6);
     <div class="alert <?= $followErr ? 'error' : 'success' ?>"><?= e($followMsg) ?></div>
   <?php endif; ?>
 
-  <div class="card" style="text-align:center;">
+  <div style="text-align:center;margin-bottom:18px;">
     <?php if (!empty($_SESSION['user_id']) && (int)$_SESSION['user_id'] !== (int)$uid): ?>
       <?php $alreadyFollowing = isFollowingAccount((int)$_SESSION['user_id'], (int)$uid); ?>
-      <form method="post" action="/follow_account.php">
+      <form method="post" action="/follow_account.php" style="display:inline;">
         <?= csrfField() ?>
         <input type="hidden" name="user_id" value="<?= (int)$uid ?>">
         <input type="hidden" name="action" value="<?= $alreadyFollowing ? 'unfollow' : 'follow' ?>">
         <input type="hidden" name="redirect" value="/<?= e($slug) ?>">
-        <button type="submit" class="btn" style="background:rgb(108,92,231);">
-          <?= $alreadyFollowing ? 'Segui già ✓ (clicca per smettere)' : 'Segui ' . e($artist['display_name']) ?>
+        <button type="submit" class="segui-pill">
+          <?= $alreadyFollowing ? '✓ Segui già' : '✨ Segui' ?>
         </button>
       </form>
-      <p style="color:rgba(34,34,59,0.7);font-size:13px;margin-top:10px;margin-bottom:0;">
-        <?= getAccountFollowerCount((int)$uid) ?> persone ti seguono su myBand
-      </p>
+      <div style="color:rgba(34,34,59,0.6);font-size:12px;margin-top:4px;">
+        <?= getAccountFollowerCount((int)$uid) ?> ti seguono su myBand
+      </div>
     <?php else: ?>
-      <form method="post" action="/follow.php" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center;">
-        <?= csrfField() ?>
-        <input type="hidden" name="slug" value="<?= e($slug) ?>">
-        <input type="email" name="email" placeholder="La tua email" required style="flex:1;min-width:180px;max-width:280px;margin-bottom:0;">
-        <button type="submit" class="btn" style="background:rgb(108,92,231);">Segui <?= e($artist['display_name']) ?></button>
-      </form>
-      <p style="color:rgba(34,34,59,0.7);font-size:13px;margin-top:10px;margin-bottom:0;">
-        <?php if ($followerCount > 0): ?>
-          <?= $followerCount ?> <?= $followerCount === 1 ? 'persona segue' : 'persone seguono' ?> questo artista
-        <?php else: ?>
-          Ricevi una notifica quando pubblica novità
-        <?php endif; ?>
-      </p>
+      <details class="segui-pill-details">
+        <summary class="segui-pill">✨ Segui</summary>
+        <form method="post" action="/follow.php" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;margin-top:8px;">
+          <?= csrfField() ?>
+          <input type="hidden" name="slug" value="<?= e($slug) ?>">
+          <input type="email" name="email" placeholder="La tua email" required style="flex:1;min-width:160px;max-width:240px;margin-bottom:0;font-size:13px;padding:8px 12px;">
+          <button type="submit" class="btn small" style="background:rgb(108,92,231);">Conferma</button>
+        </form>
+      </details>
+      <div style="color:rgba(34,34,59,0.6);font-size:12px;margin-top:4px;">
+        <?= $followerCount > 0 ? $followerCount . ($followerCount === 1 ? ' persona segue' : ' persone seguono') : 'ricevi una notifica quando pubblica' ?>
+      </div>
     <?php endif; ?>
   </div>
+
+  <?php if ($actionLinks): ?>
+    <?php foreach ($actionLinks as $i => $l): ?>
+      <a class="color-link-btn" style="background:<?= e(COLORFUL_PALETTE[$i % count(COLORFUL_PALETTE)]) ?>;"
+         target="_blank" rel="noopener"
+         href="/link.php?id=<?= (int)$l['id'] ?>">
+        <?php if ($l['cover_path']): ?>
+          <img src="/<?= e($l['cover_path']) ?>" class="btn-cover-icon">
+        <?php endif; ?>
+        <?= e($l['label']) ?>
+      </a>
+    <?php endforeach; ?>
+  <?php endif; ?>
 
   <?php if ($socialLinks): ?>
     <div class="social-icons-row">
@@ -145,19 +157,6 @@ $fanFavoritesPreview = array_slice($fanFavorites, 0, 6);
         <a href="/<?= e($slug) ?>/band-che-amo">Vedi tutte (<?= $fanFavoritesTotal ?>) →</a>
       </p>
     <?php endif; ?>
-  <?php endif; ?>
-
-  <?php if ($actionLinks): ?>
-    <?php foreach ($actionLinks as $i => $l): ?>
-      <a class="color-link-btn" style="background:<?= e(COLORFUL_PALETTE[$i % count(COLORFUL_PALETTE)]) ?>;"
-         target="_blank" rel="noopener"
-         href="/link.php?id=<?= (int)$l['id'] ?>">
-        <?php if ($l['cover_path']): ?>
-          <img src="/<?= e($l['cover_path']) ?>" class="btn-cover-icon">
-        <?php endif; ?>
-        <?= e($l['label']) ?>
-      </a>
-    <?php endforeach; ?>
   <?php endif; ?>
 </div>
 <?= renderFloatingButtons() ?>
