@@ -39,7 +39,12 @@ include __DIR__ . '/_dash_header.php';
           <br>
           <strong><?= e($item['titolo']) ?></strong>
           <br>
-          <small style="color:var(--text-muted)"><?= date('d/m/Y', strtotime($item['data'])) ?></small>
+          <small style="color:var(--text-muted)">
+            <?= date('d/m/Y', strtotime($item['data'])) ?>
+            <?php if ($item['tipo'] === 'evento' && !empty($item['evento_quando'])): ?>
+              · si terrà il <?= date('d/m/Y', strtotime($item['evento_quando'])) ?>
+            <?php endif; ?>
+          </small>
         </div>
       </a>
     <?php endforeach; ?>

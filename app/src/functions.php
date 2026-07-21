@@ -516,25 +516,26 @@ function getTimelineFeedForUsers(array $userIds, int $limit = 50): array {
         ];
     }
 
-    $stmt = $db->prepare("SELECT t.id, t.title, t.cover_path, t.created_at AS data, u.slug AS user_slug, p.display_name, p.avatar_path
-        FROM audio_tracks t JOIN users u ON u.id = t.user_id JOIN profiles p ON p.user_id = u.id
-        WHERE t.user_id IN ($placeholders) ORDER BY t.created_at DESC LIMIT 200");
+    $stmt = $db->prepare("SELECT tr.id, tr.track_name, tr.track_image, tr.artist_name, tr.created_at AS data, u.slug AS user_slug, p.display_name, p.avatar_path
+        FROM favorite_tracks tr JOIN users u ON u.id = tr.user_id JOIN profiles p ON p.user_id = u.id
+        WHERE tr.user_id IN ($placeholders) ORDER BY tr.created_at DESC LIMIT 200");
     $stmt->execute($userIds);
     foreach ($stmt->fetchAll() as $r) {
         $items[] = [
-            'tipo' => 'brano', 'titolo' => $r['title'], 'cover' => $r['cover_path'], 'data' => $r['data'],
+            'tipo' => 'brano', 'titolo' => $r['track_name'] . ' — ' . $r['artist_name'], 'cover' => $r['track_image'], 'data' => $r['data'],
             'user_slug' => $r['user_slug'], 'display_name' => $r['display_name'], 'avatar' => $r['avatar_path'],
-            'url' => '/' . $r['user_slug'] . '/brani/' . $r['id'],
+            'url' => '/' . $r['user_slug'] . '/brani',
         ];
     }
 
-    $stmt = $db->prepare("SELECT e.id, e.title, e.cover_path, e.event_date AS data, u.slug AS user_slug, p.display_name, p.avatar_path
+    $stmt = $db->prepare("SELECT e.id, e.title, e.cover_path, e.created_at AS data, e.event_date, u.slug AS user_slug, p.display_name, p.avatar_path
         FROM events e JOIN users u ON u.id = e.user_id JOIN profiles p ON p.user_id = u.id
-        WHERE e.user_id IN ($placeholders) ORDER BY e.event_date DESC LIMIT 200");
+        WHERE e.user_id IN ($placeholders) ORDER BY e.created_at DESC LIMIT 200");
     $stmt->execute($userIds);
     foreach ($stmt->fetchAll() as $r) {
         $items[] = [
             'tipo' => 'evento', 'titolo' => $r['title'], 'cover' => $r['cover_path'], 'data' => $r['data'],
+            'evento_quando' => $r['event_date'],
             'user_slug' => $r['user_slug'], 'display_name' => $r['display_name'], 'avatar' => $r['avatar_path'],
             'url' => '/' . $r['user_slug'] . '/eventi/' . $r['id'],
         ];

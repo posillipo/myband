@@ -56,7 +56,12 @@ $pageUrl = siteUrl('/' . $slug . '/timeline');
           <br>
           <strong><?= e($item['titolo']) ?></strong>
           <br>
-          <small style="color:rgba(34,34,59,0.6);"><?= date('d/m/Y', strtotime($item['data'])) ?></small>
+          <small style="color:rgba(34,34,59,0.6);">
+            <?= date('d/m/Y', strtotime($item['data'])) ?>
+            <?php if ($item['tipo'] === 'evento' && !empty($item['evento_quando'])): ?>
+              · si terrà il <?= date('d/m/Y', strtotime($item['evento_quando'])) ?>
+            <?php endif; ?>
+          </small>
         </div>
       </a>
     <?php endforeach; ?>
