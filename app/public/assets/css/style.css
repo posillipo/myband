@@ -326,7 +326,7 @@ body.colorful-page {
   100% { left: 125%; }
 }
 .segui-pill-details summary { cursor: pointer; }
-.segui-pill-details[open] summary { border-radius: 999px 999px 0 0; }
+.segui-pill-details[open] summary { border-radius: 999px; margin-bottom: 6px; }
 
 .floating-btn {
   position: fixed;
