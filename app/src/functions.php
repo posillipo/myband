@@ -129,6 +129,15 @@ function requireLogin(): array {
     return $u;
 }
 
+// Blocca l'accesso a funzionalità riservate a Band/Artista ed Etichetta (Spotify artista,
+// Podcast, YouTube, Eventi) — i Fan vengono rimandati alla dashboard con un messaggio.
+function requireBandOrLabel(array $user): void {
+    if (!in_array($user['account_type'] ?? 'band', ['band', 'label'], true)) {
+        header('Location: /dashboard.php?error=solo_band_etichetta');
+        exit;
+    }
+}
+
 function requireAdmin(): array {
     $u = requireLogin();
     if (empty($u['is_admin'])) {
@@ -231,23 +240,26 @@ const COLORFUL_PALETTE = ['#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF', '#A0C4FF',
 
 // Menu di navigazione condiviso tra tutte le pagine pubbliche di un artista (Home | Blog | Brani | Eventi | Contatti)
 // Il tab "Spotify" compare solo se l'artista ha collegato un profilo Spotify dalla dashboard.
-function publicNav(string $slug, string $active, bool $hasSpotify = false, bool $hasYoutube = false, bool $hasPodcast = false): string {
+function publicNav(string $slug, string $active, bool $hasSpotify = false, bool $hasYoutube = false, bool $hasPodcast = false, string $accountType = 'band'): string {
+    $isBandOrLabel = in_array($accountType, ['band', 'label'], true);
     $tabs = [
         'home' => ['label' => 'Home', 'url' => '/' . $slug],
         'timeline' => ['label' => 'Timeline', 'url' => '/' . $slug . '/timeline'],
     ];
-    if ($hasSpotify) {
+    if ($hasSpotify && $isBandOrLabel) {
         $tabs['spotify'] = ['label' => 'Spotify', 'url' => '/' . $slug . '/spotify'];
     }
-    if ($hasPodcast) {
+    if ($hasPodcast && $isBandOrLabel) {
         $tabs['podcast'] = ['label' => 'Podcast', 'url' => '/' . $slug . '/podcast'];
     }
-    if ($hasYoutube) {
+    if ($hasYoutube && $isBandOrLabel) {
         $tabs['video'] = ['label' => 'Video', 'url' => '/' . $slug . '/video'];
     }
     $tabs['blog'] = ['label' => 'Blog', 'url' => '/' . $slug . '/blog'];
-    $tabs['brani'] = ['label' => 'Brani', 'url' => '/' . $slug . '/brani'];
-    $tabs['eventi'] = ['label' => 'Eventi', 'url' => '/' . $slug . '/eventi'];
+    $tabs['brani'] = ['label' => 'Brani', 'url' => '/' . $slug . '/brani']; // disponibile per tutti i tipi di profilo
+    if ($isBandOrLabel) {
+        $tabs['eventi'] = ['label' => 'Eventi', 'url' => '/' . $slug . '/eventi'];
+    }
     $tabs['contatti'] = ['label' => 'Contatti', 'url' => '/' . $slug . '/contatti'];
 
     $parts = [];
@@ -283,7 +295,7 @@ function publicProfileHeader(array $artist, string $active, bool $showBio = fals
         $html .= '<span> · </span>' . e($artist['genere']);
     }
     $html .= '</p>';
-    $html .= publicNav($artist['slug'], $active, !empty($artist['spotify_artist_id']), !empty($artist['youtube_channel_id']), !empty($artist['spotify_show_id']));
+    $html .= publicNav($artist['slug'], $active, !empty($artist['spotify_artist_id']), !empty($artist['youtube_channel_id']), !empty($artist['spotify_show_id']), $artist['account_type'] ?? 'band');
     $html .= '</div>';
     return $html;
 }
@@ -536,7 +548,7 @@ function getTimelineFeedForUsers(array $userIds, int $limit = 50): array {
         $items[] = [
             'tipo' => 'pensiero', 'titolo' => $r['testo'] ? textExcerpt($r['testo'], 100) : '📷 Foto', 'cover' => $r['image_path'], 'data' => $r['data'],
             'user_slug' => $r['user_slug'], 'display_name' => $r['display_name'], 'avatar' => $r['avatar_path'],
-            'url' => '/' . $r['user_slug'] . '/timeline',
+            'url' => '/' . $r['user_slug'] . '/timeline/' . $r['id'],
         ];
     }
 
@@ -627,7 +639,7 @@ const RESERVED_SLUGS = ['login','register','logout','dashboard','dashboard_profi
     'admin_import_legacy','admin_profiles','track','evento','admin_youtube','dashboard_youtube','video',
     'forgot_password','reset_password','dashboard_podcast','podcast',
     'choose_account_type','dashboard_fan_bands','band_che_amo','admin_apply_percorso','admin_link_avatars',
-    'follow_account','dashboard_timeline','timeline','dashboard_post'];
+    'follow_account','dashboard_timeline','timeline','dashboard_post','timeline_post'];
 
 // Genera uno slug univoco per un articolo di un dato utente (title -> slug, con suffisso -2, -3... se già esistente)
 function generateUniquePostSlug(int $userId, string $title, ?int $excludePostId = null): string {

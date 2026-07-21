@@ -157,6 +157,31 @@ function spotifyGetArtistTopTracks(string $artistId): array {
     return $tracks;
 }
 
+// Cerca singoli brani per titolo/artista (usato dal modulo Brani, disponibile per ogni tipo di profilo).
+function spotifySearchTrack(string $query): array {
+    $token = getSpotifyAppToken();
+    if (!$token || trim($query) === '') {
+        return [];
+    }
+    $url = 'https://api.spotify.com/v1/search?type=track&market=US&limit=10&q=' . urlencode($query);
+    $response = httpRequest('GET', $url, ['Authorization: Bearer ' . $token]);
+    if (!$response) {
+        return [];
+    }
+    $data = json_decode($response, true);
+    $results = [];
+    foreach (($data['tracks']['items'] ?? []) as $t) {
+        $results[] = [
+            'id' => $t['id'],
+            'name' => $t['name'],
+            'artist_name' => implode(', ', array_map(fn($a) => $a['name'], $t['artists'] ?? [])),
+            'image' => $t['album']['images'][1]['url'] ?? ($t['album']['images'][0]['url'] ?? null),
+            'spotify_url' => $t['external_urls']['spotify'] ?? null,
+        ];
+    }
+    return $results;
+}
+
 // Cerca podcast (show) per nome. Stessa logica di spotifySearchArtist, ma su type=show.
 function spotifySearchShow(string $query): array {
     $token = getSpotifyAppToken();

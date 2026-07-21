@@ -26,6 +26,7 @@ $dashTheme = 'light-theme';
   </nav>
 </div>
 <div class="container">
+  <?php $isBandOrLabel = in_array($user['account_type'] ?? 'band', ['band', 'label'], true); ?>
   <div class="tabs">
     <a href="/dashboard_timeline.php" class="<?= $activeTab==='timeline'?'active':'' ?>">La mia Timeline</a>
     <a href="/dashboard_post.php" class="<?= $activeTab==='post'?'active':'' ?>">Pubblica</a>
@@ -33,10 +34,13 @@ $dashTheme = 'light-theme';
     <a href="/dashboard_fan_bands.php" class="<?= $activeTab==='fan_bands'?'active':'' ?>">Band che amo</a>
     <a href="/dashboard_links.php" class="<?= $activeTab==='links'?'active':'' ?>">Link</a>
     <a href="/dashboard_audio.php" class="<?= $activeTab==='audio'?'active':'' ?>">Brani</a>
+    <?php if ($isBandOrLabel): ?>
     <a href="/dashboard_events.php" class="<?= $activeTab==='events'?'active':'' ?>">Eventi</a>
+    <?php endif; ?>
     <a href="/dashboard_blog.php" class="<?= $activeTab==='blog'?'active':'' ?>">Blog</a>
     <a href="/dashboard_contacts.php" class="<?= $activeTab==='contacts'?'active':'' ?>">Contatti</a>
     <a href="/dashboard_followers.php" class="<?= $activeTab==='followers'?'active':'' ?>">Follower</a>
+    <?php if ($isBandOrLabel): ?>
     <a href="/dashboard_spotify.php" class="<?= $activeTab==='spotify'?'active':'' ?>">
       Spotify<?php if (!empty($user['spotify_artist_id'])): ?><span title="Profilo collegato" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#1DB954;margin-left:6px;"></span><?php endif; ?>
     </a>
@@ -46,4 +50,5 @@ $dashTheme = 'light-theme';
     <a href="/dashboard_youtube.php" class="<?= $activeTab==='youtube'?'active':'' ?>">
       YouTube<?php if (!empty($user['youtube_channel_id'])): ?><span title="Canale collegato" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#1DB954;margin-left:6px;"></span><?php endif; ?>
     </a>
+    <?php endif; ?>
   </div>

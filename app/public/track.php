@@ -8,7 +8,7 @@ header('Pragma: no-cache');
 $slug = $_GET['slug'] ?? '';
 $trackId = (int) ($_GET['id'] ?? 0);
 
-$stmt = getDB()->prepare('SELECT u.slug, p.display_name, p.avatar_path, p.theme_color, p.spotify_artist_id, p.spotify_show_id, p.genere, p.youtube_channel_id, t.*
+$stmt = getDB()->prepare('SELECT u.slug, u.account_type, p.display_name, p.avatar_path, p.theme_color, p.spotify_artist_id, p.spotify_show_id, p.genere, p.youtube_channel_id, t.*
                           FROM audio_tracks t
                           JOIN users u ON u.id = t.user_id
                           JOIN profiles p ON p.user_id = u.id
@@ -28,6 +28,7 @@ $artist = [
     'avatar_path' => $track['avatar_path'],
     'spotify_artist_id' => $track['spotify_artist_id'],
     'spotify_show_id' => $track['spotify_show_id'],
+    'account_type' => $track['account_type'] ?? 'band',
     'genere' => $track['genere'],
     'youtube_channel_id' => $track['youtube_channel_id'],
 ];

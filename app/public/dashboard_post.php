@@ -71,6 +71,7 @@ include __DIR__ . '/_dash_header.php';
       <div style="flex:1;min-width:0;">
         <small style="color:var(--text-muted)"><?= date('d/m/Y H:i', strtotime($p['created_at'])) ?></small>
         <?php if ($p['testo']): ?><p style="margin:4px 0;"><?= nl2br(e($p['testo'])) ?></p><?php endif; ?>
+        <a href="/<?= e($user['slug']) ?>/timeline/<?= (int)$p['id'] ?>" target="_blank" style="font-size:13px;">Vedi pagina pubblica ↗</a>
         <form method="post" onsubmit="return confirm('Eliminare questo aggiornamento?');">
           <?= csrfField() ?>
           <input type="hidden" name="action" value="delete">

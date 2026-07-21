@@ -2,6 +2,7 @@
 session_start();
 require_once __DIR__ . '/../src/functions.php';
 $user = requireLogin();
+requireBandOrLabel($user);
 $activeTab = 'events';
 $pageTitle = 'Eventi';
 $error = null;

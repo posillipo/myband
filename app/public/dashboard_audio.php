@@ -1,100 +1,121 @@
 <?php
 session_start();
 require_once __DIR__ . '/../src/functions.php';
+require_once __DIR__ . '/../src/spotify.php';
 $user = requireLogin();
 $activeTab = 'audio';
 $pageTitle = 'Brani';
-$error = null;
+
+$searchResults = [];
+$searchQuery = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     checkCsrf();
     $action = $_POST['action'] ?? '';
 
     if ($action === 'add') {
-        $title = trim($_POST['title'] ?? '');
-        if ($title === '') {
-            $error = 'Inserisci un titolo per il brano.';
-        } elseif (empty($_FILES['audio']['name'])) {
-            $error = 'Seleziona un file audio.';
-        } else {
-            $ext = strtolower(pathinfo($_FILES['audio']['name'], PATHINFO_EXTENSION));
-            if (!in_array($ext, ['mp3','wav','ogg','m4a'], true)) {
-                $error = 'Formato non supportato (usa mp3, wav, ogg o m4a).';
-            } elseif ($_FILES['audio']['error'] !== UPLOAD_ERR_OK) {
-                $error = 'Errore durante il caricamento del file.';
-            } else {
-                $fname = bin2hex(random_bytes(6)) . '.' . $ext;
-                $audioDir = __DIR__ . '/uploads/audio/' . $user['slug'];
-                if (!is_dir($audioDir)) {
-                    mkdir($audioDir, 0775, true);
-                }
-                $dest = $audioDir . '/' . $fname;
-                if (move_uploaded_file($_FILES['audio']['tmp_name'], $dest)) {
-                    $coverPath = handleCoverUpload($user['slug']);
-                    $stmt = getDB()->prepare('INSERT INTO audio_tracks (user_id, title, file_path, cover_path) VALUES (?,?,?,?)');
-                    $stmt->execute([$user['id'], $title, 'uploads/audio/' . $user['slug'] . '/' . $fname, $coverPath]);
-                } else {
-                    $error = 'Impossibile salvare il file.';
-                }
-            }
+        $trackId = trim($_POST['track_id'] ?? '');
+        if ($trackId !== '') {
+            $stmt = getDB()->prepare('INSERT IGNORE INTO favorite_tracks
+                (user_id, spotify_track_id, track_name, artist_name, track_image, spotify_url, sort_order)
+                VALUES (?, ?, ?, ?, ?, ?, (SELECT n FROM (SELECT COALESCE(MAX(sort_order),0)+1 AS n FROM favorite_tracks WHERE user_id=?) t))');
+            $stmt->execute([
+                $user['id'], $trackId,
+                trim($_POST['track_name'] ?? ''), trim($_POST['artist_name'] ?? ''),
+                trim($_POST['track_image'] ?? '') ?: null, trim($_POST['spotify_url'] ?? '') ?: null,
+                $user['id'],
+            ]);
         }
-    } elseif ($action === 'delete') {
+    } elseif ($action === 'remove') {
         $id = (int) ($_POST['id'] ?? 0);
-        $stmt = getDB()->prepare('SELECT file_path, cover_path FROM audio_tracks WHERE id=? AND user_id=?');
+        $stmt = getDB()->prepare('DELETE FROM favorite_tracks WHERE id=? AND user_id=?');
         $stmt->execute([$id, $user['id']]);
-        if ($row = $stmt->fetch()) {
-            @unlink(__DIR__ . '/' . $row['file_path']);
-            if ($row['cover_path']) {
-                @unlink(__DIR__ . '/' . $row['cover_path']);
-            }
-            $stmt = getDB()->prepare('DELETE FROM audio_tracks WHERE id=? AND user_id=?');
-            $stmt->execute([$id, $user['id']]);
+    } elseif ($action === 'search') {
+        $searchQuery = trim($_POST['query'] ?? '');
+        if ($searchQuery !== '') {
+            $searchResults = spotifySearchTrack($searchQuery);
         }
-    }
-    if (!$error) {
-        header('Location: /dashboard_audio.php');
-        exit;
     }
 }
 
-$stmt = getDB()->prepare('SELECT * FROM audio_tracks WHERE user_id=? ORDER BY sort_order ASC, id DESC');
+$stmt = getDB()->prepare('SELECT * FROM favorite_tracks WHERE user_id=? ORDER BY sort_order ASC');
 $stmt->execute([$user['id']]);
 $tracks = $stmt->fetchAll();
+$trackIds = array_column($tracks, 'spotify_track_id');
 
 include __DIR__ . '/_dash_header.php';
 ?>
-  <?php if ($error): ?><div class="alert error"><?= e($error) ?></div><?php endif; ?>
-
-  <form method="post" enctype="multipart/form-data" class="card">
-    <?= csrfField() ?>
-    <input type="hidden" name="action" value="add">
-    <label>Titolo brano</label>
-    <input type="text" name="title" required>
-    <label>File audio (mp3, wav, ogg, m4a — max 20MB)</label>
-    <input type="file" name="audio" accept="audio/*" required>
-    <label>Copertina del brano (opzionale, jpg/png/webp)</label>
-    <input type="file" name="cover" accept="image/*">
-    <button type="submit" class="btn">Carica brano</button>
-  </form>
+  <div class="card">
+    <strong>Come funziona</strong>
+    <p style="color:var(--text-muted)">
+      Cerca su Spotify i brani da mostrare sulla tua pagina (i tuoi, le tue cover, o qualsiasi
+      brano ti rappresenti) e aggiungili — compariranno nella sezione "Brani" della tua pagina
+      pubblica, con link diretto per ascoltarli su Spotify.
+    </p>
+  </div>
 
   <div class="section-title">I tuoi brani (<?= count($tracks) ?>)</div>
+  <?php if (!$tracks): ?>
+    <div class="alert error">Nessun brano aggiunto ancora — cercalo qui sotto.</div>
+  <?php endif; ?>
   <?php foreach ($tracks as $t): ?>
-    <div class="card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
-      <?php if ($t['cover_path']): ?>
-        <img src="/<?= e($t['cover_path']) ?>" style="width:64px;height:64px;border-radius:8px;object-fit:cover;flex-shrink:0;">
-      <?php else: ?>
-        <div style="width:64px;height:64px;border-radius:8px;background:#26262f;flex-shrink:0;"></div>
-      <?php endif; ?>
-      <div style="flex:1;min-width:200px;">
-        <strong><?= e($t['title']) ?></strong>
-        <audio controls src="/<?= e($t['file_path']) ?>" style="display:block;margin-top:6px;"></audio>
+    <div class="link-item">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <?php if ($t['track_image']): ?>
+          <img src="<?= e($t['track_image']) ?>" style="width:48px;height:48px;border-radius:6px;">
+        <?php endif; ?>
+        <div>
+          <strong><?= e($t['track_name']) ?></strong><br>
+          <small style="color:var(--text-muted)"><?= e($t['artist_name']) ?></small>
+        </div>
       </div>
-      <form method="post" onsubmit="return confirm('Eliminare questo brano?');">
+      <form method="post" onsubmit="return confirm('Rimuovere questo brano?');">
         <?= csrfField() ?>
-        <input type="hidden" name="action" value="delete">
+        <input type="hidden" name="action" value="remove">
         <input type="hidden" name="id" value="<?= (int)$t['id'] ?>">
-        <button class="btn small danger" type="submit">Elimina</button>
+        <button class="btn small danger" type="submit">Rimuovi</button>
       </form>
     </div>
   <?php endforeach; ?>
+
+  <form method="post" class="card">
+    <?= csrfField() ?>
+    <input type="hidden" name="action" value="search">
+    <label>Cerca un brano su Spotify</label>
+    <input type="text" name="query" value="<?= e($searchQuery) ?>" placeholder="titolo, artista..." required>
+    <button type="submit" class="btn">Cerca</button>
+  </form>
+
+  <?php if ($searchResults): ?>
+    <div class="section-title">Risultati (<?= count($searchResults) ?>)</div>
+    <?php foreach ($searchResults as $r): ?>
+      <div class="link-item">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <?php if ($r['image']): ?>
+            <img src="<?= e($r['image']) ?>" alt="" style="width:48px;height:48px;border-radius:6px;">
+          <?php endif; ?>
+          <div>
+            <strong><?= e($r['name']) ?></strong><br>
+            <small style="color:var(--text-muted)"><?= e($r['artist_name']) ?></small>
+          </div>
+        </div>
+        <?php if (in_array($r['id'], $trackIds, true)): ?>
+          <span style="color:var(--text-muted);font-size:13px;">Già aggiunto</span>
+        <?php else: ?>
+          <form method="post">
+            <?= csrfField() ?>
+            <input type="hidden" name="action" value="add">
+            <input type="hidden" name="track_id" value="<?= e($r['id']) ?>">
+            <input type="hidden" name="track_name" value="<?= e($r['name']) ?>">
+            <input type="hidden" name="artist_name" value="<?= e($r['artist_name']) ?>">
+            <input type="hidden" name="track_image" value="<?= e($r['image'] ?? '') ?>">
+            <input type="hidden" name="spotify_url" value="<?= e($r['spotify_url'] ?? '') ?>">
+            <button class="btn small" type="submit">Aggiungi</button>
+          </form>
+        <?php endif; ?>
+      </div>
+    <?php endforeach; ?>
+  <?php elseif ($searchQuery !== ''): ?>
+    <div class="card">Nessun risultato per questa ricerca.</div>
+  <?php endif; ?>
 <?php include __DIR__ . '/_dash_footer.php'; ?>

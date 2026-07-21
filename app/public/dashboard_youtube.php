@@ -3,6 +3,7 @@ session_start();
 require_once __DIR__ . '/../src/functions.php';
 require_once __DIR__ . '/../src/youtube.php';
 $user = requireLogin();
+requireBandOrLabel($user);
 $activeTab = 'youtube';
 $pageTitle = 'YouTube';
 $error = null;

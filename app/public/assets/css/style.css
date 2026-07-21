@@ -344,7 +344,9 @@ body.colorful-page {
 .colorful-nav a:hover { background: rgba(255,255,255,0.65); }
 /* La voce attiva (colorata via style inline dal PHP) ha già lo sfondo scuro/accento: qui le
    diamo anche lo stesso arrotondamento delle altre pillole per coerenza visiva */
-.colorful-nav a[style*="color:#fff"] { background: var(--accent, #6C5CE7); }
+/* Colore fisso della voce attiva nel menu, identico su tutti i profili — non più legato al
+   colore tema di ciascuno, per coerenza visiva su tutta la piattaforma */
+.colorful-nav a[style*="color:#fff"] { background: rgb(108,92,231); }
 @media (max-width: 400px) {
   .colorful-nav a { font-size: 12.5px; padding: 4px 10px; }
 }

@@ -176,6 +176,22 @@ CREATE TABLE IF NOT EXISTS timeline_posts (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- Nuovo modulo "Brani": brani Spotify scelti dal profilo (di qualsiasi tipo), al posto del
+-- vecchio upload di file mp3. Stesso pattern di fan_favorite_bands, ma per singoli brani.
+CREATE TABLE IF NOT EXISTS favorite_tracks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    spotify_track_id VARCHAR(50) NOT NULL,
+    track_name VARCHAR(200) NOT NULL,
+    artist_name VARCHAR(200) DEFAULT NULL,
+    track_image VARCHAR(500) DEFAULT NULL,
+    spotify_url VARCHAR(500) DEFAULT NULL,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_user_track (user_id, spotify_track_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('privacy_script', '');
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('gtm_head_script', '');
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('gtm_body_script', '');
