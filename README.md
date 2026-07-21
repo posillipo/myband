@@ -116,6 +116,11 @@ docker compose exec db mysqldump -u root -p myband > backup_$(date +%F).sql
 
 ## 8. Possibili estensioni future
 
+- **Sistema di cache** (come nei plugin cache di WordPress): OPcache PHP come primo passo a
+  basso rischio (solo configurazione), poi eventuale cache di pagina intera per i visitatori
+  anonimi (mai per gli utenti loggati, che devono vedere sempre lo stato aggiornato) — il
+  server ha già Redis attivo per gli altri siti, riusabile per myBand senza installare nulla
+  di nuovo
 - **Formattazione email uniforme**: tutte le email inviate dal sistema (verifica registrazione,
   notifiche contatto, conferma "Segui", reset password, notifiche follower/Timeline) sono oggi
   testo semplice — andrebbero uniformate con un template HTML coerente, vicino ai colori/stile
