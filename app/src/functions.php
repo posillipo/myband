@@ -495,7 +495,7 @@ function getAccountFollowerCount(int $userId): int {
 // Feed aggregato "Timeline": unisce blog, brani, eventi e aggiornamenti brevi pubblicati dai
 // profili indicati, ordinati dal più recente. Query separate per tipo di contenuto invece di
 // una UNION, più semplice da leggere e mantenere con colonne diverse per ciascuna.
-function getTimelineFeedForUsers(array $userIds, int $limit = 50): array {
+function getTimelineFeedForUsers(array $userIds, int $limit = 50, int $offset = 0): array {
     $userIds = array_values(array_unique(array_map('intval', $userIds)));
     if (!$userIds) {
         return [];
@@ -554,7 +554,29 @@ function getTimelineFeedForUsers(array $userIds, int $limit = 50): array {
     }
 
     usort($items, fn($a, $b) => strtotime($b['data']) <=> strtotime($a['data']));
-    return array_slice($items, 0, $limit);
+    return array_slice($items, $offset, $limit);
+}
+
+// Rendering HTML condiviso di un singolo elemento della Timeline, riusato sia dal primo
+// caricamento della pagina sia dalle richieste "carica altri" dello scrolling infinito.
+function renderTimelineFeedItem(array $item): string {
+    $coverSrc = $item['cover'] ? (str_starts_with($item['cover'], 'http') ? $item['cover'] : '/' . $item['cover']) : null;
+    $labels = ['blog' => '📝 Articolo', 'brano' => '🎵 Brano', 'evento' => '📅 Evento', 'pensiero' => '💬 Aggiornamento'];
+    $label = $labels[$item['tipo']] ?? '';
+    $eventoInfo = '';
+    if ($item['tipo'] === 'evento' && !empty($item['evento_quando'])) {
+        $eventoInfo = ' · si terrà il ' . e(date('d/m/Y', strtotime($item['evento_quando'])));
+    }
+    $html = '<a href="' . e($item['url']) . '" class="card" style="display:flex;gap:14px;align-items:center;text-decoration:none;color:inherit;">';
+    if ($coverSrc) {
+        $html .= '<img src="' . e($coverSrc) . '" style="width:64px;height:64px;border-radius:10px;object-fit:cover;flex-shrink:0;">';
+    }
+    $html .= '<div style="flex:1;min-width:0;">';
+    $html .= '<small style="color:rgba(34,34,59,0.6);text-transform:uppercase;">' . e($label) . '</small><br>';
+    $html .= '<strong>' . e($item['titolo']) . '</strong><br>';
+    $html .= '<small style="color:rgba(34,34,59,0.6);">' . e(date('d/m/Y', strtotime($item['data']))) . $eventoInfo . '</small>';
+    $html .= '</div></a>';
+    return $html;
 }
 
 // ===== Sistema "Segui via email" =====
@@ -640,7 +662,7 @@ const RESERVED_SLUGS = ['login','register','logout','dashboard','dashboard_profi
     'admin_import_legacy','admin_profiles','track','evento','admin_youtube','dashboard_youtube','video',
     'forgot_password','reset_password','dashboard_podcast','podcast',
     'choose_account_type','dashboard_fan_bands','band_che_amo','admin_apply_percorso','admin_link_avatars',
-    'follow_account','dashboard_timeline','timeline','dashboard_post','timeline_post','feed','admin_import_old_timeline'];
+    'follow_account','dashboard_timeline','timeline','dashboard_post','timeline_post','feed','admin_import_old_timeline','timeline_more'];
 
 // Genera uno slug univoco per un articolo di un dato utente (title -> slug, con suffisso -2, -3... se già esistente)
 function generateUniquePostSlug(int $userId, string $title, ?int $excludePostId = null): string {

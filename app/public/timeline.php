@@ -17,7 +17,8 @@ if (!$artist) {
     exit('Pagina non trovata.');
 }
 
-$feed = getTimelineFeedForUsers([$artist['id']], 50);
+const TIMELINE_PAGE_SIZE = 20;
+$feed = getTimelineFeedForUsers([$artist['id']], TIMELINE_PAGE_SIZE, 0);
 $pageUrl = siteUrl('/' . $slug . '/timeline');
 ?>
 <!doctype html>
@@ -41,33 +42,67 @@ $pageUrl = siteUrl('/' . $slug . '/timeline');
 <div class="container">
   <?= publicProfileHeader($artist, 'timeline') ?>
 
-  <?php if (!$feed): ?>
-    <div class="card">Nessun contenuto pubblicato ancora.</div>
-  <?php else: ?>
-    <?php foreach ($feed as $item): ?>
-      <a href="<?= e($item['url']) ?>" class="card" style="display:flex;gap:14px;align-items:center;text-decoration:none;color:inherit;">
-        <?php if ($item['cover']): ?>
-          <?php $coverSrc = str_starts_with($item['cover'], 'http') ? $item['cover'] : '/' . $item['cover']; ?>
-          <img src="<?= e($coverSrc) ?>" style="width:64px;height:64px;border-radius:10px;object-fit:cover;flex-shrink:0;">
-        <?php endif; ?>
-        <div style="flex:1;min-width:0;">
-          <small style="color:rgba(34,34,59,0.6);text-transform:uppercase;">
-            <?= ['blog' => '📝 Articolo', 'brano' => '🎵 Brano', 'evento' => '📅 Evento', 'pensiero' => '💬 Aggiornamento'][$item['tipo']] ?? '' ?>
-          </small>
-          <br>
-          <strong><?= e($item['titolo']) ?></strong>
-          <br>
-          <small style="color:rgba(34,34,59,0.6);">
-            <?= date('d/m/Y', strtotime($item['data'])) ?>
-            <?php if ($item['tipo'] === 'evento' && !empty($item['evento_quando'])): ?>
-              · si terrà il <?= date('d/m/Y', strtotime($item['evento_quando'])) ?>
-            <?php endif; ?>
-          </small>
-        </div>
-      </a>
-    <?php endforeach; ?>
-  <?php endif; ?>
+  <div id="timeline-feed">
+    <?php if (!$feed): ?>
+      <div class="card">Nessun contenuto pubblicato ancora.</div>
+    <?php else: ?>
+      <?php foreach ($feed as $item): ?>
+        <?= renderTimelineFeedItem($item) ?>
+      <?php endforeach; ?>
+    <?php endif; ?>
+  </div>
+
+  <div id="timeline-sentinel" style="height:1px;"></div>
+  <p id="timeline-loading" style="text-align:center;color:rgba(34,34,59,0.5);display:none;">Caricamento...</p>
+  <p id="timeline-end" style="text-align:center;color:rgba(34,34,59,0.5);display:none;">Hai visto tutto.</p>
 </div>
 <?= renderSiteFooterBar() ?>
+
+<script>
+(function () {
+  var slug = <?= json_encode($slug) ?>;
+  var offset = <?= count($feed) ?>;
+  var pageSize = <?= TIMELINE_PAGE_SIZE ?>;
+  var loading = false;
+  var finished = <?= count($feed) < TIMELINE_PAGE_SIZE ? 'true' : 'false' ?>;
+  var feedEl = document.getElementById('timeline-feed');
+  var loadingEl = document.getElementById('timeline-loading');
+  var endEl = document.getElementById('timeline-end');
+  var sentinel = document.getElementById('timeline-sentinel');
+
+  function loadMore() {
+    if (loading || finished) return;
+    loading = true;
+    loadingEl.style.display = 'block';
+    fetch('/timeline_more.php?slug=' + encodeURIComponent(slug) + '&offset=' + offset)
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        loadingEl.style.display = 'none';
+        if (data.html) {
+          feedEl.insertAdjacentHTML('beforeend', data.html);
+        }
+        offset += data.count;
+        if (data.count < pageSize) {
+          finished = true;
+          endEl.style.display = 'block';
+        }
+        loading = false;
+      })
+      .catch(function () {
+        loading = false;
+        loadingEl.style.display = 'none';
+      });
+  }
+
+  if (!finished && 'IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting) loadMore();
+    });
+    observer.observe(sentinel);
+  } else if (finished) {
+    endEl.style.display = 'block';
+  }
+})();
+</script>
 </body>
 </html>
