@@ -242,7 +242,11 @@ const COLORFUL_PALETTE = ['#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF', '#A0C4FF',
 // Il tab "Spotify" compare solo se l'artista ha collegato un profilo Spotify dalla dashboard.
 function publicNav(string $slug, string $active, bool $hasSpotify = false, bool $hasYoutube = false, bool $hasPodcast = false, string $accountType = 'band'): string {
     $isBandOrLabel = in_array($accountType, ['band', 'label'], true);
+    // "Segui" è sempre il primo elemento, con uno stile evidente diverso dagli altri —
+    // porta al modulo Segui vero e proprio in home (con lo scintillio), funziona da
+    // qualunque pagina del profilo grazie all'ancora #segui-widget nell'URL.
     $tabs = [
+        'segui' => ['label' => '✨ Segui', 'url' => '/' . $slug . '#segui-widget', 'class' => 'nav-segui-tab'],
         'home' => ['label' => 'Home', 'url' => '/' . $slug],
         'timeline' => ['label' => 'Timeline', 'url' => '/' . $slug . '/timeline'],
     ];
@@ -265,9 +269,12 @@ function publicNav(string $slug, string $active, bool $hasSpotify = false, bool 
     $parts = [];
     foreach ($tabs as $key => $t) {
         // La voce della pagina attiva ha lo sfondo colorato (gestito via CSS sull'attributo
-        // style), le altre restano pillole chiare trasparenti
+        // style), le altre restano pillole chiare trasparenti. Il tab "Segui" ha una classe
+        // dedicata per uno stile sempre acceso, distinto dagli altri.
+        $extraClass = $t['class'] ?? '';
         $activeAttr = $key === $active ? ' style="font-weight:900;color:#fff;"' : '';
-        $parts[] = '<a href="' . e($t['url']) . '"' . $activeAttr . '>' . e($t['label']) . '</a>';
+        $classAttr = $extraClass !== '' ? ' class="' . e($extraClass) . '"' : '';
+        $parts[] = '<a href="' . e($t['url']) . '"' . $classAttr . $activeAttr . '>' . e($t['label']) . '</a>';
     }
     return '<nav class="colorful-nav">' . implode('', $parts) . '</nav>';
 }

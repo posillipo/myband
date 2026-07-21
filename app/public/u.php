@@ -86,7 +86,7 @@ $fanFavoritesPreview = array_slice($fanFavorites, 0, 6);
     <div class="alert <?= $followErr ? 'error' : 'success' ?>"><?= e($followMsg) ?></div>
   <?php endif; ?>
 
-  <div style="text-align:center;margin-bottom:18px;">
+  <div id="segui-widget" style="text-align:center;margin-bottom:18px;scroll-margin-top:20px;">
     <?php if (!empty($_SESSION['user_id']) && (int)$_SESSION['user_id'] !== (int)$uid): ?>
       <?php $alreadyFollowing = isFollowingAccount((int)$_SESSION['user_id'], (int)$uid); ?>
       <form method="post" action="/follow_account.php" style="display:inline;">

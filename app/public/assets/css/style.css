@@ -211,6 +211,7 @@ body.colorful-page {
   color: #22223b;
   min-height: 100vh;
   margin: 0;
+  overflow-x: hidden; /* la pagina intera non deve mai scorrere in orizzontale, solo elementi interni contenuti apposta (es. il menu su mobile) */
   /* Colonna verticale a tutta altezza: il footer (ultimo figlio diretto del body) viene
      spinto naturalmente in fondo alla pagina quando il contenuto è poco, ma scorre insieme
      al resto quando il contenuto è tanto — non "galleggia" mai sopra nulla, è parte
@@ -218,7 +219,7 @@ body.colorful-page {
   display: flex;
   flex-direction: column;
 }
-.colorful-page .container { flex: 1 0 auto; }
+.colorful-page .container { flex: 1 0 auto; max-width: 100%; }
 .colorful-page footer.site { color: rgba(34,34,59,0.6); }
 .colorful-page .profile-header { padding-top: 20px; }
 .colorful-page .avatar {
@@ -377,9 +378,9 @@ body.colorful-page {
 }
 
 /* Menu di navigazione della pagina pubblica: ogni voce è una piccola "pillola" arrotondata.
-   Con flex-wrap va a capo in modo ordinato quando lo spazio non basta (mai a metà parola, mai
-   fuori schermo), invece di forzare una singola riga che su mobile spezzava il resto del
-   layout. */
+   Su desktop va a capo in modo ordinato quando lo spazio non basta. Su mobile (sotto), invece
+   di andare a capo, scorre orizzontalmente come uno slide — contenuto correttamente dentro il
+   proprio contenitore, senza far scorrere l'intera pagina. */
 .colorful-nav {
   display: flex;
   flex-wrap: wrap;
@@ -388,6 +389,7 @@ body.colorful-page {
   margin: 12px 0 0;
   padding: 0;
   list-style: none;
+  max-width: 100%;
 }
 .colorful-nav a {
   display: inline-block;
@@ -406,8 +408,33 @@ body.colorful-page {
 /* Colore fisso della voce attiva nel menu, identico su tutti i profili — non più legato al
    colore tema di ciascuno, per coerenza visiva su tutta la piattaforma */
 .colorful-nav a[style*="color:#fff"] { background: rgb(108,92,231); }
+
+/* Tab "Segui": sempre acceso, ben distinto dagli altri, indipendentemente dal fatto che sia
+   la pagina attiva o meno */
+.colorful-nav a.nav-segui-tab {
+  background: rgb(108,92,231) !important;
+  color: #fff !important;
+}
+.colorful-nav a.nav-segui-tab:hover { opacity: 0.9; background: rgb(108,92,231) !important; }
+
 @media (max-width: 400px) {
   .colorful-nav a { font-size: 12.5px; padding: 4px 10px; }
+}
+
+/* Su schermi stretti, il menu scorre orizzontalmente invece di andare a capo — contenuto
+   dentro .container, mai propagato al resto della pagina */
+@media (max-width: 600px) {
+  .colorful-nav {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .colorful-nav::-webkit-scrollbar { display: none; }
+  .colorful-nav a { flex-shrink: 0; }
 }
 
 .social-icons-row {
