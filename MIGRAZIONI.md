@@ -182,6 +182,30 @@ CREATE TABLE IF NOT EXISTS fan_favorite_bands (
 ) ENGINE=InnoDB;
 ```
 
+## 21. Segui tra account + Timeline aggregata (con compositore "Pubblica")
+```sql
+CREATE TABLE IF NOT EXISTS account_follows (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    follower_user_id INT NOT NULL,
+    followed_user_id INT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_follow (follower_user_id, followed_user_id),
+    FOREIGN KEY (follower_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (followed_user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS timeline_posts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    testo TEXT DEFAULT NULL,
+    image_path VARCHAR(255) DEFAULT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+```
+Entrambe puramente additive, nessuna modifica a tabelle esistenti. Reversibili con
+`DROP TABLE account_follows;` e `DROP TABLE timeline_posts;` se la funzionalità non convince.
+
 ---
 
 ## Come aggiungere una nuova voce
