@@ -64,6 +64,7 @@ $fanFavoritesPreview = array_slice($fanFavorites, 0, 6);
 <meta name="twitter:description" content="<?= e($ogDescription) ?>">
 
 <link rel="canonical" href="<?= e($pageUrl) ?>">
+<link rel="alternate" type="application/rss+xml" title="<?= e($artist['display_name']) ?> — myband.it" href="<?= e(siteUrl('/' . $slug . '/feed')) ?>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <style>
