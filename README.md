@@ -116,6 +116,11 @@ docker compose exec db mysqldump -u root -p myband > backup_$(date +%F).sql
 
 ## 8. Possibili estensioni future
 
+- **Formattazione email uniforme**: tutte le email inviate dal sistema (verifica registrazione,
+  notifiche contatto, conferma "Segui", reset password, notifiche follower/Timeline) sono oggi
+  testo semplice — andrebbero uniformate con un template HTML coerente, vicino ai colori/stile
+  di myBand (accento viola `#6C5CE7`, coerente col resto della piattaforma), invece dei
+  messaggi in solo testo attuali
 - Tema grafico multiplo selezionabile dal musicista
 - Statistiche dettagliate sui click (per link, per periodo)
 - Piano gratuito/premium con limiti su numero di brani/eventi
