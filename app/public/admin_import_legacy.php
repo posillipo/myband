@@ -244,5 +244,6 @@ include __DIR__ . '/_admin_header.php';
     </p>
     <a href="/admin_apply_percorso.php" class="btn btn-secondary">Applica percorso come slug →</a>
     <a href="/admin_link_avatars.php" class="btn btn-secondary">Collega avatar storici →</a>
+    <a href="/admin_import_old_timeline.php" class="btn btn-secondary">Importa vecchia Timeline →</a>
   </div>
 <?php include __DIR__ . '/_admin_footer.php'; ?>
