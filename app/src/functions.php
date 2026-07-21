@@ -242,13 +242,10 @@ const COLORFUL_PALETTE = ['#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF', '#A0C4FF',
 // Il tab "Spotify" compare solo se l'artista ha collegato un profilo Spotify dalla dashboard.
 function publicNav(string $slug, string $active, bool $hasSpotify = false, bool $hasYoutube = false, bool $hasPodcast = false, string $accountType = 'band'): string {
     $isBandOrLabel = in_array($accountType, ['band', 'label'], true);
-    $tabs = [];
-    // "Segui" compare come primo tab su tutte le pagine TRANNE la Home — lì il modulo Segui
-    // vero (con lo scintillio) è già visibile subito sotto il menu, mostrare anche il tab
-    // sarebbe una duplicazione dello stesso pulsante.
-    if ($active !== 'home') {
-        $tabs['segui'] = ['label' => '✨ Segui', 'url' => '/' . $slug . '#segui-widget', 'class' => 'nav-segui-tab'];
-    }
+    // "Segui" è sempre il primo tab, su ogni pagina (Home inclusa) — porta al modulo Segui
+    // vero e proprio in home, che resta nascosto finché non lo si apre (vedi CSS :target),
+    // evitando così di mostrare due pulsanti "Segui" visibili insieme sulla stessa pagina.
+    $tabs = ['segui' => ['label' => '✨ Segui', 'url' => '/' . $slug . '#segui-widget', 'class' => 'nav-segui-tab']];
     $tabs['home'] = ['label' => 'Home', 'url' => '/' . $slug];
     $tabs['timeline'] = ['label' => 'Timeline', 'url' => '/' . $slug . '/timeline'];
     if ($hasSpotify && $isBandOrLabel) {

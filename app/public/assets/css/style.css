@@ -297,6 +297,12 @@ body.colorful-page {
    resto, incluso il badge/footer, e sopra alla barra fissa "Unisciti" se presente. */
 /* Pillola "Segui" compatta e discreta, con un piccolo luccichio che scorre periodicamente
    per attirare l'attenzione senza essere invadente */
+/* Il modulo Segui vero e proprio resta nascosto di default — compare solo quando lo si apre
+   cliccando il tab "Segui" nel menu (che porta a questa stessa pagina con #segui-widget
+   nell'URL), evitando così un doppio pulsante "Segui" visibile insieme sulla stessa pagina. */
+#segui-widget { display: none; }
+#segui-widget:target { display: block; }
+
 .segui-pill {
   position: relative;
   overflow: hidden;
