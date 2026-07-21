@@ -47,7 +47,8 @@ $pageUrl = siteUrl('/' . $slug . '/timeline');
     <?php foreach ($feed as $item): ?>
       <a href="<?= e($item['url']) ?>" class="card" style="display:flex;gap:14px;align-items:center;text-decoration:none;color:inherit;">
         <?php if ($item['cover']): ?>
-          <img src="/<?= e($item['cover']) ?>" style="width:64px;height:64px;border-radius:10px;object-fit:cover;flex-shrink:0;">
+          <?php $coverSrc = str_starts_with($item['cover'], 'http') ? $item['cover'] : '/' . $item['cover']; ?>
+          <img src="<?= e($coverSrc) ?>" style="width:64px;height:64px;border-radius:10px;object-fit:cover;flex-shrink:0;">
         <?php endif; ?>
         <div style="flex:1;min-width:0;">
           <small style="color:rgba(34,34,59,0.6);text-transform:uppercase;">
