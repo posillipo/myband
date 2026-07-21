@@ -222,8 +222,26 @@ CREATE TABLE IF NOT EXISTS favorite_tracks (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 ```
-La vecchia tabella `audio_tracks` (upload mp3) resta nel database per sicurezza, ma non è più
-usata dall'interfaccia — nessuna migrazione di dati necessaria, nessuna perdita.
+Su richiesta esplicita, i vecchi brani caricati come mp3 vanno eliminati (non solo lasciati
+inutilizzati):
+```sql
+DELETE FROM audio_tracks;
+```
+La tabella resta nello schema (per compatibilità), ma svuotata — nessun brano mp3 residuo.
+Se vuoi anche liberare lo spazio disco dei file fisici già caricati:
+```bash
+rm -rf /data/compose/26/app/public/uploads/audio/*
+```
+
+## 23. Data di pubblicazione per gli eventi (per l'ordinamento corretto nella Timeline)
+```sql
+ALTER TABLE events ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
+```
+Distingue quando un evento è stato **pubblicato** (usato per ordinare la Timeline) da quando
+**si terrà** (`event_date`, resta invariato e continua a comparire nella pagina dedicata
+all'evento). Gli eventi già esistenti riceveranno automaticamente la data odierna come
+`created_at` (comportamento di default per le righe già presenti quando si aggiunge una colonna
+con `DEFAULT CURRENT_TIMESTAMP`).
 
 ---
 
