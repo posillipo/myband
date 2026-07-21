@@ -206,6 +206,25 @@ CREATE TABLE IF NOT EXISTS timeline_posts (
 Entrambe puramente additive, nessuna modifica a tabelle esistenti. Reversibili con
 `DROP TABLE account_follows;` e `DROP TABLE timeline_posts;` se la funzionalità non convince.
 
+## 22. Nuovo modulo Brani (ricerca Spotify al posto dell'upload mp3)
+```sql
+CREATE TABLE IF NOT EXISTS favorite_tracks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    spotify_track_id VARCHAR(50) NOT NULL,
+    track_name VARCHAR(200) NOT NULL,
+    artist_name VARCHAR(200) DEFAULT NULL,
+    track_image VARCHAR(500) DEFAULT NULL,
+    spotify_url VARCHAR(500) DEFAULT NULL,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_user_track (user_id, spotify_track_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+```
+La vecchia tabella `audio_tracks` (upload mp3) resta nel database per sicurezza, ma non è più
+usata dall'interfaccia — nessuna migrazione di dati necessaria, nessuna perdita.
+
 ---
 
 ## Come aggiungere una nuova voce
