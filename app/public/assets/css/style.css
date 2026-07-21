@@ -395,7 +395,7 @@ body.colorful-page {
   display: inline-block;
   color: #22223b;
   font-weight: 700;
-  font-size: 13.5px;
+  font-size: 14.5px;
   white-space: nowrap;
   padding: 5px 12px;
   border-radius: 999px;
@@ -418,12 +418,13 @@ body.colorful-page {
 .colorful-nav a.nav-segui-tab:hover { opacity: 0.9; background: rgb(108,92,231) !important; }
 
 @media (max-width: 400px) {
-  .colorful-nav a { font-size: 12.5px; padding: 4px 10px; }
+  .colorful-nav a { font-size: 13.5px; padding: 4px 10px; }
 }
 
 /* Su schermi stretti, il menu scorre orizzontalmente invece di andare a capo — contenuto
    dentro .container, mai propagato al resto della pagina */
 @media (max-width: 600px) {
+  .colorful-nav-wrap { position: relative; }
   .colorful-nav {
     flex-wrap: nowrap;
     justify-content: flex-start;
@@ -435,6 +436,23 @@ body.colorful-page {
   }
   .colorful-nav::-webkit-scrollbar { display: none; }
   .colorful-nav a { flex-shrink: 0; }
+  .colorful-nav-arrow {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 4px;
+    width: 34px;
+    align-items: center;
+    justify-content: flex-end;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.85) 55%);
+    color: #6C5CE7;
+    font-size: 13px;
+    pointer-events: none;
+  }
+}
+@media (min-width: 601px) {
+  .colorful-nav-arrow { display: none !important; }
 }
 
 .social-icons-row {

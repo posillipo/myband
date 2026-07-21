@@ -242,14 +242,15 @@ const COLORFUL_PALETTE = ['#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF', '#A0C4FF',
 // Il tab "Spotify" compare solo se l'artista ha collegato un profilo Spotify dalla dashboard.
 function publicNav(string $slug, string $active, bool $hasSpotify = false, bool $hasYoutube = false, bool $hasPodcast = false, string $accountType = 'band'): string {
     $isBandOrLabel = in_array($accountType, ['band', 'label'], true);
-    // "Segui" è sempre il primo elemento, con uno stile evidente diverso dagli altri —
-    // porta al modulo Segui vero e proprio in home (con lo scintillio), funziona da
-    // qualunque pagina del profilo grazie all'ancora #segui-widget nell'URL.
-    $tabs = [
-        'segui' => ['label' => '✨ Segui', 'url' => '/' . $slug . '#segui-widget', 'class' => 'nav-segui-tab'],
-        'home' => ['label' => 'Home', 'url' => '/' . $slug],
-        'timeline' => ['label' => 'Timeline', 'url' => '/' . $slug . '/timeline'],
-    ];
+    $tabs = [];
+    // "Segui" compare come primo tab su tutte le pagine TRANNE la Home — lì il modulo Segui
+    // vero (con lo scintillio) è già visibile subito sotto il menu, mostrare anche il tab
+    // sarebbe una duplicazione dello stesso pulsante.
+    if ($active !== 'home') {
+        $tabs['segui'] = ['label' => '✨ Segui', 'url' => '/' . $slug . '#segui-widget', 'class' => 'nav-segui-tab'];
+    }
+    $tabs['home'] = ['label' => 'Home', 'url' => '/' . $slug];
+    $tabs['timeline'] = ['label' => 'Timeline', 'url' => '/' . $slug . '/timeline'];
     if ($hasSpotify && $isBandOrLabel) {
         $tabs['spotify'] = ['label' => 'Spotify', 'url' => '/' . $slug . '/spotify'];
     }
@@ -276,7 +277,25 @@ function publicNav(string $slug, string $active, bool $hasSpotify = false, bool 
         $classAttr = $extraClass !== '' ? ' class="' . e($extraClass) . '"' : '';
         $parts[] = '<a href="' . e($t['url']) . '"' . $classAttr . $activeAttr . '>' . e($t['label']) . '</a>';
     }
-    return '<nav class="colorful-nav">' . implode('', $parts) . '</nav>';
+    $html = '<div class="colorful-nav-wrap">';
+    $html .= '<nav class="colorful-nav">' . implode('', $parts) . '</nav>';
+    $html .= '<span class="colorful-nav-arrow" aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>';
+    $html .= '</div>
+    <script>
+    (function () {
+        var nav = document.currentScript.previousElementSibling.querySelector(".colorful-nav");
+        var arrow = document.currentScript.previousElementSibling.querySelector(".colorful-nav-arrow");
+        if (!nav || !arrow) return;
+        function updateArrow() {
+            var hasMore = nav.scrollWidth > nav.clientWidth + 4 && (nav.scrollLeft + nav.clientWidth) < nav.scrollWidth - 4;
+            arrow.style.display = hasMore ? "flex" : "none";
+        }
+        updateArrow();
+        nav.addEventListener("scroll", updateArrow);
+        window.addEventListener("resize", updateArrow);
+    })();
+    </script>';
+    return $html;
 }
 
 // Blocco identità condiviso (avatar + nome + eventuale bio + menu) stampato in cima ad ogni
