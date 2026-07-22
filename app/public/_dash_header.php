@@ -92,7 +92,7 @@ $unreadMessages = (int) $stmt->fetch()['c'];
 
 <div class="container">
   <div class="tabs">
-    <a href="/dashboard_timeline.php" class="<?= $activeTab==='timeline'?'active':'' ?>">La mia Timeline</a>
+    <a href="/dashboard_timeline.php" class="<?= $activeTab==='timeline'?'active':'' ?>">TIMELINE</a>
     <a href="/dashboard_post.php" class="<?= $activeTab==='post'?'active':'' ?>">Pubblica</a>
     <a href="/dashboard_fan_bands.php" class="<?= $activeTab==='fan_bands'?'active':'' ?>">Band che amo</a>
     <a href="/dashboard_links.php" class="<?= $activeTab==='links'?'active':'' ?>">Linktree</a>
