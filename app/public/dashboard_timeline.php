@@ -5,49 +5,69 @@ $user = requireLogin();
 $activeTab = 'timeline';
 $pageTitle = 'La mia Timeline';
 
+const DASH_TIMELINE_PAGE_SIZE = 20;
 $followedIds = getFollowedUserIds((int) $user['id']);
-$feed = getTimelineFeedForUsers($followedIds, 50);
+$feed = getTimelineFeedForUsers($followedIds, DASH_TIMELINE_PAGE_SIZE, 0);
 
 include __DIR__ . '/_dash_header.php';
 ?>
-  <div class="card">
-    <strong>Come funziona</strong>
+  <details class="help-box">
+    <summary>ℹ️ Come funziona</summary>
     <p style="color:var(--text-muted)">
       Qui vedi, in un unico flusso, gli ultimi contenuti pubblicati dai profili che segui —
       articoli blog, brani caricati, eventi annunciati, aggiornamenti brevi. Per iniziare, vai
       sulla pagina pubblica di una band e clicca "Segui".
     </p>
-  </div>
+  </details>
 
   <?php if (!$followedIds): ?>
     <div class="alert error">Non segui ancora nessun profilo.</div>
   <?php elseif (!$feed): ?>
     <div class="card">I profili che segui non hanno ancora pubblicato nulla.</div>
   <?php else: ?>
-    <?php foreach ($feed as $item): ?>
-      <a href="<?= e($item['url']) ?>" class="link-item" style="display:flex;gap:12px;align-items:center;text-decoration:none;color:inherit;">
-        <?php if ($item['cover']): ?>
-          <?php $coverSrc = str_starts_with($item['cover'], 'http') ? $item['cover'] : '/' . $item['cover']; ?>
-          <img src="<?= e($coverSrc) ?>" style="width:56px;height:56px;border-radius:8px;object-fit:cover;flex-shrink:0;">
-        <?php elseif ($item['avatar']): ?>
-          <img src="/<?= e($item['avatar']) ?>" style="width:56px;height:56px;border-radius:50%;object-fit:cover;flex-shrink:0;">
-        <?php endif; ?>
-        <div style="flex:1;min-width:0;">
-          <small style="color:var(--text-muted);text-transform:uppercase;">
-            <?= ['blog' => '📝 Articolo', 'brano' => '🎵 Brano', 'evento' => '📅 Evento', 'pensiero' => '💬 Aggiornamento'][$item['tipo']] ?? '' ?>
-            · <?= e($item['display_name']) ?>
-          </small>
-          <br>
-          <strong><?= e($item['titolo']) ?></strong>
-          <br>
-          <small style="color:var(--text-muted)">
-            <?= date('d/m/Y', strtotime($item['data'])) ?>
-            <?php if ($item['tipo'] === 'evento' && !empty($item['evento_quando'])): ?>
-              · si terrà il <?= date('d/m/Y', strtotime($item['evento_quando'])) ?>
-            <?php endif; ?>
-          </small>
-        </div>
-      </a>
-    <?php endforeach; ?>
+    <div id="dash-timeline-feed">
+      <?php foreach ($feed as $item): ?>
+        <?= renderDashboardTimelineItem($item) ?>
+      <?php endforeach; ?>
+    </div>
+    <div id="dash-timeline-sentinel" style="height:1px;"></div>
+    <p id="dash-timeline-loading" style="text-align:center;color:var(--text-muted);display:none;">Caricamento...</p>
+    <p id="dash-timeline-end" style="text-align:center;color:var(--text-muted);display:none;">Hai visto tutto.</p>
+    <script>
+    (function () {
+      var offset = <?= count($feed) ?>;
+      var pageSize = <?= DASH_TIMELINE_PAGE_SIZE ?>;
+      var loading = false;
+      var finished = <?= count($feed) < DASH_TIMELINE_PAGE_SIZE ? 'true' : 'false' ?>;
+      var feedEl = document.getElementById('dash-timeline-feed');
+      var loadingEl = document.getElementById('dash-timeline-loading');
+      var endEl = document.getElementById('dash-timeline-end');
+      var sentinel = document.getElementById('dash-timeline-sentinel');
+
+      function loadMore() {
+        if (loading || finished) return;
+        loading = true;
+        loadingEl.style.display = 'block';
+        fetch('/dashboard_timeline_more.php?offset=' + offset)
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            loadingEl.style.display = 'none';
+            if (data.html) feedEl.insertAdjacentHTML('beforeend', data.html);
+            offset += data.count;
+            if (data.count < pageSize) { finished = true; endEl.style.display = 'block'; }
+            loading = false;
+          })
+          .catch(function () { loading = false; loadingEl.style.display = 'none'; });
+      }
+
+      if (!finished && 'IntersectionObserver' in window) {
+        new IntersectionObserver(function (entries) {
+          if (entries[0].isIntersecting) loadMore();
+        }).observe(sentinel);
+      } else if (finished) {
+        endEl.style.display = 'block';
+      }
+    })();
+    </script>
   <?php endif; ?>
 <?php include __DIR__ . '/_dash_footer.php'; ?>

@@ -40,14 +40,14 @@ $user = currentUser();
 
 include __DIR__ . '/_dash_header.php';
 ?>
-  <div class="card">
-    <strong>Come funziona</strong>
+  <details class="help-box">
+    <summary>ℹ️ Come funziona</summary>
     <p style="color:var(--text-muted)">
       Se hai un podcast su Spotify, cercalo qui e collegalo: la tua pagina pubblica mostrerà
       automaticamente gli episodi più recenti in una sezione dedicata, aggiornata direttamente
       da Spotify.
     </p>
-  </div>
+  </details>
 
   <?php if (!empty($user['spotify_show_id'])): ?>
     <div class="card">

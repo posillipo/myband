@@ -672,6 +672,28 @@ function renderRatingForm(string $action, int $targetId, ?int $viewerId, int $ow
     return $html;
 }
 
+function renderDashboardTimelineItem(array $item): string {
+    $coverSrc = $item['cover'] ? (str_starts_with($item['cover'], 'http') ? $item['cover'] : '/' . $item['cover']) : null;
+    $labels = ['blog' => '📝 Articolo', 'brano' => '🎵 Brano', 'evento' => '📅 Evento', 'pensiero' => '💬 Aggiornamento'];
+    $label = $labels[$item['tipo']] ?? '';
+    $eventoInfo = '';
+    if ($item['tipo'] === 'evento' && !empty($item['evento_quando'])) {
+        $eventoInfo = ' · si terrà il ' . e(date('d/m/Y', strtotime($item['evento_quando'])));
+    }
+    $html = '<a href="' . e($item['url']) . '" class="link-item" style="display:flex;gap:12px;align-items:center;text-decoration:none;color:inherit;">';
+    if ($coverSrc) {
+        $html .= '<img src="' . e($coverSrc) . '" style="width:56px;height:56px;border-radius:8px;object-fit:cover;flex-shrink:0;">';
+    } elseif (!empty($item['avatar'])) {
+        $html .= '<img src="/' . e($item['avatar']) . '" style="width:56px;height:56px;border-radius:50%;object-fit:cover;flex-shrink:0;">';
+    }
+    $html .= '<div style="flex:1;min-width:0;">';
+    $html .= '<small style="color:var(--text-muted);text-transform:uppercase;">' . e($label) . ' · ' . e($item['display_name']) . '</small><br>';
+    $html .= '<strong>' . e($item['titolo']) . '</strong><br>';
+    $html .= '<small style="color:var(--text-muted)">' . e(date('d/m/Y', strtotime($item['data']))) . $eventoInfo . '</small>';
+    $html .= '</div></a>';
+    return $html;
+}
+
 function renderTimelineFeedItem(array $item): string {
     $coverSrc = $item['cover'] ? (str_starts_with($item['cover'], 'http') ? $item['cover'] : '/' . $item['cover']) : null;
     $labels = ['blog' => '📝 Articolo', 'brano' => '🎵 Brano', 'evento' => '📅 Evento', 'pensiero' => '💬 Aggiornamento'];
@@ -775,7 +797,7 @@ const RESERVED_SLUGS = ['login','register','logout','dashboard','dashboard_profi
     'admin_import_legacy','admin_profiles','track','evento','admin_youtube','dashboard_youtube','video',
     'forgot_password','reset_password','dashboard_podcast','podcast',
     'choose_account_type','dashboard_fan_bands','band_che_amo','admin_apply_percorso','admin_link_avatars',
-    'follow_account','dashboard_timeline','timeline','dashboard_post','timeline_post','feed','admin_import_old_timeline','timeline_more','track_review','admin_reviews','dashboard_password'];
+    'follow_account','dashboard_timeline','timeline','dashboard_post','timeline_post','feed','admin_import_old_timeline','timeline_more','track_review','admin_reviews','dashboard_password','dashboard_timeline_more'];
 
 // Genera uno slug univoco per un articolo di un dato utente (title -> slug, con suffisso -2, -3... se già esistente)
 function generateUniquePostSlug(int $userId, string $title, ?int $excludePostId = null): string {

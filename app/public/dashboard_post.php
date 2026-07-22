@@ -41,14 +41,14 @@ $posts = $stmt->fetchAll();
 
 include __DIR__ . '/_dash_header.php';
 ?>
-  <div class="card">
-    <strong>Come funziona</strong>
+  <details class="help-box">
+    <summary>ℹ️ Come funziona</summary>
     <p style="color:var(--text-muted)">
       Un modo rapido per condividere un pensiero, un annuncio breve, o una foto — senza dover
       scrivere un articolo completo come nel Blog. Compare subito nella tua Timeline pubblica e
       in quella di chi ti segue.
     </p>
-  </div>
+  </details>
 
   <?php if (!empty($error)): ?><div class="alert error"><?= e($error) ?></div><?php endif; ?>
 

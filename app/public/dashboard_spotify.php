@@ -41,14 +41,14 @@ $user = currentUser();
 
 include __DIR__ . '/_dash_header.php';
 ?>
-  <div class="card">
-    <strong>Come funziona</strong>
+  <details class="help-box">
+    <summary>ℹ️ Come funziona</summary>
     <p style="color:var(--text-muted)">
       Cerca il tuo nome artista su Spotify e seleziona il profilo giusto: la tua pagina pubblica
       mostrerà automaticamente una sezione dedicata con i tuoi album, singoli e brani più
       ascoltati, aggiornata direttamente da Spotify.
     </p>
-  </div>
+  </details>
 
   <?php if (!empty($user['spotify_artist_id'])): ?>
     <div class="card">

@@ -21,14 +21,14 @@ $followers = $stmt->fetchAll();
 
 include __DIR__ . '/_dash_header.php';
 ?>
-  <div class="card">
-    <strong>Come funziona</strong>
+  <details class="help-box">
+    <summary>ℹ️ Come funziona</summary>
     <p style="color:var(--text-muted)">
       I visitatori della tua pagina pubblica possono iscriversi lasciando la propria email (con
       doppia conferma anti-spam). Quando pubblichi un nuovo articolo sul blog o un nuovo
       concerto, i tuoi follower ricevono automaticamente una notifica via email.
     </p>
-  </div>
+  </details>
 
   <div class="card">
     <strong><?= $total ?></strong> follower totali ·

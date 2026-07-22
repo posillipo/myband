@@ -45,14 +45,14 @@ $trackIds = array_column($tracks, 'spotify_track_id');
 
 include __DIR__ . '/_dash_header.php';
 ?>
-  <div class="card">
-    <strong>Come funziona</strong>
+  <details class="help-box">
+    <summary>ℹ️ Come funziona</summary>
     <p style="color:var(--text-muted)">
       Cerca su Spotify i brani da mostrare sulla tua pagina (i tuoi, le tue cover, o qualsiasi
       brano ti rappresenti) e aggiungili — compariranno nella sezione "Brani" della tua pagina
       pubblica, con link diretto per ascoltarli su Spotify.
     </p>
-  </div>
+  </details>
 
   <div class="section-title">I tuoi brani (<?= count($tracks) ?>)</div>
   <?php if (!$tracks): ?>

@@ -28,10 +28,10 @@ $unreadMessages = (int) $stmt->fetch()['c'];
     </button>
     <div class="brand"><a href="/">myband<span>.it</span></a></div>
   </div>
-  <nav style="display:flex;align-items:center;gap:16px;">
-    <a href="/<?= e($user['slug']) ?>" target="_blank">Vedi pagina pubblica ↗</a>
+  <nav style="display:flex;align-items:center;gap:18px;">
+    <a href="/<?= e($user['slug']) ?>" target="_blank" title="Vedi pagina pubblica" style="font-size:17px;"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
     <?php if (!empty($user['is_admin'])): ?>
-      <a href="/admin_dashboard.php">Area Admin</a>
+      <a href="/admin_dashboard.php" title="Area Admin" style="font-size:17px;"><i class="fa-solid fa-shield-halved"></i></a>
     <?php endif; ?>
     <a href="/dashboard_contacts.php" title="Messaggi" style="position:relative;font-size:17px;">
       <i class="fa-solid fa-bell"></i>
@@ -91,6 +91,7 @@ $unreadMessages = (int) $stmt->fetch()['c'];
 </script>
 
 <div class="container">
+  <div class="tabs-wrap">
   <div class="tabs">
     <a href="/dashboard_timeline.php" class="<?= $activeTab==='timeline'?'active':'' ?>">La mia Timeline</a>
     <a href="/dashboard_post.php" class="<?= $activeTab==='post'?'active':'' ?>">Pubblica</a>
@@ -103,3 +104,20 @@ $unreadMessages = (int) $stmt->fetch()['c'];
     <a href="/dashboard_blog.php" class="<?= $activeTab==='blog'?'active':'' ?>">Blog</a>
     <a href="/dashboard_followers.php" class="<?= $activeTab==='followers'?'active':'' ?>">Follower</a>
   </div>
+  <span class="tabs-arrow" aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>
+  </div>
+  <script>
+  (function () {
+    var wrap = document.currentScript.previousElementSibling;
+    var tabs = wrap.querySelector('.tabs');
+    var arrow = wrap.querySelector('.tabs-arrow');
+    if (!tabs || !arrow) return;
+    function updateArrow() {
+      var hasMore = tabs.scrollWidth > tabs.clientWidth + 4 && (tabs.scrollLeft + tabs.clientWidth) < tabs.scrollWidth - 4;
+      arrow.style.display = hasMore ? 'flex' : 'none';
+    }
+    updateArrow();
+    tabs.addEventListener('scroll', updateArrow);
+    window.addEventListener('resize', updateArrow);
+  })();
+  </script>

@@ -42,14 +42,14 @@ $favoriteIds = array_column($favorites, 'spotify_artist_id');
 
 include __DIR__ . '/_dash_header.php';
 ?>
-  <div class="card">
-    <strong>Come funziona</strong>
+  <details class="help-box">
+    <summary>ℹ️ Come funziona</summary>
     <p style="color:var(--text-muted)">
       Cerca su Spotify le band o gli artisti che ami e aggiungili alla tua lista — qualsiasi
       band esista su Spotify, non solo quelle registrate su myband.it. Comparirà sulla tua
       pagina pubblica come vetrina di ciò che ascolti.
     </p>
-  </div>
+  </details>
 
   <div class="section-title">La tua lista (<?= count($favorites) ?>)</div>
   <?php if (!$favorites): ?>
