@@ -119,5 +119,11 @@ $unreadMessages = (int) $stmt->fetch()['c'];
     updateArrow();
     tabs.addEventListener('scroll', updateArrow);
     window.addEventListener('resize', updateArrow);
+    tabs.addEventListener('wheel', function (e) {
+      var canScroll = tabs.scrollWidth > tabs.clientWidth;
+      if (!canScroll) return;
+      tabs.scrollLeft += e.deltaY;
+      e.preventDefault();
+    }, { passive: false });
   })();
   </script>

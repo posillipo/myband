@@ -289,6 +289,12 @@ function publicNav(string $slug, string $active, bool $hasSpotify = false, bool 
         }
         updateArrow();
         nav.addEventListener("scroll", updateArrow);
+        nav.addEventListener("wheel", function (e) {
+            var canScroll = nav.scrollWidth > nav.clientWidth;
+            if (!canScroll) return;
+            nav.scrollLeft += e.deltaY;
+            e.preventDefault();
+        }, { passive: false });
         window.addEventListener("resize", updateArrow);
     })();
     </script>';
