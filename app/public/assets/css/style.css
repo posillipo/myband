@@ -116,6 +116,22 @@ form label { display: block; margin-bottom: 6px; color: var(--text-muted); font-
 }
 .tabs a.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
+/* Barra laterale "Account e impostazioni" (Profilo, password, integrazioni) */
+.account-sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 18px;
+  color: #22223b;
+  text-decoration: none;
+  font-size: 14px;
+}
+.account-sidebar-link:hover { background: #f5f5f8; }
+.account-sidebar-link.active { background: #ece9fd; font-weight: 700; color: var(--accent); }
+.account-sidebar-link i { width: 18px; text-align: center; color: var(--text-muted); }
+.account-sidebar-link.active i { color: var(--accent); }
+.account-sidebar-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:#1DB954; margin-left:auto; }
+
 .alert { padding: 12px 16px; border-radius: 10px; margin-bottom: 16px; font-size: 14px; }
 .alert.error { background: #3a1e1e; color: #ff8a8a; border: 1px solid #5c2b2b; }
 .alert.success { background: #1e3a24; color: #8affa0; border: 1px solid #2b5c37; }
