@@ -431,7 +431,7 @@ body.colorful-page {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 4px 4px;
+  gap: 3px 3px;
   margin: 12px 0 0;
   padding: 0;
   list-style: none;
@@ -444,7 +444,7 @@ body.colorful-page {
   font-size: 14.5px;
   white-space: nowrap;
   padding: 5px 12px;
-  border-radius: 999px;
+  border-radius: 8px;
   background: rgba(255,255,255,0.45);
   transition: background 0.15s ease;
 }
