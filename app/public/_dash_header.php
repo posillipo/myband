@@ -91,7 +91,6 @@ $unreadMessages = (int) $stmt->fetch()['c'];
 </script>
 
 <div class="container">
-  <div class="tabs-wrap">
   <div class="tabs">
     <a href="/dashboard_timeline.php" class="<?= $activeTab==='timeline'?'active':'' ?>">La mia Timeline</a>
     <a href="/dashboard_post.php" class="<?= $activeTab==='post'?'active':'' ?>">Pubblica</a>
@@ -104,36 +103,3 @@ $unreadMessages = (int) $stmt->fetch()['c'];
     <a href="/dashboard_blog.php" class="<?= $activeTab==='blog'?'active':'' ?>">Blog</a>
     <a href="/dashboard_followers.php" class="<?= $activeTab==='followers'?'active':'' ?>">Follower</a>
   </div>
-  <span class="tabs-arrow" aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>
-  </div>
-  <script>
-  (function () {
-    var wrap = document.currentScript.previousElementSibling;
-    var tabs = wrap.querySelector('.tabs');
-    var arrow = wrap.querySelector('.tabs-arrow');
-    if (!tabs || !arrow) return;
-    function updateArrow() {
-      var hasMore = tabs.scrollWidth > tabs.clientWidth + 4 && (tabs.scrollLeft + tabs.clientWidth) < tabs.scrollWidth - 4;
-      arrow.style.display = hasMore ? 'flex' : 'none';
-    }
-    updateArrow();
-    tabs.addEventListener('scroll', updateArrow);
-    window.addEventListener('resize', updateArrow);
-    tabs.addEventListener('wheel', function (e) {
-      var canScroll = tabs.scrollWidth > tabs.clientWidth;
-      if (!canScroll) return;
-      tabs.scrollLeft += e.deltaY;
-      e.preventDefault();
-    }, { passive: false });
-    var tabsDown = false, tabsStartX = 0, tabsStartScroll = 0;
-    tabs.addEventListener('mousedown', function (e) {
-      tabsDown = true; tabsStartX = e.pageX; tabsStartScroll = tabs.scrollLeft;
-    });
-    window.addEventListener('mouseup', function () { tabsDown = false; });
-    tabs.addEventListener('mousemove', function (e) {
-      if (!tabsDown) return;
-      e.preventDefault();
-      tabs.scrollLeft = tabsStartScroll - (e.pageX - tabsStartX);
-    });
-  })();
-  </script>

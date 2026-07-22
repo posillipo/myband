@@ -274,41 +274,7 @@ function publicNav(string $slug, string $active, bool $hasSpotify = false, bool 
         $classAttr = $extraClass !== '' ? ' class="' . e($extraClass) . '"' : '';
         $parts[] = '<a href="' . e($t['url']) . '"' . $classAttr . $activeAttr . '>' . e($t['label']) . '</a>';
     }
-    $html = '<div class="colorful-nav-wrap">';
-    $html .= '<nav class="colorful-nav">' . implode('', $parts) . '</nav>';
-    $html .= '<span class="colorful-nav-arrow" aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>';
-    $html .= '</div>
-    <script>
-    (function () {
-        var nav = document.currentScript.previousElementSibling.querySelector(".colorful-nav");
-        var arrow = document.currentScript.previousElementSibling.querySelector(".colorful-nav-arrow");
-        if (!nav || !arrow) return;
-        function updateArrow() {
-            var hasMore = nav.scrollWidth > nav.clientWidth + 4 && (nav.scrollLeft + nav.clientWidth) < nav.scrollWidth - 4;
-            arrow.style.display = hasMore ? "flex" : "none";
-        }
-        updateArrow();
-        nav.addEventListener("scroll", updateArrow);
-        nav.addEventListener("wheel", function (e) {
-            var canScroll = nav.scrollWidth > nav.clientWidth;
-            if (!canScroll) return;
-            nav.scrollLeft += e.deltaY;
-            e.preventDefault();
-        }, { passive: false });
-        var isDown = false, startX = 0, startScroll = 0;
-        nav.addEventListener("mousedown", function (e) {
-            isDown = true; startX = e.pageX; startScroll = nav.scrollLeft;
-        });
-        window.addEventListener("mouseup", function () { isDown = false; });
-        nav.addEventListener("mousemove", function (e) {
-            if (!isDown) return;
-            e.preventDefault();
-            nav.scrollLeft = startScroll - (e.pageX - startX);
-        });
-        window.addEventListener("resize", updateArrow);
-    })();
-    </script>';
-    return $html;
+    return '<nav class="colorful-nav">' . implode('', $parts) . '</nav>';
 }
 
 // Blocco identità condiviso (avatar + nome + eventuale bio + menu) stampato in cima ad ogni
