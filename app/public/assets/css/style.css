@@ -116,6 +116,21 @@ form label { display: block; margin-bottom: 6px; color: var(--text-muted); font-
 }
 .tabs a.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
+/* Solo su mobile: il menu scorre orizzontalmente invece di andare a capo. Il desktop resta
+   invariato (va a capo in modo ordinato). */
+@media (max-width: 760px) {
+  .tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tabs a { flex-shrink: 0; }
+}
+
 /* Barra laterale "Account e impostazioni" (Profilo, password, integrazioni) */
 .account-sidebar-link {
   display: flex;
@@ -463,6 +478,22 @@ body.colorful-page {
 
 @media (max-width: 400px) {
   .colorful-nav a { font-size: 13.5px; padding: 4px 10px; }
+}
+
+/* Solo su mobile: il menu scorre orizzontalmente invece di andare a capo (come richiesto),
+   contenuto correttamente dentro il proprio contenitore. Il desktop resta invariato (va a
+   capo in modo ordinato). */
+@media (max-width: 760px) {
+  .colorful-nav {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .colorful-nav::-webkit-scrollbar { display: none; }
+  .colorful-nav a { flex-shrink: 0; }
 }
 
 .colorful-nav-wrap { position: relative; }
