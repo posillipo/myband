@@ -23,6 +23,9 @@ RewriteRule ^([a-zA-Z0-9_-]+)/eventi/([0-9]+)/?$ evento.php?slug=$1&id=$2 [L,QSA
 # /nomeartista/feed -> feed RSS/XML (per Metricool e altri strumenti di pianificazione social)
 RewriteRule ^([a-zA-Z0-9_-]+)/feed/?$ feed.php?slug=$1 [L,QSA]
 
+# /nomeartista/brani/ID/recensioni -> pagina dedicata alle recensioni del brano
+RewriteRule ^([a-zA-Z0-9_-]+)/brani/([0-9]+)/recensioni/?$ track_review.php?slug=$1&id=$2 [L,QSA]
+
 # /nomeartista/timeline/ID -> pagina dedicata al singolo aggiornamento (condivisibile sui social)
 RewriteRule ^([a-zA-Z0-9_-]+)/timeline/([0-9]+)/?$ timeline_post.php?slug=$1&id=$2 [L,QSA]
 

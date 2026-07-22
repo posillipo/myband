@@ -610,6 +610,68 @@ function getTimelineFeedForUsers(array $userIds, int $limit = 50, int $offset = 
 
 // Rendering HTML condiviso di un singolo elemento della Timeline, riusato sia dal primo
 // caricamento della pagina sia dalle richieste "carica altri" dello scrolling infinito.
+// ===== Sistema di recensioni (solo voto a crome, nessun commento) =====
+
+// Media e conteggio voti per una band o un brano
+function getBandRatingStats(int $bandUserId): array {
+    $stmt = getDB()->prepare('SELECT AVG(rating) avg_r, COUNT(*) n FROM band_reviews WHERE band_user_id = ?');
+    $stmt->execute([$bandUserId]);
+    $r = $stmt->fetch();
+    return ['avg' => $r['avg_r'] ? round((float) $r['avg_r'], 1) : null, 'count' => (int) $r['n']];
+}
+
+function getTrackRatingStats(int $trackId): array {
+    $stmt = getDB()->prepare('SELECT AVG(rating) avg_r, COUNT(*) n FROM track_reviews WHERE track_id = ?');
+    $stmt->execute([$trackId]);
+    $r = $stmt->fetch();
+    return ['avg' => $r['avg_r'] ? round((float) $r['avg_r'], 1) : null, 'count' => (int) $r['n']];
+}
+
+// Resa grafica a crome piene (♪), arrotondate al valore intero più vicino — usata sia per il
+// voto di una singola persona sia per la media arrotondata di un gruppo di voti
+function renderCromeRating(?float $rating, int $max = 5): string {
+    if ($rating === null) {
+        return '<span style="color:rgba(34,34,59,0.4);font-size:13px;">Nessun voto ancora</span>';
+    }
+    $filled = (int) round($rating);
+    $html = '<span style="letter-spacing:2px;">';
+    for ($i = 1; $i <= $max; $i++) {
+        $html .= $i <= $filled
+            ? '<span style="color:rgb(108,92,231);">♪</span>'
+            : '<span style="color:rgba(34,34,59,0.25);">♪</span>';
+    }
+    $html .= '</span>';
+    return $html;
+}
+
+// Form di voto a 5 crome cliccabili (ognuna è un pulsante che invia quel valore) — mostra un
+// messaggio diverso se l'utente ha già votato, senza permettere una seconda recensione
+function renderRatingForm(string $action, int $targetId, ?int $viewerId, int $ownerUserId, ?int $existingRating): string {
+    if (!$viewerId) {
+        return '<p style="color:rgba(34,34,59,0.6);font-size:13px;">Accedi per lasciare un voto.</p>';
+    }
+    if ($viewerId === $ownerUserId) {
+        return '<p style="color:rgba(34,34,59,0.6);font-size:13px;">Non puoi votare te stesso.</p>';
+    }
+    $html = '<div style="margin-top:10px;">';
+    if ($existingRating !== null) {
+        $html .= '<p style="font-size:13px;color:rgba(34,34,59,0.6);margin-bottom:6px;">Il tuo voto: ' . renderCromeRating((float) $existingRating) . ' — clicca per modificarlo</p>';
+    } else {
+        $html .= '<p style="font-size:13px;color:rgba(34,34,59,0.6);margin-bottom:6px;">Lascia il tuo voto:</p>';
+    }
+    $html .= '<div style="display:flex;gap:6px;">';
+    for ($i = 1; $i <= 5; $i++) {
+        $html .= '<form method="post" style="display:inline;">' . csrfField()
+            . '<input type="hidden" name="action" value="' . e($action) . '">'
+            . '<input type="hidden" name="target_id" value="' . $targetId . '">'
+            . '<input type="hidden" name="rating" value="' . $i . '">'
+            . '<button type="submit" style="background:none;border:none;font-size:22px;cursor:pointer;color:' . ($existingRating !== null && $i <= $existingRating ? 'rgb(108,92,231)' : 'rgba(34,34,59,0.3)') . ';">♪</button>'
+            . '</form>';
+    }
+    $html .= '</div></div>';
+    return $html;
+}
+
 function renderTimelineFeedItem(array $item): string {
     $coverSrc = $item['cover'] ? (str_starts_with($item['cover'], 'http') ? $item['cover'] : '/' . $item['cover']) : null;
     $labels = ['blog' => '📝 Articolo', 'brano' => '🎵 Brano', 'evento' => '📅 Evento', 'pensiero' => '💬 Aggiornamento'];
@@ -713,7 +775,7 @@ const RESERVED_SLUGS = ['login','register','logout','dashboard','dashboard_profi
     'admin_import_legacy','admin_profiles','track','evento','admin_youtube','dashboard_youtube','video',
     'forgot_password','reset_password','dashboard_podcast','podcast',
     'choose_account_type','dashboard_fan_bands','band_che_amo','admin_apply_percorso','admin_link_avatars',
-    'follow_account','dashboard_timeline','timeline','dashboard_post','timeline_post','feed','admin_import_old_timeline','timeline_more'];
+    'follow_account','dashboard_timeline','timeline','dashboard_post','timeline_post','feed','admin_import_old_timeline','timeline_more','track_review','admin_reviews'];
 
 // Genera uno slug univoco per un articolo di un dato utente (title -> slug, con suffisso -2, -3... se già esistente)
 function generateUniquePostSlug(int $userId, string $title, ?int $excludePostId = null): string {

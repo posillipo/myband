@@ -193,6 +193,30 @@ CREATE TABLE IF NOT EXISTS favorite_tracks (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- Recensioni: solo voto (1-5 crome), nessun commento testuale. Una sola recensione per persona
+-- per band/brano. Il "nome" mostrato pubblicamente è sempre lo username del recensore.
+CREATE TABLE IF NOT EXISTS band_reviews (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    band_user_id INT NOT NULL,
+    reviewer_user_id INT NOT NULL,
+    rating TINYINT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_band_reviewer (band_user_id, reviewer_user_id),
+    FOREIGN KEY (band_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (reviewer_user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS track_reviews (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    track_id INT NOT NULL,
+    reviewer_user_id INT NOT NULL,
+    rating TINYINT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_track_reviewer (track_id, reviewer_user_id),
+    FOREIGN KEY (track_id) REFERENCES favorite_tracks(id) ON DELETE CASCADE,
+    FOREIGN KEY (reviewer_user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('privacy_script', '');
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('gtm_head_script', '');
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('gtm_body_script', '');

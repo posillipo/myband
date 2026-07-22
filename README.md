@@ -116,6 +116,9 @@ docker compose exec db mysqldump -u root -p myband > backup_$(date +%F).sql
 
 ## 8. Possibili estensioni future
 
+- **Classifica settimanale/mensile dei brani**: richiede un sistema di tracciamento nel tempo
+  (oggi non esiste), da progettare a parte quando si vorrà affrontarla — collegata al sistema
+  di recensioni appena costruito, potrebbe basarsi sui voti ricevuti in un dato periodo
 - **Sistema di cache** (come nei plugin cache di WordPress): OPcache PHP come primo passo a
   basso rischio (solo configurazione), poi eventuale cache di pagina intera per i visitatori
   anonimi (mai per gli utenti loggati, che devono vedere sempre lo stato aggiornato) — il

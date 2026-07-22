@@ -18,6 +18,20 @@ if (!$artist) {
     exit;
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'rate_band') {
+    checkCsrf();
+    $viewerId = $_SESSION['user_id'] ?? null;
+    $targetId = (int) ($_POST['target_id'] ?? 0);
+    $rating = (int) ($_POST['rating'] ?? 0);
+    if ($viewerId && $viewerId !== $targetId && $rating >= 1 && $rating <= 5 && $targetId === (int) $artist['id']) {
+        $stmt = getDB()->prepare('INSERT INTO band_reviews (band_user_id, reviewer_user_id, rating) VALUES (?,?,?)
+            ON DUPLICATE KEY UPDATE rating = VALUES(rating)');
+        $stmt->execute([$targetId, $viewerId, $rating]);
+    }
+    header('Location: /' . $slug . '#recensioni');
+    exit;
+}
+
 $uid = $artist['id'];
 
 $links = getDB()->prepare('SELECT * FROM links WHERE user_id=? AND is_active=1 ORDER BY sort_order ASC, id ASC');
@@ -42,6 +56,19 @@ $stmt->execute([$uid]);
 $fanFavorites = $stmt->fetchAll();
 $fanFavoritesTotal = count($fanFavorites);
 $fanFavoritesPreview = array_slice($fanFavorites, 0, 6);
+
+$bandRatingStats = getBandRatingStats((int) $uid);
+$viewerId = $_SESSION['user_id'] ?? null;
+$myBandRating = null;
+if ($viewerId) {
+    $stmt = getDB()->prepare('SELECT rating FROM band_reviews WHERE band_user_id=? AND reviewer_user_id=?');
+    $stmt->execute([$uid, $viewerId]);
+    $row = $stmt->fetch();
+    $myBandRating = $row ? (int) $row['rating'] : null;
+}
+$bandReviewers = getDB()->prepare('SELECT br.rating, u2.slug FROM band_reviews br JOIN users u2 ON u2.id = br.reviewer_user_id WHERE br.band_user_id=? ORDER BY br.created_at DESC LIMIT 20');
+$bandReviewers->execute([$uid]);
+$bandReviewers = $bandReviewers->fetchAll();
 ?>
 <!doctype html>
 <html lang="it">
@@ -158,6 +185,26 @@ $fanFavoritesPreview = array_slice($fanFavorites, 0, 6);
       </p>
     <?php endif; ?>
   <?php endif; ?>
+
+  <div id="recensioni" class="card" style="scroll-margin-top:20px;">
+    <div class="section-title" style="margin-bottom:8px;">Recensioni</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+      <?= renderCromeRating($bandRatingStats['avg']) ?>
+      <?php if ($bandRatingStats['count'] > 0): ?>
+        <span style="font-size:13px;color:rgba(34,34,59,0.6);"><?= $bandRatingStats['avg'] ?> · <?= $bandRatingStats['count'] ?> <?= $bandRatingStats['count'] === 1 ? 'voto' : 'voti' ?></span>
+      <?php endif; ?>
+    </div>
+    <?= renderRatingForm('rate_band', (int) $uid, $viewerId, (int) $uid, $myBandRating) ?>
+    <?php if ($bandReviewers): ?>
+      <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;">
+        <?php foreach ($bandReviewers as $r): ?>
+          <span style="background:rgba(255,255,255,0.5);border-radius:999px;padding:4px 10px;font-size:12.5px;">
+            @<?= e($r['slug']) ?> <?= renderCromeRating((float) $r['rating']) ?>
+          </span>
+        <?php endforeach; ?>
+      </div>
+    <?php endif; ?>
+  </div>
 </div>
 <?= renderFloatingButtons() ?>
 <?= renderSiteFooterBar($slug) ?>

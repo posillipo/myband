@@ -50,20 +50,25 @@ $pageUrl = siteUrl('/' . $slug . '/brani');
   <?php endif; ?>
 
   <?php foreach ($tracks as $t): ?>
-    <a href="<?= e($t['spotify_url'] ?: '#') ?>" target="_blank" rel="noopener"
-       class="card" style="display:flex;gap:14px;align-items:center;text-decoration:none;color:inherit;">
-      <?php if ($t['track_image']): ?>
-        <img src="<?= e($t['track_image']) ?>" alt="<?= e($t['track_name']) ?>"
-             style="width:72px;height:72px;border-radius:10px;object-fit:cover;flex-shrink:0;">
-      <?php else: ?>
-        <div style="width:72px;height:72px;border-radius:10px;background:rgba(34,34,59,0.15);flex-shrink:0;"></div>
-      <?php endif; ?>
-      <div style="flex:1;min-width:0;">
-        <strong><?= e($t['track_name']) ?></strong><br>
-        <small style="color:rgba(34,34,59,0.7);"><?= e($t['artist_name']) ?></small>
-      </div>
-      <i class="fa-brands fa-spotify" style="color:#1DB954;font-size:22px;flex-shrink:0;"></i>
-    </a>
+    <div class="card" style="display:flex;gap:14px;align-items:center;">
+      <a href="<?= e($t['spotify_url'] ?: '#') ?>" target="_blank" rel="noopener"
+         style="display:flex;gap:14px;align-items:center;text-decoration:none;color:inherit;flex:1;min-width:0;">
+        <?php if ($t['track_image']): ?>
+          <img src="<?= e($t['track_image']) ?>" alt="<?= e($t['track_name']) ?>"
+               style="width:72px;height:72px;border-radius:10px;object-fit:cover;flex-shrink:0;">
+        <?php else: ?>
+          <div style="width:72px;height:72px;border-radius:10px;background:rgba(34,34,59,0.15);flex-shrink:0;"></div>
+        <?php endif; ?>
+        <div style="flex:1;min-width:0;">
+          <strong><?= e($t['track_name']) ?></strong><br>
+          <small style="color:rgba(34,34,59,0.7);"><?= e($t['artist_name']) ?></small><br>
+          <?php $trackStats = getTrackRatingStats((int) $t['id']); ?>
+          <small><?= renderCromeRating($trackStats['avg']) ?><?php if ($trackStats['count'] > 0): ?> <span style="color:rgba(34,34,59,0.55);">(<?= $trackStats['count'] ?>)</span><?php endif; ?></small>
+        </div>
+        <i class="fa-brands fa-spotify" style="color:#1DB954;font-size:22px;flex-shrink:0;"></i>
+      </a>
+      <a href="/<?= e($slug) ?>/brani/<?= (int) $t['id'] ?>/recensioni" style="font-size:12.5px;flex-shrink:0;white-space:nowrap;">Recensisci →</a>
+    </div>
   <?php endforeach; ?>
 </div>
 <?= renderFloatingButtons() ?>
