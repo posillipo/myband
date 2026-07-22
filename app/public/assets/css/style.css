@@ -446,7 +446,7 @@ body.colorful-page {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 3px 3px;
+  gap: 2px 2px;
   margin: 12px 0 0;
   padding: 0;
   list-style: none;
@@ -456,9 +456,9 @@ body.colorful-page {
   display: inline-block;
   color: #22223b;
   font-weight: 700;
-  font-size: 14.5px;
+  font-size: 13.5px;
   white-space: nowrap;
-  padding: 5px 12px;
+  padding: 5px 8px;
   border-radius: 8px;
   background: rgba(255,255,255,0.45);
   transition: background 0.15s ease;
