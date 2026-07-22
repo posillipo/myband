@@ -295,6 +295,16 @@ function publicNav(string $slug, string $active, bool $hasSpotify = false, bool 
             nav.scrollLeft += e.deltaY;
             e.preventDefault();
         }, { passive: false });
+        var isDown = false, startX = 0, startScroll = 0;
+        nav.addEventListener("mousedown", function (e) {
+            isDown = true; startX = e.pageX; startScroll = nav.scrollLeft;
+        });
+        window.addEventListener("mouseup", function () { isDown = false; });
+        nav.addEventListener("mousemove", function (e) {
+            if (!isDown) return;
+            e.preventDefault();
+            nav.scrollLeft = startScroll - (e.pageX - startX);
+        });
         window.addEventListener("resize", updateArrow);
     })();
     </script>';

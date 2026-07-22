@@ -105,7 +105,14 @@ form select {
 }
 form label { display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 14px; }
 
-.tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; max-width: 100%; }
+.tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; max-width: 100%; cursor: grab; }
+.tabs:active { cursor: grabbing; }
+@media (hover: hover) and (pointer: fine) {
+  .tabs { scrollbar-width: thin; scrollbar-color: rgba(108,92,231,0.5) transparent; }
+  .tabs::-webkit-scrollbar { display: block; height: 6px; }
+  .tabs::-webkit-scrollbar-thumb { background: rgba(108,92,231,0.5); border-radius: 999px; }
+  .tabs::-webkit-scrollbar-track { background: transparent; }
+}
 .tabs::-webkit-scrollbar { display: none; }
 .tabs a { flex-shrink: 0; }
 .tabs-wrap { position: relative; }
@@ -499,9 +506,19 @@ body.colorful-page {
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   padding-bottom: 4px;
+  cursor: grab;
 }
+.colorful-nav:active { cursor: grabbing; }
 .colorful-nav::-webkit-scrollbar { display: none; }
 .colorful-nav a { flex-shrink: 0; }
+/* Su desktop (mouse/trackpad, non touch) mostriamo una sottile barra di scorrimento visibile
+   e trascinabile — su mobile resta nascosta perché lì il gesto naturale è lo swipe */
+@media (hover: hover) and (pointer: fine) {
+  .colorful-nav { scrollbar-width: thin; scrollbar-color: rgba(108,92,231,0.5) transparent; }
+  .colorful-nav::-webkit-scrollbar { display: block; height: 6px; }
+  .colorful-nav::-webkit-scrollbar-thumb { background: rgba(108,92,231,0.5); border-radius: 999px; }
+  .colorful-nav::-webkit-scrollbar-track { background: transparent; }
+}
 .colorful-nav-arrow {
   display: none;
   position: absolute;

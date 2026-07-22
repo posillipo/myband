@@ -125,5 +125,15 @@ $unreadMessages = (int) $stmt->fetch()['c'];
       tabs.scrollLeft += e.deltaY;
       e.preventDefault();
     }, { passive: false });
+    var tabsDown = false, tabsStartX = 0, tabsStartScroll = 0;
+    tabs.addEventListener('mousedown', function (e) {
+      tabsDown = true; tabsStartX = e.pageX; tabsStartScroll = tabs.scrollLeft;
+    });
+    window.addEventListener('mouseup', function () { tabsDown = false; });
+    tabs.addEventListener('mousemove', function (e) {
+      if (!tabsDown) return;
+      e.preventDefault();
+      tabs.scrollLeft = tabsStartScroll - (e.pageX - tabsStartX);
+    });
   })();
   </script>
