@@ -116,6 +116,14 @@ docker compose exec db mysqldump -u root -p myband > backup_$(date +%F).sql
 
 ## 8. Possibili estensioni future
 
+- **myBand come prodotto installabile/clonabile** (progetto a sé, valutato ma non iniziato):
+  wizard di primo avvio stile WordPress (`install.php`: verifica DB → applica schema →
+  crea primo admin → nome/dominio sito), genericizzazione di ogni riferimento hardcoded a
+  "myband.it" nel codice, separazione tra nucleo generico e strumenti specifici della
+  migrazione da my-band.it (import Access, avatar storici, percorso-come-slug, import vecchia
+  timeline — questi restano solo per l'installazione attuale, un nuovo clone parte a dati
+  zero). Richiede anche di mantenere `schema.sql` sempre perfettamente allineato a tutte le
+  migrazioni, come unica fonte di verità per un'installazione pulita.
 - **Rinomina dei tab con prefisso "my___"** (in riflessione, non ancora decisa): idea di
   branding proposta per giocare sul nome del dominio — Timeline → myNews, Brani → myTracks,
   Band che amo → myFavs, Eventi → myEvents, Blog → myBlog, Follower → myFollowers. Confermati
