@@ -199,6 +199,22 @@ CREATE TABLE IF NOT EXISTS favorite_tracks (
 
 -- Recensioni: solo voto (1-5 crome), nessun commento testuale. Una sola recensione per persona
 -- per band/brano. Il "nome" mostrato pubblicamente è sempre lo username del recensore.
+-- Registrazione solo su invito: chi vuole un account compila questa richiesta, l'admin la
+-- approva o rifiuta; solo un'approvazione genera un link di registrazione valido (con token
+-- monouso), da qui il nome del campo invite_token.
+CREATE TABLE IF NOT EXISTS access_requests (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    email VARCHAR(190) NOT NULL,
+    band_name VARCHAR(150) DEFAULT NULL,
+    message TEXT DEFAULT NULL,
+    status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+    invite_token VARCHAR(64) DEFAULT NULL,
+    invite_used TINYINT(1) NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    decided_at DATETIME DEFAULT NULL
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS band_reviews (
     id INT AUTO_INCREMENT PRIMARY KEY,
     band_user_id INT NOT NULL,
