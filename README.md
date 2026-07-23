@@ -156,6 +156,17 @@ docker compose exec db mysqldump -u root -p myband > backup_$(date +%F).sql
   chiudibile con una X (oggi non è possibile nasconderlo); sfondo del blocco finale a
   **dissolvenza graduale** (dal colore della pagina verso uno scuro) invece dell'attuale blocco
   di colore pieno, per un aspetto più morbido e integrato con il resto della pagina
+- **Multi-profilo per Etichette Discografiche**: un account etichetta che gestisce più profili
+  band contemporaneamente — stesso bisogno dei 53 gestori multi-band rimasti fuori dall'import
+  legacy; ristrutturazione architetturale importante, mai approfondita nel dettaglio
+- **Directory pubblica degli artisti** (es. myband.it/artisti): elenco/vetrina di tutti i
+  profili pubblici, possibile leva per l'effetto rete del sistema Segui, mai costruita
+- **Servizio a tema Sanremo 2027**: idee emerse — microsito "Verso Sanremo 2027", contest a
+  voti tra artisti, playlist collettiva Spotify, pacchetto PR (sfruttando il ruolo di
+  giornalista), gioco pronostici per i fan (arrivato a una struttura tecnica dettagliata:
+  edizione/domande/risposte/punteggio/classifica, ma non implementato)
+- **Contest a voti tra band** (ripresa del vecchio concorso di my-band.it, 264 partecipanti
+  storici): funzionalità a sé, indipendente da Sanremo, con precedente storico dimostrato
 
 ## 9. Decisioni di prodotto scartate
 
