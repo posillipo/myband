@@ -29,7 +29,6 @@ $unreadMessages = (int) $stmt->fetch()['c'];
     <div class="brand"><a href="/">myband<span>.it</span></a></div>
   </div>
   <nav style="display:flex;align-items:center;gap:18px;">
-    <a href="/<?= e($user['slug']) ?>" target="_blank" title="Vedi pagina pubblica" style="font-size:17px;"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
     <?php if (!empty($user['is_admin'])): ?>
       <a href="/admin_dashboard.php" title="Area Admin" style="font-size:17px;"><i class="fa-solid fa-shield-halved"></i></a>
     <?php endif; ?>
@@ -38,6 +37,15 @@ $unreadMessages = (int) $stmt->fetch()['c'];
       <?php if ($unreadMessages > 0): ?>
         <span style="position:absolute;top:-7px;right:-9px;background:#e74c3c;color:#fff;border-radius:999px;font-size:10.5px;font-weight:700;padding:1px 5px;line-height:1.3;min-width:16px;text-align:center;">
           <?= $unreadMessages > 9 ? '9+' : $unreadMessages ?>
+        </span>
+      <?php endif; ?>
+    </a>
+    <a href="/<?= e($user['slug']) ?>" target="_blank" title="Vedi pagina pubblica" style="display:inline-flex;">
+      <?php if (!empty($user['avatar_path'])): ?>
+        <img src="/<?= e($user['avatar_path']) ?>" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">
+      <?php else: ?>
+        <span style="width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">
+          <?= e(mb_strtoupper(mb_substr($user['display_name'] ?? '?', 0, 1))) ?>
         </span>
       <?php endif; ?>
     </a>
