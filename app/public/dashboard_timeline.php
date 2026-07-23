@@ -25,7 +25,7 @@ include __DIR__ . '/_dash_header.php';
       <input type="text" id="followed-search" placeholder="Cerca tra le band che segui..." style="margin-bottom:12px;">
       <div id="followed-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;"></div>
       <div id="followed-empty" style="display:none;color:var(--text-muted);font-size:13px;padding:8px 0;">Nessuna band trovata.</div>
-      <div style="display:flex;justify-content:center;align-items:center;gap:14px;margin-top:12px;">
+      <div id="followed-pagination" style="display:flex;justify-content:center;align-items:center;gap:14px;margin-top:12px;">
         <button type="button" id="followed-prev" class="btn small" disabled>← Prec.</button>
         <span id="followed-page-indicator" style="font-size:13px;color:var(--text-muted);"></span>
         <button type="button" id="followed-next" class="btn small" disabled>Succ. →</button>
@@ -44,6 +44,7 @@ include __DIR__ . '/_dash_header.php';
     var prevBtn = document.getElementById('followed-prev');
     var nextBtn = document.getElementById('followed-next');
     var pageIndicator = document.getElementById('followed-page-indicator');
+    var paginationBox = document.getElementById('followed-pagination');
     var searchInput = document.getElementById('followed-search');
 
     function render() {
@@ -64,6 +65,7 @@ include __DIR__ . '/_dash_header.php';
       pageIndicator.textContent = filtered.length ? ('Pagina ' + (page + 1) + ' di ' + totalPages) : '';
       prevBtn.disabled = page <= 0;
       nextBtn.disabled = page >= totalPages - 1;
+      paginationBox.style.display = filtered.length > pageSize ? 'flex' : 'none';
     }
 
     searchInput.addEventListener('input', function () {
