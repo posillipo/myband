@@ -116,6 +116,11 @@ docker compose exec db mysqldump -u root -p myband > backup_$(date +%F).sql
 
 ## 8. Possibili estensioni future
 
+- **Rinomina dei tab con prefisso "my___"** (in riflessione, non ancora decisa): idea di
+  branding proposta per giocare sul nome del dominio — Timeline → myNews, Brani → myTracks,
+  Band che amo → myFavs, Eventi → myEvents, Blog → myBlog, Follower → myFollowers. Confermati
+  finora solo myTracks, myFavs, myFollowers; gli altri tre restano da confermare. Da NON
+  usare "myBand" per "Band che amo" — collide col nome della piattaforma stessa.
 - **Classifica settimanale/mensile dei brani**: richiede un sistema di tracciamento nel tempo
   (oggi non esiste), da progettare a parte quando si vorrà affrontarla — collegata al sistema
   di recensioni appena costruito, potrebbe basarsi sui voti ricevuti in un dato periodo
