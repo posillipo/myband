@@ -94,6 +94,15 @@ if ($editId > 0) {
 
 include __DIR__ . '/_dash_header.php';
 ?>
+  <details class="help-box">
+    <summary>ℹ️ Come funziona</summary>
+    <p style="color:var(--text-muted)">
+      Aggiungi qui i pulsanti del tuo Linktree: social, sito web, streaming, qualsiasi link tu
+      voglia mostrare. Le icone dei servizi più comuni (Spotify, Instagram, YouTube, ecc.)
+      vengono riconosciute automaticamente e mostrate in cima alla pagina pubblica come icone
+      social invece che come pulsanti — usa le frecce per decidere l'ordine dei link rimanenti.
+    </p>
+  </details>
   <?php if ($error): ?><div class="alert error"><?= e($error) ?></div><?php endif; ?>
   <?php if (isset($_GET['error'])): ?><div class="alert error">Inserisci un'etichetta e un URL valido.</div><?php endif; ?>
 
