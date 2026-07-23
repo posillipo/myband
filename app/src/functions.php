@@ -576,7 +576,8 @@ function getTimelineFeedForUsers(array $userIds, int $limit = 50, int $offset = 
 
     $stmt = $db->prepare("SELECT tp.id, tp.testo, tp.image_path, tp.created_at AS data, u.slug AS user_slug, p.display_name, p.avatar_path
         FROM timeline_posts tp JOIN users u ON u.id = tp.user_id JOIN profiles p ON p.user_id = u.id
-        WHERE tp.user_id IN ($placeholders) ORDER BY tp.created_at DESC LIMIT 200");
+        WHERE tp.user_id IN ($placeholders) AND tp.visibility = 'public' AND (tp.publish_at IS NULL OR tp.publish_at <= NOW())
+        ORDER BY tp.created_at DESC LIMIT 200");
     $stmt->execute($userIds);
     foreach ($stmt->fetchAll() as $r) {
         $items[] = [

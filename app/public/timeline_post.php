@@ -21,6 +21,13 @@ if (!$post) {
     exit('Contenuto non trovato.');
 }
 
+$isOwner = !empty($_SESSION['user_id']) && (int) $_SESSION['user_id'] === (int) $post['user_id'];
+$isScheduledFuture = $post['publish_at'] && strtotime($post['publish_at']) > time();
+if (!$isOwner && ($post['visibility'] === 'private' || $isScheduledFuture)) {
+    http_response_code(404);
+    exit('Contenuto non trovato.');
+}
+
 $artist = [
     'slug' => $slug,
     'display_name' => $post['display_name'],

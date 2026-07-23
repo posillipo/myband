@@ -9,16 +9,75 @@ const DASH_TIMELINE_PAGE_SIZE = 20;
 $followedIds = getFollowedUserIds((int) $user['id']);
 $feed = getTimelineFeedForUsers($followedIds, DASH_TIMELINE_PAGE_SIZE, 0);
 
+$followedBands = [];
+if ($followedIds) {
+    $placeholders = implode(',', array_fill(0, count($followedIds), '?'));
+    $stmt = getDB()->prepare("SELECT u.slug, p.display_name, p.avatar_path FROM users u JOIN profiles p ON p.user_id = u.id WHERE u.id IN ($placeholders) ORDER BY p.display_name ASC");
+    $stmt->execute($followedIds);
+    $followedBands = $stmt->fetchAll();
+}
+
 include __DIR__ . '/_dash_header.php';
 ?>
   <details class="help-box">
-    <summary>ℹ️ Come funziona</summary>
-    <p style="color:var(--text-muted)">
-      Qui vedi, in un unico flusso, gli ultimi contenuti pubblicati dai profili che segui —
-      articoli blog, brani caricati, eventi annunciati, aggiornamenti brevi. Per iniziare, vai
-      sulla pagina pubblica di una band e clicca "Segui".
-    </p>
+    <summary>👥 Band Seguite (<?= count($followedBands) ?>)</summary>
+    <div style="padding:0 16px 14px;">
+      <input type="text" id="followed-search" placeholder="Cerca tra le band che segui..." style="margin-bottom:12px;">
+      <div id="followed-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;"></div>
+      <div id="followed-empty" style="display:none;color:var(--text-muted);font-size:13px;padding:8px 0;">Nessuna band trovata.</div>
+      <div style="display:flex;justify-content:center;align-items:center;gap:14px;margin-top:12px;">
+        <button type="button" id="followed-prev" class="btn small" disabled>← Prec.</button>
+        <span id="followed-page-indicator" style="font-size:13px;color:var(--text-muted);"></span>
+        <button type="button" id="followed-next" class="btn small" disabled>Succ. →</button>
+      </div>
+    </div>
   </details>
+  <script>
+  (function () {
+    var allBands = <?= json_encode(array_map(fn($b) => ['slug' => $b['slug'], 'name' => $b['display_name'], 'avatar' => $b['avatar_path']], $followedBands)) ?>;
+    var pageSize = 9;
+    var page = 0;
+    var filtered = allBands;
+
+    var grid = document.getElementById('followed-grid');
+    var emptyMsg = document.getElementById('followed-empty');
+    var prevBtn = document.getElementById('followed-prev');
+    var nextBtn = document.getElementById('followed-next');
+    var pageIndicator = document.getElementById('followed-page-indicator');
+    var searchInput = document.getElementById('followed-search');
+
+    function render() {
+      grid.innerHTML = '';
+      var totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+      if (page >= totalPages) page = totalPages - 1;
+      if (page < 0) page = 0;
+      var slice = filtered.slice(page * pageSize, page * pageSize + pageSize);
+      emptyMsg.style.display = filtered.length === 0 ? 'block' : 'none';
+      slice.forEach(function (b) {
+        var a = document.createElement('a');
+        a.href = '/' + b.slug;
+        a.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none;color:inherit;background:var(--card-bg);border-radius:10px;padding:10px;text-align:center;';
+        var imgHtml = b.avatar ? '<img src="/' + b.avatar + '" style="width:48px;height:48px;border-radius:50%;object-fit:cover;">' : '<div style="width:48px;height:48px;border-radius:50%;background:rgba(0,0,0,0.1);"></div>';
+        a.innerHTML = imgHtml + '<span style="font-size:12.5px;font-weight:600;">' + b.name.replace(/</g,'&lt;') + '</span>';
+        grid.appendChild(a);
+      });
+      pageIndicator.textContent = filtered.length ? ('Pagina ' + (page + 1) + ' di ' + totalPages) : '';
+      prevBtn.disabled = page <= 0;
+      nextBtn.disabled = page >= totalPages - 1;
+    }
+
+    searchInput.addEventListener('input', function () {
+      var q = searchInput.value.trim().toLowerCase();
+      filtered = q ? allBands.filter(function (b) { return b.name.toLowerCase().indexOf(q) !== -1; }) : allBands;
+      page = 0;
+      render();
+    });
+    prevBtn.addEventListener('click', function () { page--; render(); });
+    nextBtn.addEventListener('click', function () { page++; render(); });
+
+    render();
+  })();
+  </script>
 
   <?php if (!$followedIds): ?>
     <div class="alert error">Non segui ancora nessun profilo.</div>
