@@ -8,7 +8,7 @@ header('Pragma: no-cache');
 $slug = $_GET['slug'] ?? '';
 $postId = (int) ($_GET['id'] ?? 0);
 
-$stmt = getDB()->prepare('SELECT u.slug, u.account_type, p.display_name, p.avatar_path, p.theme_color, p.spotify_artist_id, p.spotify_show_id, p.youtube_channel_id, p.genere, tp.*
+$stmt = getDB()->prepare('SELECT u.slug, u.account_type, p.display_name, p.avatar_path, p.theme_color, p.page_theme, p.spotify_artist_id, p.spotify_show_id, p.youtube_channel_id, p.genere, tp.*
                           FROM timeline_posts tp
                           JOIN users u ON u.id = tp.user_id
                           JOIN profiles p ON p.user_id = u.id
@@ -38,6 +38,7 @@ $artist = [
     'youtube_channel_id' => $post['youtube_channel_id'],
     'genere' => $post['genere'],
     'account_type' => $post['account_type'],
+    'page_theme' => $post['page_theme'] ?? 'colorful',
 ];
 
 $pageUrl = siteUrl('/' . $slug . '/timeline/' . $postId);
@@ -65,7 +66,7 @@ $anteprima = $post['testo'] ? textExcerpt($post['testo'], 150) : 'Nuovo aggiorna
 <?= embedTrackingHead() ?>
 <?= embedGoogleAnalytics() ?>
 </head>
-<body class="colorful-page">
+<body class="<?= e(getPageThemeClass($artist['page_theme'] ?? 'colorful')) ?>">
 <?= embedTrackingBodyStart() ?>
 <div class="container">
   <?= publicProfileHeader($artist, 'timeline') ?>

@@ -8,7 +8,7 @@ header('Pragma: no-cache');
 $slug = $_GET['slug'] ?? '';
 $eventId = (int) ($_GET['id'] ?? 0);
 
-$stmt = getDB()->prepare('SELECT u.slug, u.account_type, p.display_name, p.avatar_path, p.theme_color, p.spotify_artist_id, p.spotify_show_id, p.genere, p.youtube_channel_id, ev.*
+$stmt = getDB()->prepare('SELECT u.slug, u.account_type, p.display_name, p.avatar_path, p.theme_color, p.page_theme, p.spotify_artist_id, p.spotify_show_id, p.genere, p.youtube_channel_id, ev.*
                           FROM events ev
                           JOIN users u ON u.id = ev.user_id
                           JOIN profiles p ON p.user_id = u.id
@@ -29,6 +29,7 @@ $artist = [
     'spotify_artist_id' => $event['spotify_artist_id'],
     'spotify_show_id' => $event['spotify_show_id'],
     'account_type' => $event['account_type'] ?? 'band',
+    'page_theme' => $event['page_theme'] ?? 'colorful',
     'genere' => $event['genere'],
     'youtube_channel_id' => $event['youtube_channel_id'],
 ];
@@ -70,7 +71,7 @@ $ogDescription = trim($event['display_name'] . ' — ' . date('d/m/Y H:i', strto
 <?= embedTrackingHead() ?>
 <?= embedGoogleAnalytics() ?>
 </head>
-<body class="colorful-page">
+<body class="<?= e(getPageThemeClass($artist['page_theme'] ?? 'colorful')) ?>">
 <?= embedTrackingBodyStart() ?>
 <div class="container">
   <?= publicProfileHeader($artist, 'eventi') ?>

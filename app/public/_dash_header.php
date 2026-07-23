@@ -67,6 +67,9 @@ $unreadMessages = (int) $stmt->fetch()['c'];
     <a href="/dashboard_password.php" class="account-sidebar-link <?= $activeTab==='password'?'active':'' ?>">
       <i class="fa-solid fa-lock"></i> Cambia password
     </a>
+    <a href="/dashboard_theme.php" class="account-sidebar-link <?= $activeTab==='theme'?'active':'' ?>">
+      <i class="fa-solid fa-palette"></i> Tema grafico
+    </a>
     <?php if ($isBandOrLabel): ?>
       <div style="padding:14px 18px 4px;font-size:11.5px;text-transform:uppercase;color:var(--text-muted);">Integrazioni</div>
       <a href="/dashboard_spotify.php" class="account-sidebar-link <?= $activeTab==='spotify'?'active':'' ?>">

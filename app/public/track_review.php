@@ -8,7 +8,7 @@ header('Pragma: no-cache');
 $slug = $_GET['slug'] ?? '';
 $trackId = (int) ($_GET['id'] ?? 0);
 
-$stmt = getDB()->prepare('SELECT u.id AS user_id, u.slug, u.account_type, p.display_name, p.avatar_path, p.theme_color, p.spotify_artist_id, p.spotify_show_id, p.youtube_channel_id, p.genere, ft.*
+$stmt = getDB()->prepare('SELECT u.id AS user_id, u.slug, u.account_type, p.display_name, p.avatar_path, p.theme_color, p.page_theme, p.spotify_artist_id, p.spotify_show_id, p.youtube_channel_id, p.genere, ft.*
                           FROM favorite_tracks ft
                           JOIN users u ON u.id = ft.user_id
                           JOIN profiles p ON p.user_id = u.id
@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'rate_
 $artist = [
     'slug' => $track['slug'], 'display_name' => $track['display_name'], 'avatar_path' => $track['avatar_path'],
     'spotify_artist_id' => $track['spotify_artist_id'], 'spotify_show_id' => $track['spotify_show_id'],
-    'youtube_channel_id' => $track['youtube_channel_id'], 'genere' => $track['genere'], 'account_type' => $track['account_type'],
+    'youtube_channel_id' => $track['youtube_channel_id'], 'genere' => $track['genere'], 'account_type' => $track['account_type'], 'page_theme' => $track['page_theme'] ?? 'colorful',
 ];
 
 $viewerId = $_SESSION['user_id'] ?? null;
@@ -73,7 +73,7 @@ $pageUrl = siteUrl('/' . $slug . '/brani/' . $trackId . '/recensioni');
 <?= embedTrackingHead() ?>
 <?= embedGoogleAnalytics() ?>
 </head>
-<body class="colorful-page">
+<body class="<?= e(getPageThemeClass($artist['page_theme'] ?? 'colorful')) ?>">
 <?= embedTrackingBodyStart() ?>
 <div class="container">
   <?= publicProfileHeader($artist, 'brani') ?>

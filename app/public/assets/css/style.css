@@ -615,3 +615,76 @@ body.colorful-page {
   color: #22223b;
 }
 .colorful-page form label { color: rgba(34,34,59,0.65); }
+
+/* ===== Tema "Rock": sfondo scuro, angoli netti, tono più deciso — pensato per generi come
+   rock/metal/punk, in alternativa al tema Colorful. Riusa la stessa struttura HTML, cambia
+   solo l'aspetto. ===== */
+body.rock-page {
+  background: #131313;
+  color: #eaeaea;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.rock-page .container { flex: 1 0 auto; max-width: 100%; }
+@media (min-width: 761px) {
+  .rock-page .container { max-width: 720px; }
+}
+.rock-page footer.site { color: rgba(234,234,234,0.5); }
+.rock-page .profile-header { padding-top: 20px; }
+.rock-page .avatar {
+  width: 128px; height: 128px;
+  border: 3px solid var(--accent, #6C5CE7);
+  border-radius: 8px; /* angoli netti anche per l'avatar, non un cerchio morbido */
+  box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+}
+.rock-page .profile-header h1 {
+  color: #fff; font-size: 30px; font-weight: 800; letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.rock-page .profile-header p { color: rgba(234,234,234,0.6); }
+.rock-page .profile-meta { color: rgba(234,234,234,0.45); }
+
+.rock-page .colorful-nav a {
+  background: #202020; color: #eaeaea; border: 1px solid #2c2c2c; border-radius: 4px;
+}
+.rock-page .colorful-nav a:hover { background: #262626; }
+.rock-page .colorful-nav a[style*="color:#fff"] { background: var(--accent, #6C5CE7) !important; border-color: var(--accent, #6C5CE7); }
+.rock-page .colorful-nav a.nav-segui-tab { background: var(--accent, #6C5CE7) !important; border-color: var(--accent, #6C5CE7); }
+
+.rock-page .social-icon-btn {
+  background: #202020; border: 1px solid #2c2c2c; border-radius: 6px; color: #eaeaea;
+}
+.rock-page .color-link-btn {
+  background: #1c1c1c !important; /* sovrascrive il colore pastello passato inline dal PHP */
+  border: 1px solid #2a2a2a;
+  border-left: 4px solid var(--accent, #6C5CE7);
+  border-radius: 4px;
+  color: #f2f2f2;
+  box-shadow: none;
+}
+.rock-page .color-link-btn:hover { background: #232323 !important; transform: translateY(-2px); }
+
+.rock-page .card {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  color: #eaeaea;
+}
+.rock-page .section-title { color: rgba(234,234,234,0.55); text-transform: uppercase; letter-spacing: 1px; font-size: 12px; }
+.rock-page .event-item, .rock-page .blog-item { border-bottom-color: rgba(234,234,234,0.12); }
+.rock-page .event-item .date { color: var(--accent, #6C5CE7); }
+.rock-page a { color: var(--accent, #6C5CE7); }
+.rock-page form textarea,
+.rock-page form input {
+  background: #1c1c1c;
+  border: 1px solid #333;
+  color: #eaeaea;
+  border-radius: 4px;
+}
+.rock-page form label { color: rgba(234,234,234,0.6); }
+.rock-page .segui-pill { border-radius: 4px; }
+.rock-page .help-box { background: #1a1a1a; border-color: #2a2a2a; color: #eaeaea; }
+

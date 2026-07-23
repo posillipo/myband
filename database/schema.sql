@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     bio TEXT,
     avatar_path VARCHAR(255),
     theme_color VARCHAR(7) DEFAULT '#6C5CE7',
+    page_theme VARCHAR(30) NOT NULL DEFAULT 'colorful',
     dashboard_theme VARCHAR(10) NOT NULL DEFAULT 'dark',
     spotify_artist_id VARCHAR(50) DEFAULT NULL,
     spotify_artist_name VARCHAR(200) DEFAULT NULL,

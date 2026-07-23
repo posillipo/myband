@@ -47,7 +47,7 @@ function currentUser(): ?array {
     if (empty($_SESSION['user_id'])) return null;
     static $cache = null;
     if ($cache !== null) return $cache;
-    $stmt = getDB()->prepare('SELECT u.*, p.display_name, p.bio, p.avatar_path, p.theme_color, p.spotify_artist_id, p.spotify_artist_name, p.spotify_show_id, p.spotify_show_name, p.youtube_channel_id, p.youtube_channel_name, p.genere, p.citta, p.provincia, p.telefono
+    $stmt = getDB()->prepare('SELECT u.*, p.display_name, p.bio, p.avatar_path, p.theme_color, p.page_theme, p.spotify_artist_id, p.spotify_artist_name, p.spotify_show_id, p.spotify_show_name, p.youtube_channel_id, p.youtube_channel_name, p.genere, p.citta, p.provincia, p.telefono
                               FROM users u LEFT JOIN profiles p ON p.user_id = u.id
                               WHERE u.id = ?');
     $stmt->execute([$_SESSION['user_id']]);
@@ -238,6 +238,18 @@ function splitSocialAndActionLinks(array $links): array {
 }
 
 // Palette di colori pastello per i pulsanti "azione" nel tema colorato della pagina pubblica
+// Registro dei temi grafici disponibili per la pagina pubblica — aggiungerne uno nuovo in
+// futuro significa solo aggiungere una voce qui + le regole CSS corrispondenti (vedi
+// style.css), senza toccare le singole pagine pubbliche.
+const PAGE_THEMES = [
+    'colorful' => ['label' => 'Colorful', 'description' => 'Sfumatura pastello, il classico myBand', 'body_class' => 'colorful-page'],
+    'rock' => ['label' => 'Rock', 'description' => 'Sfondo scuro, angoli netti, tono più deciso', 'body_class' => 'rock-page'],
+];
+
+function getPageThemeClass(?string $theme): string {
+    return PAGE_THEMES[$theme]['body_class'] ?? PAGE_THEMES['colorful']['body_class'];
+}
+
 const COLORFUL_PALETTE = ['#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF', '#A0C4FF', '#BDB2FF', '#FFC6FF', '#FFADAD'];
 
 // Menu di navigazione condiviso tra tutte le pagine pubbliche di un artista (Home | Blog | Brani | Eventi | Contatti)
@@ -796,7 +808,7 @@ const RESERVED_SLUGS = ['login','register','logout','dashboard','dashboard_profi
     'forgot_password','reset_password','dashboard_podcast','podcast',
     'choose_account_type','dashboard_fan_bands','band_che_amo','admin_apply_percorso','admin_link_avatars',
     'follow_account','dashboard_timeline','timeline','dashboard_post','timeline_post','feed','admin_import_old_timeline','timeline_more','track_review','admin_reviews','dashboard_password','dashboard_timeline_more',
-    'login_otp_request','login_otp_verify','request_access','admin_access_requests'];
+    'login_otp_request','login_otp_verify','request_access','admin_access_requests','dashboard_theme'];
 
 // Genera uno slug univoco per un articolo di un dato utente (title -> slug, con suffisso -2, -3... se già esistente)
 function generateUniquePostSlug(int $userId, string $title, ?int $excludePostId = null): string {

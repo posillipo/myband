@@ -14,7 +14,7 @@ if (!preg_match('/^\d{4}\.\d{2}\.\d{2}\.(.+)$/', $postToken, $m)) {
 }
 $postSlug = $m[1];
 
-$stmt = getDB()->prepare('SELECT u.slug AS user_slug, u.account_type, p.display_name, p.avatar_path, p.theme_color, p.spotify_artist_id, p.spotify_show_id, p.youtube_channel_id, p.genere, b.*
+$stmt = getDB()->prepare('SELECT u.slug AS user_slug, u.account_type, p.display_name, p.avatar_path, p.theme_color, p.page_theme, p.spotify_artist_id, p.spotify_show_id, p.youtube_channel_id, p.genere, b.*
                           FROM blog_posts b
                           JOIN users u ON u.id = b.user_id
                           JOIN profiles p ON p.user_id = u.id
@@ -36,6 +36,7 @@ $artist = [
     'spotify_artist_id' => $post['spotify_artist_id'] ?? null,
     'spotify_show_id' => $post['spotify_show_id'] ?? null,
     'account_type' => $post['account_type'] ?? 'band',
+    'page_theme' => $post['page_theme'] ?? 'colorful',
     'genere' => $post['genere'] ?? null,
     'youtube_channel_id' => $post['youtube_channel_id'] ?? null,
 ];
@@ -71,7 +72,7 @@ $ogImage = $post['cover_path'] ? siteUrl($post['cover_path']) : ($post['avatar_p
 <?= embedTrackingHead() ?>
 <?= embedGoogleAnalytics() ?>
 </head>
-<body class="colorful-page">
+<body class="<?= e(getPageThemeClass($artist['page_theme'] ?? 'colorful')) ?>">
 <?= embedTrackingBodyStart() ?>
 <div class="container">
   <?= publicProfileHeader($artist, 'blog') ?>
