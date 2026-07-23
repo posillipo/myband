@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS users (
     account_type_chosen TINYINT(1) NOT NULL DEFAULT 0,
     reset_token VARCHAR(64) DEFAULT NULL,
     reset_token_expires DATETIME DEFAULT NULL,
+    otp_code VARCHAR(10) DEFAULT NULL,
+    otp_expires_at DATETIME DEFAULT NULL,
     legacy_gestore_id INT DEFAULT NULL,
     legacy_band_id INT DEFAULT NULL,
     legacy_stato VARCHAR(20) DEFAULT NULL,

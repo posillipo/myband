@@ -25,6 +25,57 @@ a { color: var(--accent); text-decoration: none; }
   padding: 24px 20px 80px;
 }
 
+/* Pagina di accesso a due colonne, ispirata al layout IKEA: pannello colorato a sinistra con
+   il marchio, form bianco a destra. Su mobile la colonna colorata si riduce a una fascia in
+   cima, il form resta a piena larghezza sotto. */
+.auth-split { display: flex; min-height: 100vh; }
+.auth-split-brand {
+  flex: 0 0 42%;
+  background: linear-gradient(160deg, #6C5CE7 0%, #4834b8 100%);
+  color: #fff;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.auth-split-brand .logo { font-size: 22px; font-weight: 800; margin-bottom: 60px; }
+.auth-split-brand .logo span { color: #FFD6A5; }
+.auth-split-brand h1 { font-size: 32px; line-height: 1.25; margin: 0; }
+.auth-split-brand h1 .highlight { color: #FFD6A5; }
+.auth-split-form {
+  flex: 1;
+  background: #fff;
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+.auth-split-form-inner { width: 100%; max-width: 380px; }
+.auth-split-form-inner label { color: #444; font-size: 13px; font-weight: 600; }
+.auth-split-form-inner input[type=text],
+.auth-split-form-inner input[type=email],
+.auth-split-form-inner input[type=password] {
+  background: #fff; color: #1a1a1a; border: 1px solid #ccc;
+}
+.auth-split-form-inner .btn-dark {
+  display: block; width: 100%; text-align: center; background: #1a1a1a; color: #fff;
+  padding: 14px; border-radius: 999px; border: none; font-weight: 700; font-size: 15px; cursor: pointer;
+}
+.auth-split-form-inner .btn-outline {
+  display: block; width: 100%; text-align: center; background: #fff; color: #1a1a1a;
+  padding: 12px; border-radius: 999px; border: 1px solid #ccc; font-weight: 700; font-size: 14px;
+  text-decoration: none; margin-bottom: 12px;
+}
+.auth-divider { display: flex; align-items: center; gap: 12px; color: #999; font-size: 13px; margin: 22px 0; }
+.auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: #ddd; }
+@media (max-width: 760px) {
+  .auth-split { flex-direction: column; min-height: auto; }
+  .auth-split-brand { flex: none; padding: 30px 24px; }
+  .auth-split-brand h1 { font-size: 24px; }
+  .auth-split-brand .logo { margin-bottom: 24px; }
+}
+
 .navbar {
   display: flex;
   justify-content: space-between;

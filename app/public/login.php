@@ -46,32 +46,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
 <?= embedTrackingBodyStart() ?>
-<div class="navbar">
-  <div class="brand"><a href="/">myband<span>.it</span></a></div>
-  <nav><a href="/register.php">Registrati</a></nav>
-</div>
-<div class="container">
-  <h2>Accedi</h2>
-  <?php if ($error): ?><div class="alert error"><?= e($error) ?></div><?php endif; ?>
-  <?php if ($unverified): ?>
-    <div class="alert error">
-      Devi prima confermare la tua email. Controlla la posta, oppure
-      <a href="/resend_verification.php">richiedi un nuovo invio</a>.
+<div class="auth-split">
+  <div class="auth-split-brand">
+    <div class="logo">my<span>Band</span>.it</div>
+    <h1>Ciao! <span class="highlight">Accedi</span><br>al tuo account myBand.</h1>
+  </div>
+  <div class="auth-split-form">
+    <div class="auth-split-form-inner">
+      <?php if ($error): ?><div class="alert error"><?= e($error) ?></div><?php endif; ?>
+      <?php if ($unverified): ?>
+        <div class="alert error">
+          Devi prima confermare la tua email. Controlla la posta, oppure
+          <a href="/resend_verification.php">richiedi un nuovo invio</a>.
+        </div>
+      <?php endif; ?>
+
+      <form method="post">
+        <?= csrfField() ?>
+        <label>Email</label>
+        <input type="email" name="email" required>
+        <label>Password</label>
+        <input type="password" name="password" required>
+        <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;font-weight:normal;">
+          <input type="checkbox" name="remember" value="1" style="width:auto;">
+          Ricordami su questo dispositivo (resta connesso per 30 giorni)
+        </label>
+        <button type="submit" class="btn-dark">Accedi</button>
+      </form>
+
+      <div class="auth-divider">oppure</div>
+      <a href="/login_otp_request.php" class="btn-outline">✨ Accedi con un codice via email</a>
+
+      <p style="margin-top:18px;font-size:14px;"><a href="/forgot_password.php">Password dimenticata?</a></p>
+      <p style="font-size:14px;">Non hai un account? <a href="/register.php">Registrati</a></p>
     </div>
-  <?php endif; ?>
-  <form method="post" class="card">
-    <?= csrfField() ?>
-    <label>Email</label>
-    <input type="email" name="email" required>
-    <label>Password</label>
-    <input type="password" name="password" required>
-    <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-      <input type="checkbox" name="remember" value="1" style="width:auto;">
-      Ricordami su questo dispositivo (resta connesso per 30 giorni)
-    </label>
-    <button type="submit" class="btn">Accedi</button>
-  </form>
-  <p style="margin-top:14px;"><a href="/forgot_password.php">Password dimenticata?</a></p>
+  </div>
 </div>
 </body>
 </html>
