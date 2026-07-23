@@ -157,6 +157,15 @@ $bandReviewers = $bandReviewers->fetchAll();
     <?php endif; ?>
   </div>
 
+  <?php if ($socialLinks): ?>
+    <div class="social-icons-row">
+      <?php foreach ($socialLinks as $l): ?>
+        <a class="social-icon-btn" title="<?= e($l['platform']['label']) ?>" target="_blank" rel="noopener"
+           href="/link.php?id=<?= (int)$l['id'] ?>"><i class="<?= e($l['platform']['icon_class']) ?>"></i></a>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
+
   <?php if ($actionLinks): ?>
     <?php foreach ($actionLinks as $i => $l): ?>
       <a class="color-link-btn" style="background:<?= e(COLORFUL_PALETTE[$i % count(COLORFUL_PALETTE)]) ?>;"
@@ -168,15 +177,6 @@ $bandReviewers = $bandReviewers->fetchAll();
         <?= e($l['label']) ?>
       </a>
     <?php endforeach; ?>
-  <?php endif; ?>
-
-  <?php if ($socialLinks): ?>
-    <div class="social-icons-row">
-      <?php foreach ($socialLinks as $l): ?>
-        <a class="social-icon-btn" title="<?= e($l['platform']['label']) ?>" target="_blank" rel="noopener"
-           href="/link.php?id=<?= (int)$l['id'] ?>"><i class="<?= e($l['platform']['icon_class']) ?>"></i></a>
-      <?php endforeach; ?>
-    </div>
   <?php endif; ?>
 
   <?php if ($spotifyPreview): ?>
