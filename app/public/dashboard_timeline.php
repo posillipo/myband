@@ -7,7 +7,8 @@ $pageTitle = 'La mia Timeline';
 
 const DASH_TIMELINE_PAGE_SIZE = 20;
 $followedIds = getFollowedUserIds((int) $user['id']);
-$feed = getTimelineFeedForUsers($followedIds, DASH_TIMELINE_PAGE_SIZE, 0);
+$feedUserIds = array_merge($followedIds, [(int) $user['id']]);
+$feed = getTimelineFeedForUsers($feedUserIds, DASH_TIMELINE_PAGE_SIZE, 0);
 
 $followedBands = [];
 if ($followedIds) {
@@ -81,10 +82,12 @@ include __DIR__ . '/_dash_header.php';
   })();
   </script>
 
-  <?php if (!$followedIds): ?>
-    <div class="alert error">Non segui ancora nessun profilo.</div>
-  <?php elseif (!$feed): ?>
-    <div class="card">I profili che segui non hanno ancora pubblicato nulla.</div>
+  <?php if (!$feed): ?>
+    <?php if (!$followedIds): ?>
+      <div class="alert error">Non segui ancora nessun profilo — i contenuti che pubblichi tu compariranno comunque qui.</div>
+    <?php else: ?>
+      <div class="card">I profili che segui non hanno ancora pubblicato nulla.</div>
+    <?php endif; ?>
   <?php else: ?>
     <div id="dash-timeline-feed">
       <?php foreach ($feed as $item): ?>

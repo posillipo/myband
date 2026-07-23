@@ -9,7 +9,8 @@ $offset = max(0, (int) ($_GET['offset'] ?? 0));
 $pageSize = 20;
 
 $followedIds = getFollowedUserIds((int) $user['id']);
-$items = getTimelineFeedForUsers($followedIds, $pageSize, $offset);
+$feedUserIds = array_merge($followedIds, [(int) $user['id']]);
+$items = getTimelineFeedForUsers($feedUserIds, $pageSize, $offset);
 
 $html = '';
 foreach ($items as $item) {
