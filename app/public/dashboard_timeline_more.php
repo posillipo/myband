@@ -14,7 +14,7 @@ $items = getTimelineFeedForUsers($feedUserIds, $pageSize, $offset);
 
 $html = '';
 foreach ($items as $item) {
-    $html .= renderDashboardTimelineItem($item);
+    $html .= renderDashboardTimelineItem($item, $user['slug']);
 }
 
 echo json_encode(['html' => $html, 'count' => count($items)]);

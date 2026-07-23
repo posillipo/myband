@@ -655,7 +655,7 @@ function renderRatingForm(string $action, int $targetId, ?int $viewerId, int $ow
     return $html;
 }
 
-function renderDashboardTimelineItem(array $item): string {
+function renderDashboardTimelineItem(array $item, ?string $viewerSlug = null): string {
     $coverSrc = $item['cover'] ? (str_starts_with($item['cover'], 'http') ? $item['cover'] : '/' . $item['cover']) : null;
     $labels = ['blog' => '📝 Articolo', 'brano' => '🎵 Brano', 'evento' => '📅 Evento', 'pensiero' => '💬 Aggiornamento'];
     $label = $labels[$item['tipo']] ?? '';
@@ -663,14 +663,17 @@ function renderDashboardTimelineItem(array $item): string {
     if ($item['tipo'] === 'evento' && !empty($item['evento_quando'])) {
         $eventoInfo = ' · si terrà il ' . e(date('d/m/Y', strtotime($item['evento_quando'])));
     }
-    $html = '<a href="' . e($item['url']) . '" class="link-item" style="display:flex;gap:12px;align-items:center;text-decoration:none;color:inherit;">';
+    // Sfondo grigio tenue per distinguere subito i propri contenuti dal resto del feed
+    $isMine = $viewerSlug !== null && $item['user_slug'] === $viewerSlug;
+    $bgStyle = $isMine ? 'background:#eef0f2;' : '';
+    $html = '<a href="' . e($item['url']) . '" class="link-item" style="display:flex;gap:12px;align-items:center;text-decoration:none;color:inherit;' . $bgStyle . '">';
     if ($coverSrc) {
         $html .= '<img src="' . e($coverSrc) . '" style="width:56px;height:56px;border-radius:8px;object-fit:cover;flex-shrink:0;">';
     } elseif (!empty($item['avatar'])) {
         $html .= '<img src="/' . e($item['avatar']) . '" style="width:56px;height:56px;border-radius:50%;object-fit:cover;flex-shrink:0;">';
     }
     $html .= '<div style="flex:1;min-width:0;">';
-    $html .= '<small style="color:var(--text-muted);text-transform:uppercase;">' . e($label) . ' · ' . e($item['display_name']) . '</small><br>';
+    $html .= '<small style="color:var(--text-muted);text-transform:uppercase;">' . e($label) . ' · ' . e($item['display_name']) . ($isMine ? ' <span style="color:var(--accent);font-weight:700;">(tu)</span>' : '') . '</small><br>';
     $html .= '<strong>' . e($item['titolo']) . '</strong><br>';
     $html .= '<small style="color:var(--text-muted)">' . e(date('d/m/Y', strtotime($item['data']))) . $eventoInfo . '</small>';
     $html .= '</div></a>';

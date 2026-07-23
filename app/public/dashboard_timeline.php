@@ -91,7 +91,7 @@ include __DIR__ . '/_dash_header.php';
   <?php else: ?>
     <div id="dash-timeline-feed">
       <?php foreach ($feed as $item): ?>
-        <?= renderDashboardTimelineItem($item) ?>
+        <?= renderDashboardTimelineItem($item, $user['slug']) ?>
       <?php endforeach; ?>
     </div>
     <div id="dash-timeline-sentinel" style="height:1px;"></div>
