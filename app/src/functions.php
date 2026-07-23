@@ -200,6 +200,8 @@ function detectPlatform(string $url): ?array {
         'soundcloud.com'   => ['key' => 'soundcloud', 'icon_class' => 'fa-brands fa-soundcloud', 'label' => 'SoundCloud'],
         'whatsapp.com'     => ['key' => 'whatsapp',   'icon_class' => 'fa-brands fa-whatsapp',   'label' => 'WhatsApp'],
         'wa.me'            => ['key' => 'whatsapp',   'icon_class' => 'fa-brands fa-whatsapp',   'label' => 'WhatsApp'],
+        'x.com'            => ['key' => 'x',          'icon_class' => 'fa-brands fa-x-twitter',  'label' => 'X'],
+        'twitter.com'      => ['key' => 'x',          'icon_class' => 'fa-brands fa-x-twitter',  'label' => 'X'],
     ];
     foreach ($map as $domain => $info) {
         if ($host === $domain || str_ends_with($host, '.' . $domain)) {
@@ -240,12 +242,22 @@ const COLORFUL_PALETTE = ['#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF', '#A0C4FF',
 
 // Menu di navigazione condiviso tra tutte le pagine pubbliche di un artista (Home | Blog | Brani | Eventi | Contatti)
 // Il tab "Spotify" compare solo se l'artista ha collegato un profilo Spotify dalla dashboard.
-function publicNav(string $slug, string $active, bool $hasSpotify = false, bool $hasYoutube = false, bool $hasPodcast = false, string $accountType = 'band'): string {
+function publicNav(string $slug, string $active, bool $hasSpotify = false, bool $hasYoutube = false, bool $hasPodcast = false, string $accountType = 'band', ?int $ownerId = null): string {
     $isBandOrLabel = in_array($accountType, ['band', 'label'], true);
     // "Segui" è sempre il primo tab, su ogni pagina (Home inclusa) — porta al modulo Segui
     // vero e proprio in home, che resta nascosto finché non lo si apre (vedi CSS :target),
     // evitando così di mostrare due pulsanti "Segui" visibili insieme sulla stessa pagina.
-    $tabs = ['segui' => ['label' => '✨ Segui', 'url' => '/' . $slug . '#segui-widget', 'class' => 'nav-segui-tab']];
+    // L'etichetta riflette lo stato reale (segui già / non segui ancora), per chiarezza —
+    // prima diceva sempre "Segui" indipendentemente da cosa stava succedendo davvero.
+    $viewerId = $_SESSION['user_id'] ?? null;
+    $seguiLabel = '✨ Segui';
+    if ($viewerId && $ownerId && (int) $viewerId !== (int) $ownerId) {
+        $seguiLabel = isFollowingAccount((int) $viewerId, (int) $ownerId) ? '✓ Segui già' : '✨ Segui';
+    }
+    $tabs = [];
+    if (!$viewerId || !$ownerId || (int) $viewerId !== (int) $ownerId) {
+        $tabs['segui'] = ['label' => $seguiLabel, 'url' => '/' . $slug . '#segui-widget', 'class' => 'nav-segui-tab'];
+    }
     $tabs['home'] = ['label' => 'Home', 'url' => '/' . $slug];
     $tabs['timeline'] = ['label' => 'Timeline', 'url' => '/' . $slug . '/timeline'];
     if ($hasSpotify && $isBandOrLabel) {
@@ -300,7 +312,7 @@ function publicProfileHeader(array $artist, string $active, bool $showBio = fals
         $html .= '<span> · </span>' . e($artist['genere']);
     }
     $html .= '</p>';
-    $html .= publicNav($artist['slug'], $active, !empty($artist['spotify_artist_id']), !empty($artist['youtube_channel_id']), !empty($artist['spotify_show_id']), $artist['account_type'] ?? 'band');
+    $html .= publicNav($artist['slug'], $active, !empty($artist['spotify_artist_id']), !empty($artist['youtube_channel_id']), !empty($artist['spotify_show_id']), $artist['account_type'] ?? 'band', isset($artist['id']) ? (int) $artist['id'] : null);
     $html .= '</div>';
     return $html;
 }

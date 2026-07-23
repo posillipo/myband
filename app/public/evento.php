@@ -22,6 +22,7 @@ if (!$event) {
 }
 
 $artist = [
+    'id' => $event['user_id'],
     'slug' => $slug,
     'display_name' => $event['display_name'],
     'avatar_path' => $event['avatar_path'],

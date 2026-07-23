@@ -18,6 +18,19 @@ if (!$artist) {
     exit;
 }
 
+// Se Spotify è collegato, sulla Home mostriamo un'anteprima del profilo Spotify (stile
+// LinkTree, quadrati) al posto di "Band che amo" — quest'ultima resta comunque disponibile
+// sulla sua pagina dedicata, semplicemente non occupa questo spazio sulla Home quando c'è
+// già un profilo Spotify da mostrare.
+$spotifyPreview = [];
+$spotifyPreviewTotal = 0;
+if (!empty($artist['spotify_artist_id'])) {
+    require_once __DIR__ . '/../src/spotify.php';
+    $spotifyAlbums = spotifyGetArtistAlbums($artist['spotify_artist_id']);
+    $spotifyPreviewTotal = count($spotifyAlbums);
+    $spotifyPreview = array_slice($spotifyAlbums, 0, 6);
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'rate_band') {
     checkCsrf();
     $viewerId = $_SESSION['user_id'] ?? null;
@@ -166,7 +179,24 @@ $bandReviewers = $bandReviewers->fetchAll();
     </div>
   <?php endif; ?>
 
-  <?php if ($fanFavorites): ?>
+  <?php if ($spotifyPreview): ?>
+    <div class="section-title" style="text-align:center;color:rgba(34,34,59,0.6);margin:18px 0 10px;">Spotify</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px;margin-bottom:10px;">
+      <?php foreach ($spotifyPreview as $a): ?>
+        <a href="<?= e($a['spotify_url']) ?>" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">
+          <?php if ($a['image']): ?>
+            <img src="<?= e($a['image']) ?>" alt="" style="width:100%;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,0.12);">
+          <?php endif; ?>
+          <div style="margin-top:6px;font-size:13px;font-weight:700;"><?= e($a['name']) ?></div>
+        </a>
+      <?php endforeach; ?>
+    </div>
+    <?php if ($spotifyPreviewTotal > 6): ?>
+      <p style="text-align:center;margin-bottom:18px;">
+        <a href="/<?= e($slug) ?>/spotify">Vedi tutto su Spotify →</a>
+      </p>
+    <?php endif; ?>
+  <?php elseif ($fanFavorites): ?>
     <div class="section-title" style="text-align:center;color:rgba(34,34,59,0.6);margin:18px 0 10px;">Band che amo</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:10px;">
       <?php foreach ($fanFavoritesPreview as $f): ?>

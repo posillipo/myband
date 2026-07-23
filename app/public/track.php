@@ -23,6 +23,7 @@ if (!$track) {
 
 // Per riusare l'header condiviso serve un array "artista" con le chiavi attese
 $artist = [
+    'id' => $track['user_id'],
     'slug' => $slug,
     'display_name' => $track['display_name'],
     'avatar_path' => $track['avatar_path'],

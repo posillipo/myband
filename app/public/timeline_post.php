@@ -29,6 +29,7 @@ if (!$isOwner && ($post['visibility'] === 'private' || $isScheduledFuture)) {
 }
 
 $artist = [
+    'id' => $post['user_id'],
     'slug' => $slug,
     'display_name' => $post['display_name'],
     'avatar_path' => $post['avatar_path'],

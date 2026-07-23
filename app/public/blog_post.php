@@ -29,6 +29,7 @@ if (!$post) {
 
 // Per riusare l'header condiviso serve un array "artista" con le chiavi attese
 $artist = [
+    'id' => $post['user_id'],
     'slug' => $userSlug,
     'display_name' => $post['display_name'],
     'avatar_path' => $post['avatar_path'],
