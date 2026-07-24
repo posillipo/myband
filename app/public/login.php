@@ -8,6 +8,14 @@ header('Pragma: no-cache');
 $error = null;
 $unverified = false;
 
+// Redirect opzionale verso la pagina di partenza (es. "Vota" quando non loggato) — accettiamo
+// solo percorsi interni relativi, mai URL esterni, per evitare un open-redirect.
+$redirect = $_GET['redirect'] ?? $_POST['redirect'] ?? '';
+$isValidRedirect = $redirect !== '' && str_starts_with($redirect, '/') && !str_starts_with($redirect, '//') && !str_contains($redirect, '://');
+if (!$isValidRedirect) {
+    $redirect = '';
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     checkCsrf();
     $email = trim($_POST['email'] ?? '');
@@ -28,7 +36,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($_POST['remember'])) {
             issueRememberToken((int) $u['id']);
         }
-        header('Location: ' . ($u['account_type_chosen'] ? '/dashboard.php' : '/choose_account_type.php'));
+        if (!$u['account_type_chosen']) {
+            header('Location: /choose_account_type.php');
+        } else {
+            header('Location: ' . ($redirect ?: '/dashboard.php'));
+        }
         exit;
     }
 }
@@ -63,6 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       <form method="post">
         <?= csrfField() ?>
+        <?php if ($redirect): ?><input type="hidden" name="redirect" value="<?= e($redirect) ?>"><?php endif; ?>
         <label>Email</label>
         <input type="email" name="email" required>
         <label>Password</label>

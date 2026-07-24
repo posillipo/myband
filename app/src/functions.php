@@ -776,7 +776,10 @@ function renderCromeRating(?float $rating, int $max = 5): string {
 // messaggio diverso se l'utente ha già votato, senza permettere una seconda recensione
 function renderRatingForm(string $action, int $targetId, ?int $viewerId, int $ownerUserId, ?int $existingRating): string {
     if (!$viewerId) {
-        return '<p style="color:rgba(var(--text-rgb),0.6);font-size:13px;">Accedi per lasciare un voto.</p>';
+        $currentUrl = ($_SERVER['REQUEST_URI'] ?? '/');
+        $loginUrl = '/login.php?redirect=' . urlencode($currentUrl);
+        return '<a href="' . e($loginUrl) . '" class="segui-pill" style="display:inline-block;">✨ Vota</a>'
+             . '<p style="color:rgba(var(--text-rgb),0.55);font-size:12.5px;margin-top:6px;">Accedi o registrati per lasciare un voto.</p>';
     }
     if ($viewerId === $ownerUserId) {
         return '<p style="color:rgba(var(--text-rgb),0.6);font-size:13px;">Non puoi votare te stesso.</p>';
