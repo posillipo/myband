@@ -44,6 +44,20 @@ include __DIR__ . '/_dash_header.php';
                 <div style="position:relative;background:rgba(255,255,255,0.1);border-radius:6px;height:10px;margin-bottom:4px;"></div>
                 <div style="position:relative;background:rgba(255,255,255,0.1);border-radius:6px;height:10px;"></div>
               </div>
+            <?php elseif ($key === 'wave-light'): ?>
+              <div style="background:linear-gradient(160deg,#f3f2f8,#e2e2ee);border-radius:6px;padding:16px 10px;margin-bottom:10px;position:relative;overflow:hidden;">
+                <div style="position:absolute;inset:0;background:repeating-linear-gradient(115deg, rgba(34,34,59,0.08) 0 3px, transparent 3px 20px);"></div>
+                <div style="position:relative;width:40px;height:40px;border-radius:50%;background:#fff;margin:0 auto 8px;border:2px solid #6C5CE7;"></div>
+                <div style="position:relative;background:rgba(34,34,59,0.15);border-radius:6px;height:10px;margin-bottom:4px;"></div>
+                <div style="position:relative;background:rgba(34,34,59,0.15);border-radius:6px;height:10px;"></div>
+              </div>
+            <?php elseif ($key === 'wave-neon'): ?>
+              <div style="background:linear-gradient(160deg,#060609,#12121c);border-radius:6px;padding:16px 10px;margin-bottom:10px;position:relative;overflow:hidden;">
+                <div style="position:absolute;inset:0;background:repeating-linear-gradient(90deg, rgba(108,92,231,0.3) 0 2px, transparent 2px 8px);"></div>
+                <div style="position:relative;width:40px;height:40px;border-radius:50%;background:#111;margin:0 auto 8px;border:2px solid #6C5CE7;"></div>
+                <div style="position:relative;background:rgba(255,255,255,0.08);border-radius:6px;height:10px;margin-bottom:4px;"></div>
+                <div style="position:relative;background:rgba(255,255,255,0.08);border-radius:6px;height:10px;"></div>
+              </div>
             <?php elseif ($key === 'rock'): ?>
               <div style="background:#131313;border-radius:6px;padding:16px 10px;margin-bottom:10px;">
                 <div style="width:40px;height:40px;border-radius:6px;border:2px solid #6C5CE7;margin:0 auto 8px;background:#1a1a1a;"></div>

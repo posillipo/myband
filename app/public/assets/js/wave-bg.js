@@ -1,23 +1,31 @@
 /*!
- * Sfondo "Wave Grid" per il tema myBand — ispirato/adattato da:
+ * Sfondo "Wave Grid" per i temi myBand (Wave / Wave Chiaro / Wave Neon) — ispirato/adattato da:
  * "3D Wave Grid" di franky-adl (https://github.com/franky-adl/3d-wave-grid)
  * Rilasciato con licenza MIT — Copyright (c) 2026 franky-adl
- * Versione semplificata per l'uso diretto via CDN (senza build tool), adattata
- * per myBand.it: griglia di cubi più piccola, un solo punto d'onda (il mouse)
- * invece di una scia storica, nessun post-processing.
+ * Versione semplificata e parametrizzabile per l'uso diretto via CDN (senza build tool).
+ * I parametri (colori, forma, dimensione della trama) si passano tramite attributi
+ * data-* sulla canvas, così lo stesso file serve più varianti di tema.
  */
 (function () {
     if (typeof THREE === 'undefined') return; // Three.js non caricato: nessun effetto, nessun errore
     var canvas = document.getElementById('wave-bg-canvas');
     if (!canvas) return;
 
-    // Se il dispositivo non supporta bene WebGL, rinuncia silenziosamente all'effetto
     try {
         var testCtx = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
         if (!testCtx) return;
     } catch (e) { return; }
 
-    var accent = (canvas.dataset.accent || '#6C5CE7');
+    var d = canvas.dataset;
+    var accent = d.accent || '#6C5CE7';
+    var baseColor = d.base || '#1a1a1a';
+    var shape = d.shape || 'box'; // 'box' oppure 'cylinder', cambia la "trama" della griglia
+    var gridSize = parseInt(d.gridSize || '22', 10);
+    var cubeSize = parseFloat(d.cubeSize || '0.75');
+    var gap = parseFloat(d.gap || '0.18');
+    var cubeHeight = parseFloat(d.cubeHeight || '2.4');
+    var lightIntensity = parseFloat(d.lightIntensity || '2.2');
+    var ambientIntensity = parseFloat(d.ambientIntensity || '0.6');
 
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
@@ -30,18 +38,17 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 0);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-    var keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+    scene.add(new THREE.AmbientLight(0xffffff, ambientIntensity));
+    var keyLight = new THREE.DirectionalLight(0xffffff, lightIntensity);
     keyLight.position.set(-10, 12, 6);
     scene.add(keyLight);
 
-    var gridSize = 22;
-    var cubeSize = 0.75;
-    var gap = 0.18;
     var spacing = cubeSize + gap;
     var count = gridSize * gridSize;
 
-    var geometry = new THREE.BoxGeometry(cubeSize, 2.4, cubeSize);
+    var geometry = shape === 'cylinder'
+        ? new THREE.CylinderGeometry(cubeSize / 2, cubeSize / 2, cubeHeight, 8)
+        : new THREE.BoxGeometry(cubeSize, cubeHeight, cubeSize);
     var offsetAttr = new THREE.InstancedBufferAttribute(new Float32Array(count * 2), 2);
     geometry.setAttribute('aOffset', offsetAttr);
 
@@ -50,7 +57,7 @@
         uTime: { value: 0 },
         uWavePos: { value: new THREE.Vector2(9999, 9999) },
         uWaveStart: { value: -10 },
-        uColorBase: { value: new THREE.Color(0x1a1a1a) },
+        uColorBase: { value: new THREE.Color(baseColor) },
         uColorHigh: { value: new THREE.Color(accent) },
     };
 
@@ -104,7 +111,6 @@
     mesh.instanceMatrix.needsUpdate = true;
     scene.add(mesh);
 
-    // Il mouse (in coordinate normalizzate) genera una nuova onda quando si muove abbastanza
     var lastWaveX = 9999, lastWaveZ = 9999;
     var bounds = gridSize * spacing * 0.5;
     window.addEventListener('mousemove', function (e) {

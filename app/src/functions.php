@@ -244,13 +244,36 @@ function splitSocialAndActionLinks(array $links): array {
 const PAGE_THEMES = [
     'colorful' => ['label' => 'Colorful', 'description' => 'Sfumatura pastello, il classico myBand', 'body_class' => 'colorful-page'],
     'rock' => ['label' => 'Rock', 'description' => 'Sfondo scuro, angoli netti, tono più deciso', 'body_class' => 'rock-page'],
-    'wave' => ['label' => 'Wave', 'description' => 'Sfondo 3D animato, una griglia che ondeggia al passaggio del mouse', 'body_class' => 'wave-page'],
+    'wave' => ['label' => 'Wave', 'description' => 'Sfondo 3D scuro, griglia di cubi che ondeggia al passaggio del mouse', 'body_class' => 'wave-page'],
+    'wave-light' => ['label' => 'Wave Chiaro', 'description' => 'Stessa griglia animata, in versione chiara e più ariosa', 'body_class' => 'wave-light-page'],
+    'wave-neon' => ['label' => 'Wave Neon', 'description' => 'Griglia più fitta, colonne invece di cubi, tono più notturno', 'body_class' => 'wave-neon-page'],
 ];
 
-// Sfondo animato Three.js per il tema "Wave" — canvas fisso dietro al contenuto, caricato solo
-// se il profilo ha scelto questo tema. Fallisce in silenzio se il browser non supporta WebGL.
-function renderWaveBackground(string $accentColor): string {
-    return '<canvas id="wave-bg-canvas" data-accent="' . e($accentColor) . '"></canvas>
+// Parametri della griglia 3D per ciascuna variante Wave — stesso script (wave-bg.js), letto
+// tramite attributi data-* sulla canvas, così ogni variante cambia forma/dimensione/colori
+// senza duplicare codice JavaScript.
+const WAVE_THEME_PARAMS = [
+    'wave' => ['base' => '#1a1a1a', 'shape' => 'box', 'gridSize' => 22, 'cubeSize' => 0.75, 'gap' => 0.18, 'cubeHeight' => 2.4, 'ambientIntensity' => 0.6, 'lightIntensity' => 2.2],
+    'wave-light' => ['base' => '#d8d8e0', 'shape' => 'box', 'gridSize' => 16, 'cubeSize' => 1.1, 'gap' => 0.35, 'cubeHeight' => 1.6, 'ambientIntensity' => 1.1, 'lightIntensity' => 1.6],
+    'wave-neon' => ['base' => '#0d0d14', 'shape' => 'cylinder', 'gridSize' => 30, 'cubeSize' => 0.55, 'gap' => 0.08, 'cubeHeight' => 2.8, 'ambientIntensity' => 0.4, 'lightIntensity' => 2.6],
+];
+
+// Sfondo animato Three.js per i temi "Wave" — canvas fisso dietro al contenuto, caricato solo
+// se il profilo ha scelto uno di questi temi. Fallisce in silenzio se il browser non supporta
+// WebGL. I parametri di forma/dimensione/colore variano in base al tema scelto.
+function renderWaveBackground(string $accentColor, string $themeKey = 'wave'): string {
+    $p = WAVE_THEME_PARAMS[$themeKey] ?? WAVE_THEME_PARAMS['wave'];
+    return '<canvas id="wave-bg-canvas"'
+        . ' data-accent="' . e($accentColor) . '"'
+        . ' data-base="' . e($p['base']) . '"'
+        . ' data-shape="' . e($p['shape']) . '"'
+        . ' data-grid-size="' . (int) $p['gridSize'] . '"'
+        . ' data-cube-size="' . e($p['cubeSize']) . '"'
+        . ' data-gap="' . e($p['gap']) . '"'
+        . ' data-cube-height="' . e($p['cubeHeight']) . '"'
+        . ' data-ambient-intensity="' . e($p['ambientIntensity']) . '"'
+        . ' data-light-intensity="' . e($p['lightIntensity']) . '"'
+        . '></canvas>
     <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
     <script src="' . assetUrl('/assets/js/wave-bg.js') . '"></script>';
 }

@@ -758,4 +758,91 @@ body.wave-page {
   #wave-bg-canvas { opacity: 0.6; } /* più discreto su mobile, dove pesa di più sulle prestazioni */
 }
 
+/* ===== Tema "Wave Neon": stessa struttura del tema Wave (scuro), la griglia usa colonne
+   invece di cubi e i colori sono più notturni/saturi — il CSS del contenuto è identico al
+   tema Wave, basta condividere la stessa classe per i dettagli, cambia solo lo sfondo 3D. ===== */
+body.wave-neon-page {
+  background: #060609;
+  color: #f2f2f5;
+  --text-rgb: 242,242,245;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.wave-neon-page .container { position: relative; z-index: 1; flex: 1 0 auto; max-width: 100%; }
+@media (min-width: 761px) { .wave-neon-page .container { max-width: 720px; } }
+.wave-neon-page footer.site { color: rgba(242,242,245,0.5); position: relative; z-index: 1; }
+.wave-neon-page .profile-header h1 { color: #fff; font-size: 30px; font-weight: 800; }
+.wave-neon-page .profile-header p { color: rgba(242,242,245,0.65); }
+.wave-neon-page .profile-meta { color: rgba(242,242,245,0.5); }
+.wave-neon-page .avatar { box-shadow: 0 10px 40px rgba(0,0,0,0.7); }
+.wave-neon-page .colorful-nav a { background: rgba(15,15,22,0.75); color: #f2f2f5; border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(6px); }
+.wave-neon-page .colorful-nav a:hover { background: rgba(25,25,36,0.85); }
+.wave-neon-page .colorful-nav a[style*="color:#fff"] { background: var(--accent, #6C5CE7) !important; color: var(--accent-text, #fff) !important; }
+.wave-neon-page .colorful-nav a.nav-segui-tab { background: rgb(108,92,231) !important; color: #fff !important; }
+.wave-neon-page .social-icon-btn { background: rgba(15,15,22,0.75); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(6px); }
+.wave-neon-page .color-link-btn {
+  background: rgba(12,12,18,0.8) !important;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-left: 4px solid var(--accent, #6C5CE7);
+  backdrop-filter: blur(6px);
+  color: #f2f2f5 !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.wave-neon-page .color-link-btn:hover { background: rgba(20,20,30,0.85) !important; transform: translateY(-2px); }
+.wave-neon-page .card { background: rgba(12,12,18,0.78); border: 1px solid rgba(255,255,255,0.07); backdrop-filter: blur(8px); color: #f2f2f5; }
+.wave-neon-page .section-title { color: rgba(242,242,245,0.5); }
+.wave-neon-page .event-item, .wave-neon-page .blog-item { border-bottom-color: rgba(255,255,255,0.1); }
+.wave-neon-page a { color: var(--accent, #6C5CE7); }
+.wave-neon-page form textarea, .wave-neon-page form input { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #f2f2f5; }
+.wave-neon-page form label { color: rgba(242,242,245,0.55); }
+.wave-neon-page .help-box { background: rgba(12,12,18,0.78); border-color: rgba(255,255,255,0.07); color: #f2f2f5; }
+
+/* ===== Tema "Wave Chiaro": stesso principio del tema Wave, ma su sfondo chiaro — cubi più
+   grandi e distanziati, atmosfera più ariosa. Testo e card scuri per contrasto. ===== */
+body.wave-light-page {
+  background: #f3f2f8;
+  color: #22223b;
+  --text-rgb: 34,34,59;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.wave-light-page .container { position: relative; z-index: 1; flex: 1 0 auto; max-width: 100%; }
+@media (min-width: 761px) { .wave-light-page .container { max-width: 720px; } }
+.wave-light-page footer.site { color: rgba(34,34,59,0.55); position: relative; z-index: 1; }
+.wave-light-page .profile-header h1 { color: #22223b; font-size: 30px; font-weight: 800; }
+.wave-light-page .profile-header p { color: rgba(34,34,59,0.65); }
+.wave-light-page .profile-meta { color: rgba(34,34,59,0.5); }
+.wave-light-page .avatar { box-shadow: 0 10px 32px rgba(34,34,59,0.25); }
+.wave-light-page .colorful-nav a { background: rgba(255,255,255,0.75); color: #22223b; border: 1px solid rgba(34,34,59,0.1); backdrop-filter: blur(6px); }
+.wave-light-page .colorful-nav a:hover { background: rgba(255,255,255,0.9); }
+.wave-light-page .colorful-nav a[style*="color:#fff"] { background: var(--accent, #6C5CE7) !important; color: var(--accent-text, #fff) !important; }
+.wave-light-page .colorful-nav a.nav-segui-tab { background: rgb(108,92,231) !important; color: #fff !important; }
+.wave-light-page .social-icon-btn { background: rgba(255,255,255,0.75); border: 1px solid rgba(34,34,59,0.1); backdrop-filter: blur(6px); }
+.wave-light-page .color-link-btn {
+  background: rgba(255,255,255,0.8) !important;
+  border: 1px solid rgba(34,34,59,0.08);
+  border-left: 4px solid var(--accent, #6C5CE7);
+  backdrop-filter: blur(6px);
+  color: #22223b !important;
+  box-shadow: 0 8px 20px rgba(34,34,59,0.12);
+}
+.wave-light-page .color-link-btn:hover { background: rgba(255,255,255,0.95) !important; transform: translateY(-2px); }
+.wave-light-page .card { background: rgba(255,255,255,0.78); border: 1px solid rgba(34,34,59,0.08); backdrop-filter: blur(8px); color: #22223b; }
+.wave-light-page .section-title { color: rgba(34,34,59,0.55); }
+.wave-light-page .event-item, .wave-light-page .blog-item { border-bottom-color: rgba(34,34,59,0.12); }
+.wave-light-page a { color: var(--accent, #6C5CE7); }
+.wave-light-page form textarea, .wave-light-page form input { background: rgba(255,255,255,0.9); border: 1px solid rgba(34,34,59,0.15); color: #22223b; }
+.wave-light-page form label { color: rgba(34,34,59,0.6); }
+.wave-light-page .help-box { background: rgba(255,255,255,0.78); border-color: rgba(34,34,59,0.08); color: #22223b; }
+@media (max-width: 760px) {
+  body.wave-neon-page #wave-bg-canvas, body.wave-light-page #wave-bg-canvas { opacity: 0.6; }
+}
+
+
 
