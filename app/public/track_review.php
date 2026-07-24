@@ -30,6 +30,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'rate_
         $stmt = getDB()->prepare('INSERT INTO track_reviews (track_id, reviewer_user_id, rating) VALUES (?,?,?)
             ON DUPLICATE KEY UPDATE rating = VALUES(rating)');
         $stmt->execute([$targetId, $viewerId, $rating]);
+
+        $stmt = getDB()->prepare('SELECT slug FROM users WHERE id = ?');
+        $stmt->execute([$viewerId]);
+        $voter = $stmt->fetch();
+        $stmt = getDB()->prepare('SELECT email FROM users WHERE id = ?');
+        $stmt->execute([$track['user_id']]);
+        $owner = $stmt->fetch();
+        if ($voter && $owner) {
+            notifyNewVote($owner['email'], $track['display_name'], $voter['slug'], $rating, '"' . $track['track_name'] . '"', '/' . $slug . '/brani/' . $trackId . '/votazioni');
+        }
     }
     header('Location: /' . $slug . '/brani/' . $trackId . '/votazioni');
     exit;

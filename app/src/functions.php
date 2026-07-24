@@ -254,7 +254,7 @@ const PAGE_THEMES = [
 // senza duplicare codice JavaScript.
 const WAVE_THEME_PARAMS = [
     'wave' => ['base' => '#1a1a1a', 'shape' => 'box', 'gridSize' => 22, 'cubeSize' => 0.75, 'gap' => 0.18, 'cubeHeight' => 2.4, 'ambientIntensity' => 0.6, 'lightIntensity' => 2.2],
-    'wave-light' => ['base' => '#d8d8e0', 'shape' => 'box', 'gridSize' => 16, 'cubeSize' => 1.1, 'gap' => 0.35, 'cubeHeight' => 1.6, 'ambientIntensity' => 1.1, 'lightIntensity' => 1.6],
+    'wave-light' => ['base' => '#d8d8e0', 'shape' => 'box', 'gridSize' => 18, 'cubeSize' => 0.85, 'gap' => 0.28, 'cubeHeight' => 1.6, 'ambientIntensity' => 1.1, 'lightIntensity' => 1.6],
     'wave-neon' => ['base' => '#0d0d14', 'shape' => 'cylinder', 'gridSize' => 30, 'cubeSize' => 0.55, 'gap' => 0.08, 'cubeHeight' => 2.8, 'ambientIntensity' => 0.4, 'lightIntensity' => 2.6],
 ];
 
@@ -497,6 +497,74 @@ function notifyNewContact(string $toEmail, string $toName, string $senderName, s
 // Genera un token di verifica email (valido 24 ore)
 function generateVerificationToken(): array {
     return [bin2hex(random_bytes(32)), date('Y-m-d H:i:s', strtotime('+24 hours'))];
+}
+
+// Notifica al titolare del profilo (o del brano) quando qualcuno lascia un voto.
+function notifyNewVote(string $toEmail, string $toName, string $voterSlug, int $rating, string $itemLabel, string $itemUrl): bool {
+    $cfg = getSmtpConfig();
+    if (!$cfg['host']) {
+        return false;
+    }
+    require_once __DIR__ . '/mailer.php';
+    $mailer = new SimpleSmtpMailer($cfg['host'], $cfg['port'], $cfg['user'], $cfg['pass'], $cfg['secure'], $cfg['verifyCert']);
+
+    $stars = str_repeat('★', max(1, min(5, $rating)));
+    $subject = "@{$voterSlug} ha votato {$itemLabel} su myband.it";
+    $link = siteUrl($itemUrl);
+    $body = "Ciao {$toName},\n\n"
+          . "@{$voterSlug} ha appena votato {$itemLabel}: {$stars} ({$rating}/5)\n\n"
+          . "Vedi tutti i voti: {$link}";
+
+    return $mailer->send($cfg['from'], $cfg['fromName'], $toEmail, $toName, $subject, $body);
+}
+
+// Notifica a tutti gli amministratori quando si registra un nuovo utente.
+function notifyAdminsNewUser(string $newUserEmail, string $newUserName, string $newUserSlug): bool {
+    $cfg = getSmtpConfig();
+    if (!$cfg['host']) {
+        return false;
+    }
+    $stmt = getDB()->prepare('SELECT email FROM users WHERE is_admin = 1');
+    $stmt->execute();
+    $admins = $stmt->fetchAll();
+    if (!$admins) {
+        return false;
+    }
+
+    require_once __DIR__ . '/mailer.php';
+    $mailer = new SimpleSmtpMailer($cfg['host'], $cfg['port'], $cfg['user'], $cfg['pass'], $cfg['secure'], $cfg['verifyCert']);
+
+    $subject = "Nuova registrazione su myband.it: {$newUserName}";
+    $body = "Si è appena registrato un nuovo utente su myband.it:\n\n"
+          . "Nome: {$newUserName}\n"
+          . "Email: {$newUserEmail}\n"
+          . "Pagina: " . siteUrl('/' . $newUserSlug) . "\n";
+
+    $sentAny = false;
+    foreach ($admins as $admin) {
+        if ($mailer->send($cfg['from'], $cfg['fromName'], $admin['email'], $admin['email'], $subject, $body)) {
+            $sentAny = true;
+        }
+    }
+    return $sentAny;
+}
+
+// Notifica a un profilo quando un altro account inizia a seguirlo.
+function notifyNewFollower(string $toEmail, string $toName, string $followerSlug, string $followerName): bool {
+    $cfg = getSmtpConfig();
+    if (!$cfg['host']) {
+        return false;
+    }
+    require_once __DIR__ . '/mailer.php';
+    $mailer = new SimpleSmtpMailer($cfg['host'], $cfg['port'], $cfg['user'], $cfg['pass'], $cfg['secure'], $cfg['verifyCert']);
+
+    $subject = "{$followerName} ha iniziato a seguirti su myband.it";
+    $link = siteUrl('/' . $followerSlug);
+    $body = "Ciao {$toName},\n\n"
+          . "{$followerName} (@{$followerSlug}) ha iniziato a seguirti su myband.it.\n\n"
+          . "Vedi il suo profilo: {$link}";
+
+    return $mailer->send($cfg['from'], $cfg['fromName'], $toEmail, $toName, $subject, $body);
 }
 
 // Invia l'email di conferma registrazione con il link di verifica. Come per le notifiche di

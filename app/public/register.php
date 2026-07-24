@@ -56,6 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->commit();
 
             $emailSent = notifyEmailVerification($email, $displayName, $verifyToken);
+            notifyAdminsNewUser($email, $displayName, $slug);
             $registered = true;
             $registeredEmailSent = $emailSent;
         }

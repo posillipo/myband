@@ -68,7 +68,8 @@ $pageUrl = siteUrl('/' . $slug . '/brani');
         </div>
         <i class="fa-brands fa-spotify" style="color:#1DB954;font-size:22px;flex-shrink:0;"></i>
       </a>
-      <a href="/<?= e($slug) ?>/brani/<?= (int) $t['id'] ?>/votazioni" style="font-size:12.5px;flex-shrink:0;white-space:nowrap;">Vota →</a>
+      <a href="/<?= e($slug) ?>/brani/<?= (int) $t['id'] ?>/votazioni"
+         style="font-size:12px;font-weight:700;flex-shrink:0;white-space:nowrap;padding:6px 12px;border-radius:999px;background:var(--accent);color:<?= e(getContrastTextColor($artist['theme_color'] ?? '#6C5CE7')) ?>;">Vota →</a>
     </div>
   <?php endforeach; ?>
 </div>

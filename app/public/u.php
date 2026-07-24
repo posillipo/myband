@@ -40,6 +40,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'rate_
         $stmt = getDB()->prepare('INSERT INTO band_reviews (band_user_id, reviewer_user_id, rating) VALUES (?,?,?)
             ON DUPLICATE KEY UPDATE rating = VALUES(rating)');
         $stmt->execute([$targetId, $viewerId, $rating]);
+
+        $stmt = getDB()->prepare('SELECT slug FROM users WHERE id = ?');
+        $stmt->execute([$viewerId]);
+        $voter = $stmt->fetch();
+        if ($voter && !empty($artist['email'])) {
+            notifyNewVote($artist['email'], $artist['display_name'], $voter['slug'], $rating, 'il tuo profilo', '/' . $slug . '#recensioni');
+        }
     }
     header('Location: /' . $slug . '#recensioni');
     exit;
