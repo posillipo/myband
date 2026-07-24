@@ -148,7 +148,6 @@ docker compose exec db mysqldump -u root -p myband > backup_$(date +%F).sql
   testo semplice — andrebbero uniformate con un template HTML coerente, vicino ai colori/stile
   di myBand (accento viola `#6C5CE7`, coerente col resto della piattaforma), invece dei
   messaggi in solo testo attuali
-- Tema grafico multiplo selezionabile dal musicista
 - Statistiche dettagliate sui click (per link, per periodo)
 - Piano gratuito/premium con limiti su numero di brani/eventi
 - Invio email automatico (SMTP) quando arriva una richiesta di contatto
