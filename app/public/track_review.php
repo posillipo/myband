@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'rate_
             ON DUPLICATE KEY UPDATE rating = VALUES(rating)');
         $stmt->execute([$targetId, $viewerId, $rating]);
     }
-    header('Location: /' . $slug . '/brani/' . $trackId . '/recensioni');
+    header('Location: /' . $slug . '/brani/' . $trackId . '/votazioni');
     exit;
 }
 
@@ -54,7 +54,7 @@ $reviewers = getDB()->prepare('SELECT tr.rating, u2.slug FROM track_reviews tr J
 $reviewers->execute([$trackId]);
 $reviewers = $reviewers->fetchAll();
 
-$pageUrl = siteUrl('/' . $slug . '/brani/' . $trackId . '/recensioni');
+$pageUrl = siteUrl('/' . $slug . '/brani/' . $trackId . '/votazioni');
 ?>
 <!doctype html>
 <html lang="it">
@@ -92,8 +92,8 @@ $pageUrl = siteUrl('/' . $slug . '/brani/' . $trackId . '/recensioni');
     <?php endif; ?>
   </div>
 
-  <div class="card">
-    <div class="section-title" style="margin-bottom:8px;">Vota</div>
+  <div class="card" style="border:2px solid var(--accent);background:rgba(108,92,231,0.08);">
+    <div class="section-title" style="margin-bottom:8px;font-size:16px;letter-spacing:0.5px;">⭐ Vota questo brano</div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
       <?= renderCromeRating($stats['avg']) ?>
       <?php if ($stats['count'] > 0): ?>

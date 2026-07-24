@@ -670,7 +670,7 @@ function getTimelineFeedForUsers(array $userIds, int $limit = 50, int $offset = 
 
 // Rendering HTML condiviso di un singolo elemento della Timeline, riusato sia dal primo
 // caricamento della pagina sia dalle richieste "carica altri" dello scrolling infinito.
-// ===== Sistema di recensioni (solo voto a crome, nessun commento) =====
+// ===== Sistema di recensioni (solo voto a stelle, nessun commento) =====
 
 // Media e conteggio voti per una band o un brano
 function getBandRatingStats(int $bandUserId): array {
@@ -687,7 +687,7 @@ function getTrackRatingStats(int $trackId): array {
     return ['avg' => $r['avg_r'] ? round((float) $r['avg_r'], 1) : null, 'count' => (int) $r['n']];
 }
 
-// Resa grafica a crome piene (♪), arrotondate al valore intero più vicino — usata sia per il
+// Resa grafica a stelle piene (★), arrotondate al valore intero più vicino — usata sia per il
 // voto di una singola persona sia per la media arrotondata di un gruppo di voti
 function renderCromeRating(?float $rating, int $max = 5): string {
     if ($rating === null) {
@@ -697,14 +697,14 @@ function renderCromeRating(?float $rating, int $max = 5): string {
     $html = '<span style="letter-spacing:2px;">';
     for ($i = 1; $i <= $max; $i++) {
         $html .= $i <= $filled
-            ? '<span style="color:rgb(108,92,231);">♪</span>'
-            : '<span style="color:rgba(var(--text-rgb),0.25);">♪</span>';
+            ? '<span style="color:rgb(108,92,231);">★</span>'
+            : '<span style="color:rgba(var(--text-rgb),0.25);">★</span>';
     }
     $html .= '</span>';
     return $html;
 }
 
-// Form di voto a 5 crome cliccabili (ognuna è un pulsante che invia quel valore) — mostra un
+// Form di voto a 5 stelle cliccabili (ognuna è un pulsante che invia quel valore) — mostra un
 // messaggio diverso se l'utente ha già votato, senza permettere una seconda recensione
 function renderRatingForm(string $action, int $targetId, ?int $viewerId, int $ownerUserId, ?int $existingRating): string {
     if (!$viewerId) {
@@ -725,7 +725,7 @@ function renderRatingForm(string $action, int $targetId, ?int $viewerId, int $ow
             . '<input type="hidden" name="action" value="' . e($action) . '">'
             . '<input type="hidden" name="target_id" value="' . $targetId . '">'
             . '<input type="hidden" name="rating" value="' . $i . '">'
-            . '<button type="submit" style="background:none;border:none;font-size:22px;cursor:pointer;color:' . ($existingRating !== null && $i <= $existingRating ? 'rgb(108,92,231)' : 'rgba(var(--text-rgb),0.3)') . ';">♪</button>'
+            . '<button type="submit" style="background:none;border:none;font-size:22px;cursor:pointer;color:' . ($existingRating !== null && $i <= $existingRating ? 'rgb(108,92,231)' : 'rgba(var(--text-rgb),0.3)') . ';">★</button>'
             . '</form>';
     }
     $html .= '</div></div>';

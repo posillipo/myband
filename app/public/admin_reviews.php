@@ -41,7 +41,7 @@ include __DIR__ . '/_admin_header.php';
   <div class="section-title">Recensioni band (<?= count($bandReviews) ?>)</div>
   <?php foreach ($bandReviews as $r): ?>
     <div class="link-item">
-      <div>@<?= e($r['reviewer_slug']) ?> → <a href="/<?= e($r['band_slug']) ?>" target="_blank">@<?= e($r['band_slug']) ?></a>: <?= str_repeat('♪', (int)$r['rating']) ?> — <?= e($r['created_at']) ?></div>
+      <div>@<?= e($r['reviewer_slug']) ?> → <a href="/<?= e($r['band_slug']) ?>" target="_blank">@<?= e($r['band_slug']) ?></a>: <?= str_repeat('★', (int)$r['rating']) ?> — <?= e($r['created_at']) ?></div>
       <form method="post" onsubmit="return confirm('Eliminare questa recensione?');">
         <?= csrfField() ?>
         <input type="hidden" name="action" value="delete">
@@ -55,7 +55,7 @@ include __DIR__ . '/_admin_header.php';
   <div class="section-title">Recensioni brani (<?= count($trackReviews) ?>)</div>
   <?php foreach ($trackReviews as $r): ?>
     <div class="link-item">
-      <div>@<?= e($r['reviewer_slug']) ?> → "<?= e($r['track_name']) ?>" (<?= e($r['band_slug']) ?>): <?= str_repeat('♪', (int)$r['rating']) ?> — <?= e($r['created_at']) ?></div>
+      <div>@<?= e($r['reviewer_slug']) ?> → "<?= e($r['track_name']) ?>" (<?= e($r['band_slug']) ?>): <?= str_repeat('★', (int)$r['rating']) ?> — <?= e($r['created_at']) ?></div>
       <form method="post" onsubmit="return confirm('Eliminare questa recensione?');">
         <?= csrfField() ?>
         <input type="hidden" name="action" value="delete">
