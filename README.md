@@ -116,6 +116,12 @@ docker compose exec db mysqldump -u root -p myband > backup_$(date +%F).sql
 
 ## 8. Possibili estensioni future
 
+- **Ordinamento "Band che amo" per data di aggiunta**: oggi l'elenco (sia sulla pagina pubblica
+  sia nella dashboard) non è ordinato per data — da mettere le band aggiunte più di recente
+  in cima, sia lato pubblico sia in dashboard (query già ha `created_at` disponibile in
+  `fan_favorite_bands`, basterebbe cambiare l'ordinamento da `sort_order` a
+  `created_at DESC` nelle pagine coinvolte: `u.php`, `band_che_amo.php`,
+  `dashboard_fan_bands.php`)
 - **myBand come prodotto installabile/clonabile** (progetto a sé, valutato ma non iniziato):
   wizard di primo avvio stile WordPress (`install.php`: verifica DB → applica schema →
   crea primo admin → nome/dominio sito), genericizzazione di ogni riferimento hardcoded a
