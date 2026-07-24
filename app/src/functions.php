@@ -410,6 +410,7 @@ function renderSiteFooterBar(): string {
     } else {
         $parts[] = '<a href="/">myBand</a>';
     }
+    $parts[] = '<a href="/credits.php">Crediti</a>';
     $linksRow = '<div class="footer-links">' . implode('<span> · </span>', $parts) . '</div>';
     // Testo statico "myband.it/tu" (non lo slug del profilo che si sta visitando): è un invito
     // promozionale rivolto al visitatore, non un link di condivisione della pagina corrente.
@@ -837,7 +838,7 @@ const RESERVED_SLUGS = ['login','register','logout','dashboard','dashboard_profi
     'forgot_password','reset_password','dashboard_podcast','podcast',
     'choose_account_type','dashboard_fan_bands','band_che_amo','admin_apply_percorso','admin_link_avatars',
     'follow_account','dashboard_timeline','timeline','dashboard_post','timeline_post','feed','admin_import_old_timeline','timeline_more','track_review','admin_reviews','dashboard_password','dashboard_timeline_more',
-    'login_otp_request','login_otp_verify','request_access','admin_access_requests','dashboard_theme'];
+    'login_otp_request','login_otp_verify','request_access','admin_access_requests','dashboard_theme','credits'];
 
 // Genera uno slug univoco per un articolo di un dato utente (title -> slug, con suffisso -2, -3... se già esistente)
 function generateUniquePostSlug(int $userId, string $title, ?int $excludePostId = null): string {
