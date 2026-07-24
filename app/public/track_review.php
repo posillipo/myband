@@ -61,9 +61,9 @@ $pageUrl = siteUrl('/' . $slug . '/brani/' . $trackId . '/recensioni');
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Recensioni: <?= e($track['track_name']) ?> — myband.it</title>
+<title>Vota: <?= e($track['track_name']) ?> — myband.it</title>
 <meta property="og:type" content="website">
-<meta property="og:title" content="Recensioni: <?= e($track['track_name']) ?>">
+<meta property="og:title" content="Vota: <?= e($track['track_name']) ?>">
 <meta property="og:url" content="<?= e($pageUrl) ?>">
 <link rel="canonical" href="<?= e($pageUrl) ?>">
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
@@ -93,7 +93,7 @@ $pageUrl = siteUrl('/' . $slug . '/brani/' . $trackId . '/recensioni');
   </div>
 
   <div class="card">
-    <div class="section-title" style="margin-bottom:8px;">Recensioni</div>
+    <div class="section-title" style="margin-bottom:8px;">Vota</div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
       <?= renderCromeRating($stats['avg']) ?>
       <?php if ($stats['count'] > 0): ?>

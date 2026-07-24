@@ -68,7 +68,7 @@ $pageUrl = siteUrl('/' . $slug . '/brani');
         </div>
         <i class="fa-brands fa-spotify" style="color:#1DB954;font-size:22px;flex-shrink:0;"></i>
       </a>
-      <a href="/<?= e($slug) ?>/brani/<?= (int) $t['id'] ?>/recensioni" style="font-size:12.5px;flex-shrink:0;white-space:nowrap;">Recensisci →</a>
+      <a href="/<?= e($slug) ?>/brani/<?= (int) $t['id'] ?>/recensioni" style="font-size:12.5px;flex-shrink:0;white-space:nowrap;">Vota →</a>
     </div>
   <?php endforeach; ?>
 </div>

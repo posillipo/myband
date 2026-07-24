@@ -691,14 +691,14 @@ function getTrackRatingStats(int $trackId): array {
 // voto di una singola persona sia per la media arrotondata di un gruppo di voti
 function renderCromeRating(?float $rating, int $max = 5): string {
     if ($rating === null) {
-        return '<span style="color:rgba(34,34,59,0.4);font-size:13px;">Nessun voto ancora</span>';
+        return '<span style="color:rgba(var(--text-rgb),0.4);font-size:13px;">Nessun voto ancora</span>';
     }
     $filled = (int) round($rating);
     $html = '<span style="letter-spacing:2px;">';
     for ($i = 1; $i <= $max; $i++) {
         $html .= $i <= $filled
             ? '<span style="color:rgb(108,92,231);">♪</span>'
-            : '<span style="color:rgba(34,34,59,0.25);">♪</span>';
+            : '<span style="color:rgba(var(--text-rgb),0.25);">♪</span>';
     }
     $html .= '</span>';
     return $html;
@@ -708,16 +708,16 @@ function renderCromeRating(?float $rating, int $max = 5): string {
 // messaggio diverso se l'utente ha già votato, senza permettere una seconda recensione
 function renderRatingForm(string $action, int $targetId, ?int $viewerId, int $ownerUserId, ?int $existingRating): string {
     if (!$viewerId) {
-        return '<p style="color:rgba(34,34,59,0.6);font-size:13px;">Accedi per lasciare un voto.</p>';
+        return '<p style="color:rgba(var(--text-rgb),0.6);font-size:13px;">Accedi per lasciare un voto.</p>';
     }
     if ($viewerId === $ownerUserId) {
-        return '<p style="color:rgba(34,34,59,0.6);font-size:13px;">Non puoi votare te stesso.</p>';
+        return '<p style="color:rgba(var(--text-rgb),0.6);font-size:13px;">Non puoi votare te stesso.</p>';
     }
     $html = '<div style="margin-top:10px;">';
     if ($existingRating !== null) {
-        $html .= '<p style="font-size:13px;color:rgba(34,34,59,0.6);margin-bottom:6px;">Il tuo voto: ' . renderCromeRating((float) $existingRating) . ' — clicca per modificarlo</p>';
+        $html .= '<p style="font-size:13px;color:rgba(var(--text-rgb),0.6);margin-bottom:6px;">Il tuo voto: ' . renderCromeRating((float) $existingRating) . ' — clicca per modificarlo</p>';
     } else {
-        $html .= '<p style="font-size:13px;color:rgba(34,34,59,0.6);margin-bottom:6px;">Lascia il tuo voto:</p>';
+        $html .= '<p style="font-size:13px;color:rgba(var(--text-rgb),0.6);margin-bottom:6px;">Lascia il tuo voto:</p>';
     }
     $html .= '<div style="display:flex;gap:6px;">';
     for ($i = 1; $i <= 5; $i++) {
@@ -725,7 +725,7 @@ function renderRatingForm(string $action, int $targetId, ?int $viewerId, int $ow
             . '<input type="hidden" name="action" value="' . e($action) . '">'
             . '<input type="hidden" name="target_id" value="' . $targetId . '">'
             . '<input type="hidden" name="rating" value="' . $i . '">'
-            . '<button type="submit" style="background:none;border:none;font-size:22px;cursor:pointer;color:' . ($existingRating !== null && $i <= $existingRating ? 'rgb(108,92,231)' : 'rgba(34,34,59,0.3)') . ';">♪</button>'
+            . '<button type="submit" style="background:none;border:none;font-size:22px;cursor:pointer;color:' . ($existingRating !== null && $i <= $existingRating ? 'rgb(108,92,231)' : 'rgba(var(--text-rgb),0.3)') . ';">♪</button>'
             . '</form>';
     }
     $html .= '</div></div>';
@@ -770,9 +770,9 @@ function renderTimelineFeedItem(array $item): string {
         $html .= '<img src="' . e($coverSrc) . '" style="width:64px;height:64px;border-radius:10px;object-fit:cover;flex-shrink:0;">';
     }
     $html .= '<div style="flex:1;min-width:0;">';
-    $html .= '<small style="color:rgba(34,34,59,0.6);text-transform:uppercase;">' . e($label) . '</small><br>';
+    $html .= '<small style="color:rgba(var(--text-rgb),0.6);text-transform:uppercase;">' . e($label) . '</small><br>';
     $html .= '<strong>' . e($item['titolo']) . '</strong><br>';
-    $html .= '<small style="color:rgba(34,34,59,0.6);">' . e(date('d/m/Y', strtotime($item['data']))) . $eventoInfo . '</small>';
+    $html .= '<small style="color:rgba(var(--text-rgb),0.6);">' . e(date('d/m/Y', strtotime($item['data']))) . $eventoInfo . '</small>';
     $html .= '</div></a>';
     return $html;
 }

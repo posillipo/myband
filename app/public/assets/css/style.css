@@ -384,7 +384,8 @@ body.colorful-page {
   background: transparent;
 }
 
-/* Riga di link orizzontali (cookie, privacy, home/dashboard) — nero, in ogni stato */
+/* Riga di link orizzontali (cookie, privacy, home/dashboard) — si adatta al tema attivo tramite
+   la stessa variabile --text-rgb usata per gli altri testi secondari, non più nero fisso */
 .site-footer-fixed .footer-links {
   background: transparent;
   text-align: center;
@@ -396,10 +397,10 @@ body.colorful-page {
 .site-footer-fixed .footer-links a:hover,
 .site-footer-fixed .footer-links a:active,
 .site-footer-fixed .footer-links a:focus {
-  color: #000000 !important;
+  color: rgba(var(--text-rgb, 34,34,59), 0.9) !important;
   text-decoration: underline;
 }
-.site-footer-fixed .footer-links span { opacity: 0.6; color: #000000; }
+.site-footer-fixed .footer-links span { opacity: 0.6; color: rgba(var(--text-rgb, 34,34,59), 0.9); }
 
 /* Pulsante "myband.it/tu", posizionato sopra la riga Cookie/Privacy, con un piccolo richiamo
    visivo periodico (una breve vibrazione ogni pochi secondi, non continua) */
