@@ -312,6 +312,7 @@ body.light-theme .icon-btn { border-color: #d5d5da; }
 body.colorful-page {
   background: linear-gradient(160deg, var(--cf-1, #FFD6A5) 0%, var(--cf-2, #A0C4FF) 55%, var(--cf-3, #BDB2FF) 100%);
   color: #22223b;
+  --text-rgb: 34,34,59; /* usata da tutti i testi secondari (rgba(var(--text-rgb), X)), così si adatta automaticamente a qualsiasi tema */
   min-height: 100vh;
   margin: 0;
   overflow-x: hidden; /* la pagina intera non deve mai scorrere in orizzontale, solo elementi interni contenuti apposta (es. il menu su mobile) */
@@ -622,6 +623,7 @@ body.colorful-page {
 body.rock-page {
   background: #131313;
   color: #eaeaea;
+  --text-rgb: 234,234,234; /* chiara invece che scura, il contrario del tema Colorful */
   min-height: 100vh;
   margin: 0;
   overflow-x: hidden;
@@ -651,8 +653,8 @@ body.rock-page {
   background: #202020; color: #eaeaea; border: 1px solid #2c2c2c; border-radius: 4px;
 }
 .rock-page .colorful-nav a:hover { background: #262626; }
-.rock-page .colorful-nav a[style*="color:#fff"] { background: var(--accent, #6C5CE7) !important; border-color: var(--accent, #6C5CE7); }
-.rock-page .colorful-nav a.nav-segui-tab { background: var(--accent, #6C5CE7) !important; border-color: var(--accent, #6C5CE7); }
+.rock-page .colorful-nav a[style*="color:#fff"] { background: var(--accent, #6C5CE7) !important; color: #fff !important; border-color: var(--accent, #6C5CE7); }
+.rock-page .colorful-nav a.nav-segui-tab { background: var(--accent, #6C5CE7) !important; color: #fff !important; border-color: var(--accent, #6C5CE7); }
 
 .rock-page .social-icon-btn {
   background: #202020; border: 1px solid #2c2c2c; border-radius: 6px; color: #eaeaea;

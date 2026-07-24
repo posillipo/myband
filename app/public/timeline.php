@@ -54,8 +54,8 @@ $pageUrl = siteUrl('/' . $slug . '/timeline');
   </div>
 
   <div id="timeline-sentinel" style="height:1px;"></div>
-  <p id="timeline-loading" style="text-align:center;color:rgba(34,34,59,0.5);display:none;">Caricamento...</p>
-  <p id="timeline-end" style="text-align:center;color:rgba(34,34,59,0.5);display:none;">Hai visto tutto.</p>
+  <p id="timeline-loading" style="text-align:center;color:rgba(var(--text-rgb),0.5);display:none;">Caricamento...</p>
+  <p id="timeline-end" style="text-align:center;color:rgba(var(--text-rgb),0.5);display:none;">Hai visto tutto.</p>
 </div>
 <?= renderFloatingButtons() ?>
 <?= renderSiteFooterBar() ?>

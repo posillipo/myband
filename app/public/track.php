@@ -83,7 +83,7 @@ $ogDescription = $track['display_name'] . ' — ascolta "' . $track['title'] . '
            style="width:220px;height:220px;border-radius:16px;object-fit:cover;box-shadow:0 8px 24px rgba(0,0,0,0.18);margin-bottom:16px;">
     <?php endif; ?>
     <h1 style="font-size:22px;margin:0 0 4px;"><?= e($track['title']) ?></h1>
-    <p style="color:rgba(34,34,59,0.7);margin-top:0;">di <?= e($track['display_name']) ?></p>
+    <p style="color:rgba(var(--text-rgb),0.7);margin-top:0;">di <?= e($track['display_name']) ?></p>
     <audio controls src="/<?= e($track['file_path']) ?>" style="width:100%;margin-top:10px;"></audio>
   </div>
 

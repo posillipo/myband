@@ -57,12 +57,12 @@ $pageUrl = siteUrl('/' . $slug . '/podcast');
         <?php endif; ?>
         <div style="flex:1;min-width:0;">
           <strong><?= e($ep['name']) ?></strong><br>
-          <small style="color:rgba(34,34,59,0.7);">
+          <small style="color:rgba(var(--text-rgb),0.7);">
             <?= $ep['release_date'] ? date('d/m/Y', strtotime($ep['release_date'])) : '' ?>
             <?= $ep['duration_ms'] ? ' · ' . gmdate('i:s', (int)($ep['duration_ms']/1000)) . ' min' : '' ?>
           </small>
           <?php if ($ep['description']): ?>
-            <p style="color:rgba(34,34,59,0.7);margin:6px 0 0;font-size:13px;"><?= e($ep['description']) ?></p>
+            <p style="color:rgba(var(--text-rgb),0.7);margin:6px 0 0;font-size:13px;"><?= e($ep['description']) ?></p>
           <?php endif; ?>
         </div>
         <i class="fa-brands fa-spotify" style="color:#1DB954;font-size:22px;flex-shrink:0;"></i>

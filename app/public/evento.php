@@ -82,9 +82,9 @@ $ogDescription = trim($event['display_name'] . ' — ' . date('d/m/Y H:i', strto
            style="width:220px;height:220px;border-radius:16px;object-fit:cover;box-shadow:0 8px 24px rgba(0,0,0,0.18);margin-bottom:16px;">
     <?php endif; ?>
     <h1 style="font-size:22px;margin:0 0 6px;"><?= e($event['title']) ?></h1>
-    <p style="color:rgba(34,34,59,0.7);margin:0 0 4px;"><?= date('d/m/Y H:i', strtotime($event['event_date'])) ?></p>
+    <p style="color:rgba(var(--text-rgb),0.7);margin:0 0 4px;"><?= date('d/m/Y H:i', strtotime($event['event_date'])) ?></p>
     <?php if ($locationLine): ?>
-      <p style="color:rgba(34,34,59,0.7);margin:0 0 12px;"><?= e($locationLine) ?></p>
+      <p style="color:rgba(var(--text-rgb),0.7);margin:0 0 12px;"><?= e($locationLine) ?></p>
     <?php endif; ?>
     <?php if ($event['ticket_url']): ?>
       <a class="btn" href="<?= e($event['ticket_url']) ?>" target="_blank" rel="noopener">Biglietti →</a>

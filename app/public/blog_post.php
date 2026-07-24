@@ -89,7 +89,7 @@ $ogImage = $post['cover_path'] ? siteUrl($post['cover_path']) : ($post['avatar_p
 
   <div class="card" style="margin-top:24px;">
     <strong>Condividi questo articolo</strong><br>
-    <small style="color:rgba(34,34,59,0.75);"><?= e($permalink) ?></small>
+    <small style="color:rgba(var(--text-rgb),0.75);"><?= e($permalink) ?></small>
   </div>
 </div>
 <?= renderFloatingButtons() ?>

@@ -76,7 +76,7 @@ $anteprima = $post['testo'] ? textExcerpt($post['testo'], 150) : 'Nuovo aggiorna
       <img src="/<?= e($post['image_path']) ?>" alt=""
            style="width:100%;max-width:400px;display:block;margin:0 auto 16px;border-radius:14px;object-fit:cover;box-shadow:0 8px 24px rgba(0,0,0,0.15);">
     <?php endif; ?>
-    <small style="color:rgba(34,34,59,0.6);"><?= date('d/m/Y H:i', strtotime($post['created_at'])) ?></small>
+    <small style="color:rgba(var(--text-rgb),0.6);"><?= date('d/m/Y H:i', strtotime($post['created_at'])) ?></small>
     <?php if ($post['testo']): ?>
       <p style="margin-top:8px;font-size:16px;"><?= nl2br(e($post['testo'])) ?></p>
     <?php endif; ?>

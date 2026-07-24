@@ -54,7 +54,7 @@ $pageUrl = siteUrl('/' . $slug . '/spotify');
         <?php endif; ?>
         <div style="flex:1;min-width:0;">
           <strong><?= e($t['name']) ?></strong><br>
-          <small style="color:rgba(34,34,59,0.7);"><?= e($t['album_name']) ?></small>
+          <small style="color:rgba(var(--text-rgb),0.7);"><?= e($t['album_name']) ?></small>
         </div>
         <i class="fa-brands fa-spotify" style="color:#1DB954;font-size:22px;flex-shrink:0;"></i>
       </a>
@@ -71,7 +71,7 @@ $pageUrl = siteUrl('/' . $slug . '/spotify');
             <img src="<?= e($a['image']) ?>" alt="" style="width:100%;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,0.12);">
           <?php endif; ?>
           <div style="margin-top:6px;font-size:13px;font-weight:700;"><?= e($a['name']) ?></div>
-          <div style="font-size:12px;color:rgba(34,34,59,0.7);">
+          <div style="font-size:12px;color:rgba(var(--text-rgb),0.7);">
             <?= e($a['release_date'] ? substr($a['release_date'], 0, 4) : '') ?> ·
             <?= $a['type'] === 'single' ? 'Singolo' : 'Album' ?>
           </div>

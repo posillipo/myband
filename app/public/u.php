@@ -138,7 +138,7 @@ $bandReviewers = $bandReviewers->fetchAll();
           <?= $alreadyFollowing ? '✓ Segui già' : '✨ Segui' ?>
         </button>
       </form>
-      <div style="color:rgba(34,34,59,0.6);font-size:12px;margin-top:4px;">
+      <div style="color:rgba(var(--text-rgb),0.6);font-size:12px;margin-top:4px;">
         <?= getAccountFollowerCount((int)$uid) ?> ti seguono su myBand
       </div>
     <?php else: ?>
@@ -151,7 +151,7 @@ $bandReviewers = $bandReviewers->fetchAll();
           <button type="submit" class="btn small" style="background:rgb(108,92,231);">Conferma</button>
         </form>
       </details>
-      <div style="color:rgba(34,34,59,0.6);font-size:12px;margin-top:4px;">
+      <div style="color:rgba(var(--text-rgb),0.6);font-size:12px;margin-top:4px;">
         <?= $followerCount > 0 ? $followerCount . ($followerCount === 1 ? ' persona segue' : ' persone seguono') : 'ricevi una notifica quando pubblica' ?>
       </div>
     <?php endif; ?>
@@ -180,7 +180,7 @@ $bandReviewers = $bandReviewers->fetchAll();
   <?php endif; ?>
 
   <?php if ($spotifyPreview): ?>
-    <div class="section-title" style="text-align:center;color:rgba(34,34,59,0.6);margin:18px 0 10px;">Spotify</div>
+    <div class="section-title" style="text-align:center;color:rgba(var(--text-rgb),0.6);margin:18px 0 10px;">Spotify</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px;margin-bottom:10px;">
       <?php foreach ($spotifyPreview as $a): ?>
         <a href="<?= e($a['spotify_url']) ?>" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">
@@ -197,7 +197,7 @@ $bandReviewers = $bandReviewers->fetchAll();
       </p>
     <?php endif; ?>
   <?php elseif ($fanFavorites): ?>
-    <div class="section-title" style="text-align:center;color:rgba(34,34,59,0.6);margin:18px 0 10px;">Band che amo</div>
+    <div class="section-title" style="text-align:center;color:rgba(var(--text-rgb),0.6);margin:18px 0 10px;">Band che amo</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:10px;">
       <?php foreach ($fanFavoritesPreview as $f): ?>
         <a href="https://open.spotify.com/artist/<?= e($f['spotify_artist_id']) ?>" target="_blank" rel="noopener"
@@ -221,7 +221,7 @@ $bandReviewers = $bandReviewers->fetchAll();
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
       <?= renderCromeRating($bandRatingStats['avg']) ?>
       <?php if ($bandRatingStats['count'] > 0): ?>
-        <span style="font-size:13px;color:rgba(34,34,59,0.6);"><?= $bandRatingStats['avg'] ?> · <?= $bandRatingStats['count'] ?> <?= $bandRatingStats['count'] === 1 ? 'voto' : 'voti' ?></span>
+        <span style="font-size:13px;color:rgba(var(--text-rgb),0.6);"><?= $bandRatingStats['avg'] ?> · <?= $bandRatingStats['count'] ?> <?= $bandRatingStats['count'] === 1 ? 'voto' : 'voti' ?></span>
       <?php endif; ?>
     </div>
     <?= renderRatingForm('rate_band', (int) $uid, $viewerId, (int) $uid, $myBandRating) ?>

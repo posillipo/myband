@@ -83,7 +83,7 @@ $pageUrl = siteUrl('/' . $slug . '/brani/' . $trackId . '/recensioni');
       <img src="<?= e($track['track_image']) ?>" style="width:96px;height:96px;border-radius:12px;object-fit:cover;margin-bottom:10px;">
     <?php endif; ?>
     <div style="font-weight:800;font-size:18px;"><?= e($track['track_name']) ?></div>
-    <div style="color:rgba(34,34,59,0.6);margin-bottom:10px;"><?= e($track['artist_name']) ?></div>
+    <div style="color:rgba(var(--text-rgb),0.6);margin-bottom:10px;"><?= e($track['artist_name']) ?></div>
     <?php if ($track['spotify_url']): ?>
       <a href="<?= e($track['spotify_url']) ?>" target="_blank" rel="noopener" style="font-size:13px;">
         <i class="fa-brands fa-spotify" style="color:#1DB954;"></i> Ascolta su Spotify
@@ -96,7 +96,7 @@ $pageUrl = siteUrl('/' . $slug . '/brani/' . $trackId . '/recensioni');
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
       <?= renderCromeRating($stats['avg']) ?>
       <?php if ($stats['count'] > 0): ?>
-        <span style="font-size:13px;color:rgba(34,34,59,0.6);"><?= $stats['avg'] ?> · <?= $stats['count'] ?> <?= $stats['count'] === 1 ? 'voto' : 'voti' ?></span>
+        <span style="font-size:13px;color:rgba(var(--text-rgb),0.6);"><?= $stats['avg'] ?> · <?= $stats['count'] ?> <?= $stats['count'] === 1 ? 'voto' : 'voti' ?></span>
       <?php endif; ?>
     </div>
     <?= renderRatingForm('rate_track', (int) $track['id'], $viewerId, (int) $track['user_id'], $myRating) ?>

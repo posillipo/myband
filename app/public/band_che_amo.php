@@ -45,7 +45,7 @@ $pageUrl = siteUrl('/' . $slug . '/band-che-amo');
 <div class="container">
   <?= publicProfileHeader($artist, 'home') ?>
 
-  <div class="section-title" style="text-align:center;color:rgba(34,34,59,0.6);margin:18px 0 10px;">
+  <div class="section-title" style="text-align:center;color:rgba(var(--text-rgb),0.6);margin:18px 0 10px;">
     Tutte le band che ama (<?= count($favorites) ?>)
   </div>
 
