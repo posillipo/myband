@@ -109,7 +109,7 @@ $bandReviewers = $bandReviewers->fetchAll();
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <style>
   :root {
-    --accent: <?= e($artist['theme_color'] ?: '#6C5CE7') ?>;
+    --accent: <?= e($artist['theme_color'] ?: '#6C5CE7') ?>; --accent-text: <?= e(getContrastTextColor($artist['theme_color'])) ?>;
     --cf-1: #FFD6A5; --cf-2: #A0C4FF; --cf-3: #BDB2FF;
   }
 </style>

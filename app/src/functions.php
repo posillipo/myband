@@ -255,6 +255,26 @@ function renderWaveBackground(string $accentColor): string {
     <script src="' . assetUrl('/assets/js/wave-bg.js') . '"></script>';
 }
 
+// Calcola se il testo sopra un colore di sfondo debba essere bianco o scuro, in base alla
+// luminosità percepita — usato per il pulsante attivo del menu e "Segui", che altrimenti
+// sarebbero sempre bianchi anche quando il colore scelto dal profilo è già chiaro (es. un
+// turchese acceso), risultando illeggibili.
+function getContrastTextColor(?string $hexColor): string {
+    $hex = ltrim($hexColor ?: '#6C5CE7', '#');
+    if (strlen($hex) === 3) {
+        $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+    }
+    if (strlen($hex) !== 6 || !ctype_xdigit($hex)) {
+        return '#fff';
+    }
+    $r = hexdec(substr($hex, 0, 2));
+    $g = hexdec(substr($hex, 2, 2));
+    $b = hexdec(substr($hex, 4, 2));
+    // Luminosità percepita (formula standard W3C, approssimata)
+    $luminance = (0.299 * $r + 0.587 * $g + 0.114 * $b) / 255;
+    return $luminance > 0.6 ? '#22223b' : '#fff';
+}
+
 function getPageThemeClass(?string $theme): string {
     return PAGE_THEMES[$theme]['body_class'] ?? PAGE_THEMES['colorful']['body_class'];
 }
