@@ -64,6 +64,7 @@ $pageUrl = siteUrl('/' . $userSlug . '/contatti');
 <?= embedGoogleAnalytics() ?>
 </head>
 <body class="<?= e(getPageThemeClass($artist['page_theme'] ?? 'colorful')) ?>">
+<?php if (($artist['page_theme'] ?? 'colorful') === 'wave'): ?><?= renderWaveBackground($artist['theme_color'] ?? '#6C5CE7') ?><?php endif; ?>
 <?= embedTrackingBodyStart() ?>
 <div class="container">
   <?= publicProfileHeader($artist, 'contatti') ?>

@@ -37,13 +37,20 @@ include __DIR__ . '/_dash_header.php';
         <label style="display:block;cursor:pointer;">
           <input type="radio" name="page_theme" value="<?= e($key) ?>" <?= $isSelected ? 'checked' : '' ?> onchange="this.form.submit()" style="display:none;">
           <div class="card" style="border:2px solid <?= $isSelected ? 'var(--accent)' : 'transparent' ?>;text-align:center;">
-            <?php if ($key === 'rock'): ?>
+            <?php if ($key === 'wave'): ?>
+              <div style="background:linear-gradient(160deg,#0b0b12,#1a1a2e);border-radius:6px;padding:16px 10px;margin-bottom:10px;position:relative;overflow:hidden;">
+                <div style="position:absolute;inset:0;background:repeating-linear-gradient(115deg, rgba(108,92,231,0.25) 0 2px, transparent 2px 14px);"></div>
+                <div style="position:relative;width:40px;height:40px;border-radius:50%;background:#222;margin:0 auto 8px;border:2px solid #6C5CE7;"></div>
+                <div style="position:relative;background:rgba(255,255,255,0.1);border-radius:6px;height:10px;margin-bottom:4px;"></div>
+                <div style="position:relative;background:rgba(255,255,255,0.1);border-radius:6px;height:10px;"></div>
+              </div>
+            <?php elseif ($key === 'rock'): ?>
               <div style="background:#131313;border-radius:6px;padding:16px 10px;margin-bottom:10px;">
                 <div style="width:40px;height:40px;border-radius:6px;border:2px solid #6C5CE7;margin:0 auto 8px;background:#1a1a1a;"></div>
                 <div style="background:#1c1c1c;border-left:3px solid #6C5CE7;border-radius:3px;height:10px;margin-bottom:4px;"></div>
                 <div style="background:#1c1c1c;border-left:3px solid #6C5CE7;border-radius:3px;height:10px;"></div>
               </div>
-            <?php else: ?>
+            <?php elseif ($key === 'colorful'): ?>
               <div style="background:linear-gradient(160deg,#FFD6A5,#A0C4FF,#BDB2FF);border-radius:6px;padding:16px 10px;margin-bottom:10px;">
                 <div style="width:40px;height:40px;border-radius:50%;background:#fff;margin:0 auto 8px;"></div>
                 <div style="background:rgba(255,255,255,0.6);border-radius:999px;height:10px;margin-bottom:4px;"></div>

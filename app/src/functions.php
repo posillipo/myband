@@ -244,7 +244,16 @@ function splitSocialAndActionLinks(array $links): array {
 const PAGE_THEMES = [
     'colorful' => ['label' => 'Colorful', 'description' => 'Sfumatura pastello, il classico myBand', 'body_class' => 'colorful-page'],
     'rock' => ['label' => 'Rock', 'description' => 'Sfondo scuro, angoli netti, tono più deciso', 'body_class' => 'rock-page'],
+    'wave' => ['label' => 'Wave', 'description' => 'Sfondo 3D animato, una griglia che ondeggia al passaggio del mouse', 'body_class' => 'wave-page'],
 ];
+
+// Sfondo animato Three.js per il tema "Wave" — canvas fisso dietro al contenuto, caricato solo
+// se il profilo ha scelto questo tema. Fallisce in silenzio se il browser non supporta WebGL.
+function renderWaveBackground(string $accentColor): string {
+    return '<canvas id="wave-bg-canvas" data-accent="' . e($accentColor) . '"></canvas>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+    <script src="' . assetUrl('/assets/js/wave-bg.js') . '"></script>';
+}
 
 function getPageThemeClass(?string $theme): string {
     return PAGE_THEMES[$theme]['body_class'] ?? PAGE_THEMES['colorful']['body_class'];
