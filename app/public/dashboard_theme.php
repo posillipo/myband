@@ -51,6 +51,24 @@ include __DIR__ . '/_dash_header.php';
                 <div style="position:relative;background:rgba(34,34,59,0.15);border-radius:6px;height:10px;margin-bottom:4px;"></div>
                 <div style="position:relative;background:rgba(34,34,59,0.15);border-radius:6px;height:10px;"></div>
               </div>
+            <?php elseif ($key === 'aurora'): ?>
+              <div style="background:linear-gradient(180deg,#131b2e 0%,#4a3157 45%,#d97a52 100%);border-radius:6px;padding:16px 10px;margin-bottom:10px;">
+                <div style="width:40px;height:40px;border-radius:50%;background:#222;margin:0 auto 8px;border:2px solid #fff;"></div>
+                <div style="background:#e0654f;border-radius:8px;height:10px;margin-bottom:4px;box-shadow:0 2px 0 rgba(0,0,0,0.2);"></div>
+                <div style="background:#e0654f;border-radius:8px;height:10px;box-shadow:0 2px 0 rgba(0,0,0,0.2);"></div>
+              </div>
+            <?php elseif ($key === 'plasma'): ?>
+              <div style="background:linear-gradient(160deg,#7b2ff7,#ff2fb0,#2f6bff);border-radius:6px;padding:16px 10px;margin-bottom:10px;">
+                <div style="width:40px;height:40px;border-radius:50%;background:#fff;margin:0 auto 8px;"></div>
+                <div style="background:#ff8a3d;border-radius:999px;height:10px;margin-bottom:4px;"></div>
+                <div style="background:#ff8a3d;border-radius:999px;height:10px;"></div>
+              </div>
+            <?php elseif ($key === 'golden'): ?>
+              <div style="background:linear-gradient(180deg,#f3a35a,#8a4a3a,#2b1a1f);border-radius:6px;padding:16px 10px;margin-bottom:10px;">
+                <div style="width:40px;height:40px;border-radius:50%;background:#fff;margin:0 auto 8px;"></div>
+                <div style="background:#fff;border-radius:999px;height:10px;margin-bottom:4px;"></div>
+                <div style="background:#fff;border-radius:999px;height:10px;"></div>
+              </div>
             <?php elseif ($key === 'wave-neon'): ?>
               <div style="background:linear-gradient(160deg,#060609,#12121c);border-radius:6px;padding:16px 10px;margin-bottom:10px;position:relative;overflow:hidden;">
                 <div style="position:absolute;inset:0;background:repeating-linear-gradient(90deg, rgba(108,92,231,0.3) 0 2px, transparent 2px 8px);"></div>
