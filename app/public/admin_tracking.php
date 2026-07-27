@@ -11,12 +11,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     setSiteSetting('gtm_head_script', $_POST['gtm_head_script'] ?? '');
     setSiteSetting('gtm_body_script', $_POST['gtm_body_script'] ?? '');
     setSiteSetting('fb_pixel_script', $_POST['fb_pixel_script'] ?? '');
+    setSiteSetting('fb_pixel_id', trim($_POST['fb_pixel_id'] ?? ''));
+    $newCapiToken = trim($_POST['fb_capi_token'] ?? '');
+    if ($newCapiToken !== '') {
+        setSiteSetting('fb_capi_token', $newCapiToken);
+    }
     $success = 'Script di tracking aggiornati. Saranno visibili su tutte le pagine pubbliche entro pochi secondi.';
 }
 
 $gtmHead = getSiteSetting('gtm_head_script') ?: '';
 $gtmBody = getSiteSetting('gtm_body_script') ?: '';
 $fbPixel = getSiteSetting('fb_pixel_script') ?: '';
+$fbPixelId = getSiteSetting('fb_pixel_id') ?: '';
+$hasCapiToken = (getSiteSetting('fb_capi_token') ?: '') !== '';
 
 include __DIR__ . '/_admin_header.php';
 ?>
@@ -33,6 +40,7 @@ include __DIR__ . '/_admin_header.php';
 
   <form method="post" class="card">
     <?= csrfField() ?>
+    <input type="hidden" name="fb_pixel_id" value="<?= e($fbPixelId) ?>">
 
     <label>Google Tag Manager — script per l'&lt;head&gt;</label>
     <textarea name="gtm_head_script" rows="5" placeholder="&lt;script&gt;(function(w,d,s,l,i){...})(window,document,'script','dataLayer','GTM-XXXXXXX');&lt;/script&gt;"><?= e($gtmHead) ?></textarea>
@@ -44,5 +52,29 @@ include __DIR__ . '/_admin_header.php';
     <textarea name="fb_pixel_script" rows="6" placeholder="&lt;script&gt;!function(f,b,e,v,n,t,s){...}(window, document,'script', 'https://connect.facebook.net/en_US/fbevents.js');&lt;/script&gt;"><?= e($fbPixel) ?></textarea>
 
     <button type="submit" class="btn">Salva script di tracking</button>
+  </form>
+
+  <div class="card">
+    <strong>Meta Conversions API</strong>
+    <p style="color:var(--text-muted)">
+      Invia gli stessi eventi anche dal server (registrazioni completate, richieste di
+      accesso) — recupera i dati persi dal solo Pixel per via di ad blocker o restrizioni
+      Safari/iOS. Trovi entrambi i valori in Meta Events Manager → il tuo Pixel → Impostazioni
+      → Conversions API → Genera token di accesso.
+    </p>
+  </div>
+  <form method="post" class="card">
+    <?= csrfField() ?>
+    <input type="hidden" name="gtm_head_script" value="<?= e($gtmHead) ?>">
+    <input type="hidden" name="gtm_body_script" value="<?= e($gtmBody) ?>">
+    <input type="hidden" name="fb_pixel_script" value="<?= e($fbPixel) ?>">
+
+    <label>ID del Pixel</label>
+    <input type="text" name="fb_pixel_id" placeholder="es. 123456789012345" value="<?= e($fbPixelId) ?>">
+
+    <label>Token di accesso Conversions API</label>
+    <input type="password" name="fb_capi_token" placeholder="<?= $hasCapiToken ? '••••••••  (lascia vuoto per non modificarlo)' : 'incolla qui il token generato da Meta' ?>">
+
+    <button type="submit" class="btn">Salva Conversions API</button>
   </form>
 <?php include __DIR__ . '/_admin_footer.php'; ?>

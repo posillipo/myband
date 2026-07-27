@@ -623,6 +623,68 @@ function embedTrackingBodyStart(): string {
     return getSiteSetting('gtm_body_script') ?: '';
 }
 
+// Genera un ID univoco per un evento — lo stesso valore va passato sia qui (server, Conversions
+// API) sia al richiamo fbq() lato browser, così Meta riconosce che è lo stesso evento visto da
+// due fonti diverse e non lo conta due volte.
+function generateEventId(): string {
+    return bin2hex(random_bytes(12));
+}
+
+// Invia un evento a Meta Conversions API lato server (registrazioni, richieste di accesso,
+// ecc.) — in aggiunta al Pixel lato browser, per non perdere dati a causa di ad blocker o
+// restrizioni Safari/iOS. Non fa nulla se Pixel ID o token non sono configurati, e non lancia
+// mai errori: un fallimento qui non deve mai bloccare l'azione dell'utente (registrazione,
+// voto, ecc.), è solo tracciamento accessorio.
+function sendMetaConversionEvent(string $eventName, string $eventId, ?string $userEmail = null): void {
+    $pixelId = getSiteSetting('fb_pixel_id') ?: '';
+    $token = getSiteSetting('fb_capi_token') ?: '';
+    if ($pixelId === '' || $token === '') {
+        return;
+    }
+
+    $userData = [
+        'client_ip_address' => $_SERVER['REMOTE_ADDR'] ?? '',
+        'client_user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
+    ];
+    if ($userEmail) {
+        $userData['em'] = [hash('sha256', strtolower(trim($userEmail)))];
+    }
+    $fbc = $_COOKIE['_fbc'] ?? null;
+    $fbp = $_COOKIE['_fbp'] ?? null;
+    if ($fbc) $userData['fbc'] = $fbc;
+    if ($fbp) $userData['fbp'] = $fbp;
+
+    $payload = [
+        'data' => [[
+            'event_name' => $eventName,
+            'event_time' => time(),
+            'event_id' => $eventId,
+            'action_source' => 'website',
+            'event_source_url' => 'https://' . ($_SERVER['HTTP_HOST'] ?? 'myband.it') . ($_SERVER['REQUEST_URI'] ?? ''),
+            'user_data' => $userData,
+        ]],
+    ];
+
+    $ch = curl_init("https://graph.facebook.com/v19.0/{$pixelId}/events?access_token=" . urlencode($token));
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 3); // non deve mai rallentare percepibilmente la richiesta dell'utente
+    curl_exec($ch);
+    curl_close($ch);
+}
+
+// Restituisce lo script <script> da stampare subito dopo un'azione (registrazione completata,
+// richiesta di accesso inviata) per notificare lo stesso evento anche al Pixel lato browser,
+// con lo stesso event_id passato al server — necessario per la deduplicazione.
+function embedClientSideConversionEvent(string $eventName, string $eventId): string {
+    if ((getSiteSetting('fb_pixel_id') ?: '') === '') {
+        return '';
+    }
+    return "<script>if (typeof fbq === 'function') { fbq('track', '" . addslashes($eventName) . "', {}, {eventID: '" . addslashes($eventId) . "'}); }</script>";
+}
+
 // Gestisce l'upload di un'immagine di copertina (link, articoli blog, eventi). Restituisce il
 // percorso relativo salvato, o null se non è stato caricato nessun file valido. Non lancia mai
 // errori: un file mancante o non valido significa semplicemente "nessuna copertina".

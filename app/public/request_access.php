@@ -18,6 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = getDB()->prepare('INSERT INTO access_requests (name, email, band_name, message) VALUES (?,?,?,?)');
         $stmt->execute([$name, $email, $bandName ?: null, $message ?: null]);
         $sent = true;
+        $conversionEventId = generateEventId();
+        sendMetaConversionEvent('Lead', $conversionEventId, $email);
     }
 }
 ?>
@@ -29,8 +31,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <title>Richiedi l'accesso — myband.it</title>
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <?= embedPrivacyScript() ?>
+<?= embedTrackingHead() ?>
+<?= embedGoogleAnalytics() ?>
 </head>
 <body>
+<?= embedTrackingBodyStart() ?>
+<?php if ($sent): ?><?= embedClientSideConversionEvent('Lead', $conversionEventId) ?><?php endif; ?>
 <div class="auth-split">
   <div class="auth-split-brand">
     <div class="logo">my<span>Band</span>.it</div>

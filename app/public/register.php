@@ -59,6 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             notifyAdminsNewUser($email, $displayName, $slug);
             $registered = true;
             $registeredEmailSent = $emailSent;
+            $conversionEventId = generateEventId();
+            sendMetaConversionEvent('CompleteRegistration', $conversionEventId, $email);
         }
     }
 }
@@ -84,6 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <div class="auth-split-form">
     <div class="auth-split-form-inner">
       <?php if ($registered): ?>
+        <?= embedClientSideConversionEvent('CompleteRegistration', $conversionEventId) ?>
         <div class="alert success">
           <strong>Registrazione completata!</strong><br>
           <?php if ($registeredEmailSent): ?>
