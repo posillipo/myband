@@ -8,7 +8,7 @@ $user = currentUser();
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>myband.it — Il Linktree per musicisti indipendenti</title>
+<title>myband.it — Il Link in Bio per musicisti indipendenti</title>
 <meta name="description" content="Una pagina, tutta la tua musica: link, brani, eventi, blog e contatti booking in un unico posto.">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
 <?= embedPrivacyScript() ?>
@@ -141,7 +141,7 @@ $user = currentUser();
   <div class="lp-feature">
     <div class="lp-feature-icon">🔗</div>
     <h3>Tutti i link in un posto</h3>
-    <p>Spotify, YouTube, Instagram, TikTok, sito personale — un solo Linktree musicale.</p>
+    <p>Spotify, YouTube, Instagram, TikTok, sito personale — un solo Link in Bio musicale.</p>
   </div>
   <div class="lp-feature">
     <div class="lp-feature-icon">📅</div>

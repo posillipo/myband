@@ -1,4 +1,4 @@
-# MyBand.it — Piattaforma Linktree per musicisti
+# MyBand.it — Piattaforma Link in Bio per musicisti
 
 Piattaforma multi-utente dove ogni musicista (band manager) può registrarsi e creare la propria
 pagina pubblica (`myband.it/nomepagina`) con link, brani audio, calendario concerti, blog e form
@@ -157,7 +157,7 @@ docker compose exec db mysqldump -u root -p myband > backup_$(date +%F).sql
   all'interno della band, invece di essere inserito manualmente dal band manager. Nel vecchio
   myband.it esisteva un concetto analogo (tabella `musicisti` collegata alla band tramite
   `id_band`)
-- **Footer pagina pubblica, ispirato all'analisi di un esempio Linktree**: badge "myband.it/tu"
+- **Footer pagina pubblica, ispirato all'analisi di un esempio di pagina Link in Bio**: badge "myband.it/tu"
   chiudibile con una X (oggi non è possibile nasconderlo); sfondo del blocco finale a
   **dissolvenza graduale** (dal colore della pagina verso uno scuro) invece dell'attuale blocco
   di colore pieno, per un aspetto più morbido e integrato con il resto della pagina
@@ -200,7 +200,7 @@ band), i messaggi diretti restano esclusi per principio.
 
 ## 10. Principio guida per le integrazioni esterne: coerenza grafica
 
-**myBand è un "Linktree musicale"**: ogni integrazione con un servizio esterno deve rispettare
+**myBand è un "Link in Bio musicale"**: ogni integrazione con un servizio esterno deve rispettare
 lo stesso linguaggio visivo della piattaforma (card arrotondate, palette coerente, copertine
 quadrate), non introdurre widget/player "estranei" con lo stile grafico del servizio di origine.
 

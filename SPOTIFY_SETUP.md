@@ -6,7 +6,7 @@
 2. **Create app**
 3. Compila:
    - **App name**: es. "MyBand.it"
-   - **App description**: es. "Piattaforma linktree per musicisti"
+   - **App description**: es. "Piattaforma Link in Bio per musicisti"
    - **Redirect URI**: puoi mettere `https://www.myband.it/` (non viene effettivamente usata da
      questa integrazione, che non richiede login utente, ma il campo è obbligatorio)
    - **Which API/SDKs are you planning to use?**: spunta **Web API**

@@ -97,7 +97,7 @@ include __DIR__ . '/_dash_header.php';
   <details class="help-box">
     <summary>ℹ️ Come funziona</summary>
     <p style="color:var(--text-muted)">
-      Aggiungi qui i pulsanti del tuo Linktree: social, sito web, streaming, qualsiasi link tu
+      Aggiungi qui i pulsanti del tuo Link in Bio: social, sito web, streaming, qualsiasi link tu
       voglia mostrare. Le icone dei servizi più comuni (Spotify, Instagram, YouTube, ecc.)
       vengono riconosciute automaticamente e mostrate in cima alla pagina pubblica come icone
       social invece che come pulsanti — usa le frecce per decidere l'ordine dei link rimanenti.

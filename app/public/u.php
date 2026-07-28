@@ -19,7 +19,7 @@ if (!$artist) {
 }
 
 // Se Spotify è collegato, sulla Home mostriamo un'anteprima del profilo Spotify (stile
-// LinkTree, quadrati) al posto di "Band che amo" — quest'ultima resta comunque disponibile
+// Link in Bio, quadrati) al posto di "Band che amo" — quest'ultima resta comunque disponibile
 // sulla sua pagina dedicata, semplicemente non occupa questo spazio sulla Home quando c'è
 // già un profilo Spotify da mostrare.
 $spotifyPreview = [];
