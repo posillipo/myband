@@ -100,6 +100,30 @@ function spotifySearchArtist(string $query): array {
     return $results;
 }
 
+// Dettagli di un singolo artista (usata soprattutto per recuperare la sua immagine di profilo
+// reale, es. per i meta tag og:image, senza dover riusare la copertina di un album a caso).
+function spotifyGetArtist(string $artistId): ?array {
+    $token = getSpotifyAppToken();
+    if (!$token || trim($artistId) === '') {
+        return null;
+    }
+    $url = 'https://api.spotify.com/v1/artists/' . urlencode($artistId);
+    $response = httpRequest('GET', $url, ['Authorization: Bearer ' . $token]);
+    if (!$response) {
+        return null;
+    }
+    $a = json_decode($response, true);
+    if (!$a || empty($a['id'])) {
+        return null;
+    }
+    return [
+        'id' => $a['id'],
+        'name' => $a['name'] ?? '',
+        'image' => $a['images'][0]['url'] ?? ($a['images'][1]['url'] ?? null),
+        'spotify_url' => $a['external_urls']['spotify'] ?? null,
+    ];
+}
+
 // Album e singoli pubblicati dall'artista (esclude le compilation di altri).
 function spotifyGetArtistAlbums(string $artistId): array {
     $token = getSpotifyAppToken();
@@ -206,6 +230,30 @@ function spotifySearchShow(string $query): array {
         ];
     }
     return $results;
+}
+
+// Dettagli di un singolo show/podcast (usata soprattutto per la sua copertina reale, es. per
+// i meta tag og:image, invece di riusare l'immagine di un singolo episodio).
+function spotifyGetShow(string $showId): ?array {
+    $token = getSpotifyAppToken();
+    if (!$token || trim($showId) === '') {
+        return null;
+    }
+    $url = 'https://api.spotify.com/v1/shows/' . urlencode($showId) . '?market=US';
+    $response = httpRequest('GET', $url, ['Authorization: Bearer ' . $token]);
+    if (!$response) {
+        return null;
+    }
+    $s = json_decode($response, true);
+    if (!$s || empty($s['id'])) {
+        return null;
+    }
+    return [
+        'id' => $s['id'],
+        'name' => $s['name'] ?? '',
+        'image' => $s['images'][0]['url'] ?? ($s['images'][1]['url'] ?? null),
+        'spotify_url' => $s['external_urls']['spotify'] ?? null,
+    ];
 }
 
 // Episodi più recenti di un podcast (show).

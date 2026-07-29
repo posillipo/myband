@@ -20,6 +20,7 @@ if (!$artist || empty($artist['spotify_artist_id'])) {
 
 $albums = spotifyGetArtistAlbums($artist['spotify_artist_id']);
 $topTracks = spotifyGetArtistTopTracks($artist['spotify_artist_id']);
+$artistDetails = spotifyGetArtist($artist['spotify_artist_id']);
 
 $pageUrl = siteUrl('/' . $slug . '/spotify');
 ?>
@@ -32,6 +33,7 @@ $pageUrl = siteUrl('/' . $slug . '/spotify');
 <meta property="og:type" content="website">
 <meta property="og:title" content="<?= e($artist['display_name']) ?> su Spotify">
 <meta property="og:url" content="<?= e($pageUrl) ?>">
+<?php if (!empty($artistDetails['image'])): ?><meta property="og:image" content="<?= e($artistDetails['image']) ?>"><?php endif; ?>
 <link rel="canonical" href="<?= e($pageUrl) ?>">
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">

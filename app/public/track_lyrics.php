@@ -46,6 +46,7 @@ $stats = getTrackRatingStats($trackId);
 <meta property="og:type" content="website">
 <meta property="og:title" content="<?= e($track['track_name']) ?> — Testo e ascolto">
 <meta property="og:url" content="<?= e($pageUrl) ?>">
+<?php if ($track['track_image']): ?><meta property="og:image" content="<?= e($track['track_image']) ?>"><?php endif; ?>
 <link rel="canonical" href="<?= e($pageUrl) ?>">
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">

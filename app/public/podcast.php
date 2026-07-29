@@ -19,6 +19,7 @@ if (!$artist || empty($artist['spotify_show_id'])) {
 }
 
 $episodes = spotifyGetShowEpisodes($artist['spotify_show_id'], 10);
+$showDetails = spotifyGetShow($artist['spotify_show_id']);
 
 $pageUrl = siteUrl('/' . $slug . '/podcast');
 ?>
@@ -31,6 +32,7 @@ $pageUrl = siteUrl('/' . $slug . '/podcast');
 <meta property="og:type" content="website">
 <meta property="og:title" content="<?= e($artist['spotify_show_name'] ?: 'Podcast') ?> — <?= e($artist['display_name']) ?>">
 <meta property="og:url" content="<?= e($pageUrl) ?>">
+<?php if (!empty($showDetails['image'])): ?><meta property="og:image" content="<?= e($showDetails['image']) ?>"><?php endif; ?>
 <link rel="canonical" href="<?= e($pageUrl) ?>">
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
