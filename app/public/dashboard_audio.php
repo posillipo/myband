@@ -30,6 +30,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id = (int) ($_POST['id'] ?? 0);
         $stmt = getDB()->prepare('DELETE FROM favorite_tracks WHERE id=? AND user_id=?');
         $stmt->execute([$id, $user['id']]);
+    } elseif ($action === 'save_lyrics') {
+        $id = (int) ($_POST['id'] ?? 0);
+        $lyrics = trim($_POST['lyrics'] ?? '');
+        $stmt = getDB()->prepare('UPDATE favorite_tracks SET lyrics=? WHERE id=? AND user_id=?');
+        $stmt->execute([$lyrics ?: null, $id, $user['id']]);
     } elseif ($action === 'search') {
         $searchQuery = trim($_POST['query'] ?? '');
         if ($searchQuery !== '') {
@@ -59,24 +64,40 @@ include __DIR__ . '/_dash_header.php';
     <div class="alert error">Nessun brano aggiunto ancora — cercalo qui sotto.</div>
   <?php endif; ?>
   <?php foreach ($tracks as $t): ?>
-    <div class="link-item">
-      <div style="display:flex;align-items:center;gap:12px;">
-        <?php if ($t['track_image']): ?>
-          <img src="<?= e($t['track_image']) ?>" style="width:48px;height:48px;border-radius:6px;">
-        <?php endif; ?>
-        <div>
-          <strong><?= e($t['track_name']) ?></strong><br>
-          <small style="color:var(--text-muted)"><?= e($t['artist_name']) ?></small>
+    <div class="link-item" style="flex-direction:column;align-items:stretch;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <?php if ($t['track_image']): ?>
+            <img src="<?= e($t['track_image']) ?>" style="width:48px;height:48px;border-radius:6px;">
+          <?php endif; ?>
+          <div>
+            <strong><?= e($t['track_name']) ?></strong><br>
+            <small style="color:var(--text-muted)"><?= e($t['artist_name']) ?></small>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button type="button" class="btn small" style="background:#1DB954;color:#fff;" onclick="document.getElementById('lyrics-<?= (int)$t['id'] ?>').classList.toggle('hidden-form')">
+            <?= $t['lyrics'] ? '📝 Testo' : '➕ Lyrics' ?>
+          </button>
+          <form method="post" onsubmit="return confirm('Rimuovere questo brano?');">
+            <?= csrfField() ?>
+            <input type="hidden" name="action" value="remove">
+            <input type="hidden" name="id" value="<?= (int)$t['id'] ?>">
+            <button class="btn small danger" type="submit">Rimuovi</button>
+          </form>
         </div>
       </div>
-      <form method="post" onsubmit="return confirm('Rimuovere questo brano?');">
+      <form method="post" id="lyrics-<?= (int)$t['id'] ?>" class="hidden-form" style="margin-top:12px;">
         <?= csrfField() ?>
-        <input type="hidden" name="action" value="remove">
+        <input type="hidden" name="action" value="save_lyrics">
         <input type="hidden" name="id" value="<?= (int)$t['id'] ?>">
-        <button class="btn small danger" type="submit">Rimuovi</button>
+        <label>Testo del brano</label>
+        <textarea name="lyrics" rows="6" placeholder="Incolla o scrivi qui il testo..."><?= e($t['lyrics'] ?? '') ?></textarea>
+        <button type="submit" class="btn small">Salva testo</button>
       </form>
     </div>
   <?php endforeach; ?>
+  <style>.hidden-form { display: none; }</style>
 
   <form method="post" class="card">
     <?= csrfField() ?>

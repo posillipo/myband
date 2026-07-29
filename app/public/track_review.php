@@ -122,6 +122,11 @@ $pageUrl = siteUrl('/' . $slug . '/brani/' . $trackId . '/votazioni');
     <?php endif; ?>
   </div>
 
+  <p style="text-align:center;">
+    <?php if (!empty($track['lyrics'])): ?>
+      <a href="/<?= e($slug) ?>/brani/<?= (int) $trackId ?>/testo">📝 Testo e ascolto →</a>
+    <?php endif; ?>
+  </p>
   <p><a href="/<?= e($slug) ?>/brani">← Tutti i brani di <?= e($track['display_name']) ?></a></p>
 </div>
 <?= renderFloatingButtons() ?>

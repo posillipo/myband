@@ -68,8 +68,12 @@ $pageUrl = siteUrl('/' . $slug . '/brani');
         </div>
         <i class="fa-brands fa-spotify" style="color:#1DB954;font-size:22px;flex-shrink:0;"></i>
       </a>
-      <a href="/<?= e($slug) ?>/brani/<?= (int) $t['id'] ?>/votazioni"
-         style="font-size:12px;font-weight:700;flex-shrink:0;white-space:nowrap;padding:6px 12px;border-radius:999px;background:var(--accent);color:<?= e(getContrastTextColor($artist['theme_color'] ?? '#6C5CE7')) ?>;">Vota →</a>
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <?php if (!empty($t['lyrics'])): ?>
+          <a href="/<?= e($slug) ?>/brani/<?= (int) $t['id'] ?>/testo" title="Testo e ascolto" style="font-size:19px;color:inherit;">📝</a>
+        <?php endif; ?>
+        <a href="/<?= e($slug) ?>/brani/<?= (int) $t['id'] ?>/votazioni" title="Vota questo brano" style="font-size:24px;color:var(--accent);line-height:1;">★</a>
+      </div>
     </div>
   <?php endforeach; ?>
 </div>

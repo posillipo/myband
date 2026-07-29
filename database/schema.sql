@@ -192,6 +192,7 @@ CREATE TABLE IF NOT EXISTS favorite_tracks (
     artist_name VARCHAR(200) DEFAULT NULL,
     track_image VARCHAR(500) DEFAULT NULL,
     spotify_url VARCHAR(500) DEFAULT NULL,
+    lyrics TEXT DEFAULT NULL,
     sort_order INT NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY uniq_user_track (user_id, spotify_track_id),
