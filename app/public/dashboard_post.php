@@ -2,6 +2,7 @@
 session_start();
 require_once __DIR__ . '/../src/functions.php';
 $user = requireLogin();
+$profile = getActingProfile($user); // il profilo su cui si sta agendo (proprio, o co-gestito)
 $activeTab = 'post';
 $pageTitle = 'Pubblica';
 
@@ -11,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'add') {
         $testo = trim($_POST['testo'] ?? '');
-        $imagePath = handleCoverUpload($user['slug'], 'image');
+        $imagePath = handleCoverUpload($profile['slug'], 'image');
         $visibility = ($_POST['visibility'] ?? 'public') === 'private' ? 'private' : 'public';
         $scheduleRaw = trim($_POST['publish_at'] ?? '');
         $publishAt = null;
@@ -26,31 +27,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Scrivi qualcosa o allega una foto.';
         } else {
             $stmt = getDB()->prepare('INSERT INTO timeline_posts (user_id, testo, image_path, visibility, publish_at) VALUES (?,?,?,?,?)');
-            $stmt->execute([$user['id'], $testo ?: null, $imagePath, $visibility, $publishAt]);
+            $stmt->execute([$profile['id'], $testo ?: null, $imagePath, $visibility, $publishAt]);
+            logAdminAction((int) $profile['id'], (int) $user['id'], 'Nuovo aggiornamento in Timeline', $testo !== '' ? textExcerpt($testo, 60) : 'Foto pubblicata');
 
             // Niente notifica ai follower se il post è privato o programmato per il futuro —
             // scatterà semmai in futuro, quando sarà davvero pubblicato (non gestito automaticamente
             // oggi: la notifica per i post programmati va eventualmente rivista quando arriva il momento).
             if ($visibility === 'public' && !$publishAt) {
                 $anteprima = $testo !== '' ? textExcerpt($testo, 80) : 'Nuova foto pubblicata';
-                $timelineUrl = siteUrl('/' . $user['slug'] . '/timeline');
-                notifyFollowersNewContent((int) $user['id'], $user['display_name'], $user['slug'], 'timeline', $anteprima, $timelineUrl);
+                $timelineUrl = siteUrl('/' . $profile['slug'] . '/timeline');
+                notifyFollowersNewContent((int) $profile['id'], $profile['display_name'], $profile['slug'], 'timeline', $anteprima, $timelineUrl);
             }
         }
     } elseif ($action === 'delete') {
         $id = (int) ($_POST['id'] ?? 0);
         $stmt = getDB()->prepare('SELECT image_path FROM timeline_posts WHERE id=? AND user_id=?');
-        $stmt->execute([$id, $user['id']]);
+        $stmt->execute([$id, $profile['id']]);
         if ($row = $stmt->fetch()) {
             deleteCoverFile($row['image_path']);
         }
         $stmt = getDB()->prepare('DELETE FROM timeline_posts WHERE id=? AND user_id=?');
-        $stmt->execute([$id, $user['id']]);
+        $stmt->execute([$id, $profile['id']]);
+        logAdminAction((int) $profile['id'], (int) $user['id'], 'Aggiornamento eliminato dalla Timeline');
     }
 }
 
 $stmt = getDB()->prepare('SELECT * FROM timeline_posts WHERE user_id=? ORDER BY created_at DESC LIMIT 50');
-$stmt->execute([$user['id']]);
+$stmt->execute([$profile['id']]);
 $posts = $stmt->fetchAll();
 
 include __DIR__ . '/_dash_header.php';
@@ -115,7 +118,7 @@ include __DIR__ . '/_dash_header.php';
         <small style="color:var(--text-muted)"><?= date('d/m/Y H:i', strtotime($p['created_at'])) ?></small>
         <?php if ($p['testo']): ?><p style="margin:4px 0;"><?= nl2br(e($p['testo'])) ?></p><?php endif; ?>
         <?php if (!$isPrivate): ?>
-          <a href="/<?= e($user['slug']) ?>/timeline/<?= (int)$p['id'] ?>" target="_blank" style="font-size:13px;">Vedi pagina pubblica ↗</a>
+          <a href="/<?= e($profile['slug']) ?>/timeline/<?= (int)$p['id'] ?>" target="_blank" style="font-size:13px;">Vedi pagina pubblica ↗</a>
         <?php endif; ?>
         <form method="post" onsubmit="return confirm('Eliminare questo aggiornamento?');">
           <?= csrfField() ?>

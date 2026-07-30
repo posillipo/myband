@@ -213,8 +213,36 @@ CREATE TABLE IF NOT EXISTS access_requests (
     status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
     invite_token VARCHAR(64) DEFAULT NULL,
     invite_used TINYINT(1) NOT NULL DEFAULT 0,
+    referrer_user_id INT DEFAULT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    decided_at DATETIME DEFAULT NULL
+    decided_at DATETIME DEFAULT NULL,
+    FOREIGN KEY (referrer_user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- Co-gestione di un profilo: chi (admin_user_id) può gestire il profilo di chi (owner_user_id).
+-- Il titolare (owner) sceglie tra i propri follower chi promuovere; solo il titolare può
+-- aggiungere/rimuovere co-admin, non un co-admin stesso.
+CREATE TABLE IF NOT EXISTS profile_admins (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    owner_user_id INT NOT NULL,
+    admin_user_id INT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_owner_admin (owner_user_id, admin_user_id),
+    FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (admin_user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Registro delle azioni fatte dai co-admin su un profilo condiviso (visibile solo quando un
+-- profilo ha più di un admin attivo).
+CREATE TABLE IF NOT EXISTS admin_action_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    owner_user_id INT NOT NULL,
+    actor_user_id INT NOT NULL,
+    action VARCHAR(100) NOT NULL,
+    details VARCHAR(255) DEFAULT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (actor_user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS band_reviews (

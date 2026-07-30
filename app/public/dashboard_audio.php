@@ -3,6 +3,7 @@ session_start();
 require_once __DIR__ . '/../src/functions.php';
 require_once __DIR__ . '/../src/spotify.php';
 $user = requireLogin();
+$profile = getActingProfile($user); // il profilo su cui si sta agendo (proprio, o co-gestito)
 $activeTab = 'audio';
 $pageTitle = 'Brani';
 
@@ -16,25 +17,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add') {
         $trackId = trim($_POST['track_id'] ?? '');
         if ($trackId !== '') {
+            $trackName = trim($_POST['track_name'] ?? '');
             $stmt = getDB()->prepare('INSERT IGNORE INTO favorite_tracks
                 (user_id, spotify_track_id, track_name, artist_name, track_image, spotify_url, sort_order)
                 VALUES (?, ?, ?, ?, ?, ?, (SELECT n FROM (SELECT COALESCE(MAX(sort_order),0)+1 AS n FROM favorite_tracks WHERE user_id=?) t))');
             $stmt->execute([
-                $user['id'], $trackId,
-                trim($_POST['track_name'] ?? ''), trim($_POST['artist_name'] ?? ''),
+                $profile['id'], $trackId,
+                $trackName, trim($_POST['artist_name'] ?? ''),
                 trim($_POST['track_image'] ?? '') ?: null, trim($_POST['spotify_url'] ?? '') ?: null,
-                $user['id'],
+                $profile['id'],
             ]);
+            logAdminAction((int) $profile['id'], (int) $user['id'], 'Nuovo brano aggiunto', $trackName);
         }
     } elseif ($action === 'remove') {
         $id = (int) ($_POST['id'] ?? 0);
         $stmt = getDB()->prepare('DELETE FROM favorite_tracks WHERE id=? AND user_id=?');
-        $stmt->execute([$id, $user['id']]);
+        $stmt->execute([$id, $profile['id']]);
+        logAdminAction((int) $profile['id'], (int) $user['id'], 'Brano rimosso');
     } elseif ($action === 'save_lyrics') {
         $id = (int) ($_POST['id'] ?? 0);
         $lyrics = trim($_POST['lyrics'] ?? '');
         $stmt = getDB()->prepare('UPDATE favorite_tracks SET lyrics=? WHERE id=? AND user_id=?');
-        $stmt->execute([$lyrics ?: null, $id, $user['id']]);
+        $stmt->execute([$lyrics ?: null, $id, $profile['id']]);
+        logAdminAction((int) $profile['id'], (int) $user['id'], 'Testo del brano aggiornato');
     } elseif ($action === 'search') {
         $searchQuery = trim($_POST['query'] ?? '');
         if ($searchQuery !== '') {
@@ -44,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $stmt = getDB()->prepare('SELECT * FROM favorite_tracks WHERE user_id=? ORDER BY sort_order ASC');
-$stmt->execute([$user['id']]);
+$stmt->execute([$profile['id']]);
 $tracks = $stmt->fetchAll();
 $trackIds = array_column($tracks, 'spotify_track_id');
 

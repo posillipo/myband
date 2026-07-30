@@ -6,6 +6,11 @@
 $dashTheme = 'light-theme';
 $isBandOrLabel = in_array($user['account_type'] ?? 'band', ['band', 'label'], true);
 
+// Profili che questo utente co-gestisce (oltre al proprio) — se ce ne sono, mostriamo un
+// selettore per scegliere su quale si sta agendo in questo momento.
+$managedProfiles = getManagedProfiles((int) $user['id']);
+$actingAsId = $_SESSION['acting_as_user_id'] ?? null;
+
 $stmt = getDB()->prepare('SELECT COUNT(*) c FROM contact_requests WHERE user_id = ? AND is_read = 0');
 $stmt->execute([$user['id']]);
 $unreadMessages = (int) $stmt->fetch()['c'];
@@ -51,6 +56,19 @@ $unreadMessages = (int) $stmt->fetch()['c'];
     </a>
     <a href="/logout.php">Esci</a>
   </nav>
+  <?php if ($managedProfiles): ?>
+    <div class="container" style="padding-top:10px;padding-bottom:0;">
+      <div class="card" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;margin-bottom:14px;">
+        <i class="fa-solid fa-people-arrows" style="color:var(--accent);"></i>
+        <span style="font-size:13px;color:var(--text-muted);">Stai gestendo:</span>
+        <a href="?acting_as=<?= (int) $user['id'] ?>" style="font-size:13px;font-weight:<?= !$actingAsId ? '700' : '400' ?>;<?= !$actingAsId ? 'color:var(--accent);' : '' ?>">Il tuo profilo</a>
+        <?php foreach ($managedProfiles as $mp): ?>
+          <span style="color:var(--text-muted);">·</span>
+          <a href="?acting_as=<?= (int) $mp['id'] ?>" style="font-size:13px;font-weight:<?= $actingAsId == $mp['id'] ? '700' : '400' ?>;<?= $actingAsId == $mp['id'] ? 'color:var(--accent);' : '' ?>"><?= e($mp['display_name']) ?></a>
+        <?php endforeach; ?>
+      </div>
+    </div>
+  <?php endif; ?>
 </div>
 
 <!-- Pannello laterale "Account e impostazioni": Profilo, password, integrazioni esterne -->
@@ -70,6 +88,20 @@ $unreadMessages = (int) $stmt->fetch()['c'];
     <a href="/dashboard_theme.php" class="account-sidebar-link <?= $activeTab==='theme'?'active':'' ?>">
       <i class="fa-solid fa-palette"></i> Tema grafico
     </a>
+    <a href="/dashboard_invite.php" class="account-sidebar-link <?= $activeTab==='invite'?'active':'' ?>">
+      <i class="fa-solid fa-user-plus"></i> Invita
+    </a>
+    <a href="/dashboard_following.php" class="account-sidebar-link <?= $activeTab==='following'?'active':'' ?>">
+      <i class="fa-solid fa-heart"></i> Seguiti
+    </a>
+    <?php if ($isBandOrLabel): ?>
+      <a href="/dashboard_team.php" class="account-sidebar-link <?= $activeTab==='team'?'active':'' ?>">
+        <i class="fa-solid fa-people-group"></i> Team e co-admin
+      </a>
+      <a href="/dashboard_log.php" class="account-sidebar-link <?= $activeTab==='log'?'active':'' ?>">
+        <i class="fa-solid fa-clock-rotate-left"></i> Log
+      </a>
+    <?php endif; ?>
     <?php if ($isBandOrLabel): ?>
       <div style="padding:14px 18px 4px;font-size:11.5px;text-transform:uppercase;color:var(--text-muted);">Integrazioni</div>
       <a href="/dashboard_spotify.php" class="account-sidebar-link <?= $activeTab==='spotify'?'active':'' ?>">

@@ -57,6 +57,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $emailSent = notifyEmailVerification($email, $displayName, $verifyToken);
             notifyAdminsNewUser($email, $displayName, $slug);
+
+            // Se la registrazione arriva da un invito con un referrer riconosciuto, li facciamo
+            // seguire a vicenda automaticamente — chi invita quasi certamente conosce già la
+            // persona invitata, un collegamento reciproco dà a entrambi subito qualcosa nella
+            // propria Timeline invece di partire da una rete vuota.
+            if (!empty($invite['referrer_user_id'])) {
+                $referrerId = (int) $invite['referrer_user_id'];
+                $stmt = $db->prepare('INSERT IGNORE INTO account_follows (follower_user_id, followed_user_id) VALUES (?, ?), (?, ?)');
+                $stmt->execute([$referrerId, $userId, $userId, $referrerId]);
+
+                $stmt = $db->prepare('SELECT u.email, u.slug, p.display_name FROM users u JOIN profiles p ON p.user_id = u.id WHERE u.id = ?');
+                $stmt->execute([$referrerId]);
+                $referrer = $stmt->fetch();
+                if ($referrer) {
+                    notifyNewFollower($referrer['email'], $referrer['display_name'], $slug, $displayName);
+                    notifyNewFollower($email, $displayName, $referrer['slug'], $referrer['display_name']);
+                }
+            }
+
             $registered = true;
             $registeredEmailSent = $emailSent;
             $conversionEventId = generateEventId();

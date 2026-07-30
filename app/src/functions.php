@@ -129,6 +129,62 @@ function requireLogin(): array {
     return $u;
 }
 
+// ===== Sistema di co-gestione profili =====
+
+function getManagedProfiles(int $viewerId): array {
+    $stmt = getDB()->prepare('SELECT u.id, u.slug, p.display_name, p.avatar_path
+        FROM profile_admins pa JOIN users u ON u.id = pa.owner_user_id JOIN profiles p ON p.user_id = u.id
+        WHERE pa.admin_user_id = ? ORDER BY p.display_name ASC');
+    $stmt->execute([$viewerId]);
+    return $stmt->fetchAll();
+}
+
+function canManageProfile(int $viewerId, int $ownerId): bool {
+    if ($viewerId === $ownerId) {
+        return true;
+    }
+    $stmt = getDB()->prepare('SELECT 1 FROM profile_admins WHERE owner_user_id = ? AND admin_user_id = ?');
+    $stmt->execute([$ownerId, $viewerId]);
+    return (bool) $stmt->fetch();
+}
+
+function getActingProfile(array $loggedInUser): array {
+    $requestedId = isset($_GET['acting_as']) ? (int) $_GET['acting_as'] : null;
+    if ($requestedId !== null) {
+        if ($requestedId === (int) $loggedInUser['id'] || canManageProfile((int) $loggedInUser['id'], $requestedId)) {
+            $_SESSION['acting_as_user_id'] = $requestedId;
+        }
+    }
+    $actingId = $_SESSION['acting_as_user_id'] ?? (int) $loggedInUser['id'];
+    if ((int) $actingId === (int) $loggedInUser['id']) {
+        return $loggedInUser;
+    }
+    if (!canManageProfile((int) $loggedInUser['id'], (int) $actingId)) {
+        unset($_SESSION['acting_as_user_id']);
+        return $loggedInUser;
+    }
+    $stmt = getDB()->prepare('SELECT u.*, p.display_name, p.bio, p.avatar_path, p.theme_color, p.page_theme, p.spotify_artist_id, p.spotify_artist_name, p.spotify_show_id, p.spotify_show_name, p.youtube_channel_id, p.youtube_channel_name, p.genere, p.citta, p.provincia, p.telefono
+                              FROM users u JOIN profiles p ON p.user_id = u.id WHERE u.id = ?');
+    $stmt->execute([(int) $actingId]);
+    $profile = $stmt->fetch();
+    return $profile ?: $loggedInUser;
+}
+
+function logAdminAction(int $ownerId, int $actorId, string $action, ?string $details = null): void {
+    if ($ownerId === $actorId) {
+        return;
+    }
+    $stmt = getDB()->prepare('INSERT INTO admin_action_logs (owner_user_id, actor_user_id, action, details) VALUES (?,?,?,?)');
+    $stmt->execute([$ownerId, $actorId, $action, $details]);
+}
+
+function requireIsOwner(array $loggedInUser, array $actingProfile): void {
+    if ((int) $loggedInUser['id'] !== (int) $actingProfile['id']) {
+        http_response_code(403);
+        exit('Questa azione è riservata al titolare del profilo, non ai co-admin.');
+    }
+}
+
 // Blocca l'accesso a funzionalità riservate a Band/Artista ed Etichetta (Spotify artista,
 // Podcast, YouTube, Eventi) — i Fan vengono rimandati alla dashboard con un messaggio.
 function requireBandOrLabel(array $user): void {
@@ -997,7 +1053,8 @@ const RESERVED_SLUGS = ['login','register','logout','dashboard','dashboard_profi
     'forgot_password','reset_password','dashboard_podcast','podcast',
     'choose_account_type','dashboard_fan_bands','band_che_amo','admin_apply_percorso','admin_link_avatars',
     'follow_account','dashboard_timeline','timeline','dashboard_post','timeline_post','feed','admin_import_old_timeline','timeline_more','track_review','admin_reviews','dashboard_password','dashboard_timeline_more',
-    'login_otp_request','login_otp_verify','request_access','admin_access_requests','dashboard_theme','credits'];
+    'login_otp_request','login_otp_verify','request_access','admin_access_requests','dashboard_theme','credits',
+    'dashboard_invite','dashboard_following','dashboard_team','dashboard_log','track_lyrics'];
 
 // Genera uno slug univoco per un articolo di un dato utente (title -> slug, con suffisso -2, -3... se già esistente)
 function generateUniquePostSlug(int $userId, string $title, ?int $excludePostId = null): string {
