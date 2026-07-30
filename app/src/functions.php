@@ -158,7 +158,12 @@ function syncActingProfileFromRequest(int $loggedInUserId): void {
         return;
     }
     $requestedId = (int) $_GET['acting_as'];
-    if ($requestedId === $loggedInUserId || canManageProfile($loggedInUserId, $requestedId)) {
+    if ($requestedId === $loggedInUserId) {
+        // Tornare al proprio profilo: rimuoviamo del tutto il valore dalla sessione invece di
+        // impostarlo al proprio ID — "nessuna voce in sessione" deve significare sempre e solo
+        // "sto agendo su me stesso", senza ambiguità nel resto della dashboard.
+        unset($_SESSION['acting_as_user_id']);
+    } elseif (canManageProfile($loggedInUserId, $requestedId)) {
         $_SESSION['acting_as_user_id'] = $requestedId;
     }
 }
