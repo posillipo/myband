@@ -148,13 +148,23 @@ function canManageProfile(int $viewerId, int $ownerId): bool {
     return (bool) $stmt->fetch();
 }
 
-function getActingProfile(array $loggedInUser): array {
-    $requestedId = isset($_GET['acting_as']) ? (int) $_GET['acting_as'] : null;
-    if ($requestedId !== null) {
-        if ($requestedId === (int) $loggedInUser['id'] || canManageProfile((int) $loggedInUser['id'], $requestedId)) {
-            $_SESSION['acting_as_user_id'] = $requestedId;
-        }
+// Legge l'eventuale parametro ?acting_as= dalla URL e, se l'utente loggato è autorizzato ad
+// agire su quel profilo (è il suo, o è stato promosso admin), aggiorna la sessione. Va
+// richiamata da OGNI pagina della dashboard (lo fa _dash_header.php stesso, incluso da tutte),
+// non solo dalle pagine che poi usano concretamente il profilo attivo — altrimenti lo switch
+// funzionerebbe solo mentre ci si trova già su una di quelle pagine specifiche.
+function syncActingProfileFromRequest(int $loggedInUserId): void {
+    if (!isset($_GET['acting_as'])) {
+        return;
     }
+    $requestedId = (int) $_GET['acting_as'];
+    if ($requestedId === $loggedInUserId || canManageProfile($loggedInUserId, $requestedId)) {
+        $_SESSION['acting_as_user_id'] = $requestedId;
+    }
+}
+
+function getActingProfile(array $loggedInUser): array {
+    syncActingProfileFromRequest((int) $loggedInUser['id']);
     $actingId = $_SESSION['acting_as_user_id'] ?? (int) $loggedInUser['id'];
     if ((int) $actingId === (int) $loggedInUser['id']) {
         return $loggedInUser;

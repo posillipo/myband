@@ -8,6 +8,7 @@ $isBandOrLabel = in_array($user['account_type'] ?? 'band', ['band', 'label'], tr
 
 // Profili che questo utente co-gestisce (oltre al proprio) — se ce ne sono, mostriamo un
 // selettore per scegliere su quale si sta agendo in questo momento.
+syncActingProfileFromRequest((int) $user['id']);
 $managedProfiles = getManagedProfiles((int) $user['id']);
 $actingAsId = $_SESSION['acting_as_user_id'] ?? null;
 
