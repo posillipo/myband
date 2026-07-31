@@ -15,6 +15,21 @@ $actingAsId = $_SESSION['acting_as_user_id'] ?? null;
 $stmt = getDB()->prepare('SELECT COUNT(*) c FROM contact_requests WHERE user_id = ? AND is_read = 0');
 $stmt->execute([$user['id']]);
 $unreadMessages = (int) $stmt->fetch()['c'];
+
+// Avatar mostrato nella barra in alto: il proprio, a meno che non si stia gestendo un altro
+// profilo — in quel caso mostriamo l'avatar DI QUEL profilo, così è sempre chiaro a colpo
+// d'occhio su chi si sta agendo, senza dover aprire il menu.
+$barAvatarPath = $user['avatar_path'] ?? null;
+$barAvatarName = $user['display_name'] ?? '?';
+if ($actingAsId) {
+    foreach ($managedProfiles as $mp) {
+        if ($mp['id'] == $actingAsId) {
+            $barAvatarPath = $mp['avatar_path'];
+            $barAvatarName = $mp['display_name'];
+            break;
+        }
+    }
+}
 ?>
 <!doctype html>
 <html lang="it">
@@ -46,31 +61,70 @@ $unreadMessages = (int) $stmt->fetch()['c'];
         </span>
       <?php endif; ?>
     </a>
-    <a href="/<?= e($user['slug']) ?>" target="_blank" title="Vedi pagina pubblica" style="display:inline-flex;">
-      <?php if (!empty($user['avatar_path'])): ?>
-        <img src="/<?= e($user['avatar_path']) ?>" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">
-      <?php else: ?>
-        <span style="width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">
-          <?= e(mb_strtoupper(mb_substr($user['display_name'] ?? '?', 0, 1))) ?>
-        </span>
-      <?php endif; ?>
-    </a>
+    <?php if ($managedProfiles): ?>
+      <details class="profile-switcher">
+        <summary style="list-style:none;cursor:pointer;display:inline-flex;position:relative;">
+          <?php if ($barAvatarPath): ?>
+            <img src="/<?= e($barAvatarPath) ?>" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">
+          <?php else: ?>
+            <span style="width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">
+              <?= e(mb_strtoupper(mb_substr($barAvatarName, 0, 1))) ?>
+            </span>
+          <?php endif; ?>
+          <?php if ($actingAsId): ?>
+            <span style="position:absolute;bottom:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:var(--accent);border:2px solid #fff;" title="Stai gestendo un profilo diverso dal tuo"></span>
+          <?php endif; ?>
+        </summary>
+        <div class="profile-switcher-panel">
+          <div style="padding:10px 16px 6px;color:var(--text-muted);font-size:12px;text-transform:uppercase;letter-spacing:0.5px;">Stai gestendo</div>
+          <a href="?acting_as=<?= (int) $user['id'] ?>" class="profile-switcher-item <?= !$actingAsId ? 'active' : '' ?>">
+            <?php if (!empty($user['avatar_path'])): ?>
+              <img src="/<?= e($user['avatar_path']) ?>">
+            <?php else: ?>
+              <span class="fallback-avatar"><?= e(mb_strtoupper(mb_substr($user['display_name'] ?? '?', 0, 1))) ?></span>
+            <?php endif; ?>
+            <span>Il tuo profilo</span>
+          </a>
+          <?php foreach ($managedProfiles as $mp): ?>
+            <a href="?acting_as=<?= (int) $mp['id'] ?>" class="profile-switcher-item <?= $actingAsId == $mp['id'] ? 'active' : '' ?>">
+              <?php if (!empty($mp['avatar_path'])): ?>
+                <img src="/<?= e($mp['avatar_path']) ?>">
+              <?php else: ?>
+                <span class="fallback-avatar"><?= e(mb_strtoupper(mb_substr($mp['display_name'] ?? '?', 0, 1))) ?></span>
+              <?php endif; ?>
+              <span><?= e($mp['display_name']) ?></span>
+            </a>
+          <?php endforeach; ?>
+          <div class="profile-switcher-divider"></div>
+          <a href="/<?= e($user['slug']) ?>" target="_blank" class="profile-switcher-item">
+            <i class="fa-solid fa-arrow-up-right-from-square" style="width:26px;text-align:center;color:var(--text-muted);"></i>
+            <span>Vedi la tua pagina pubblica</span>
+          </a>
+        </div>
+      </details>
+    <?php else: ?>
+      <a href="/<?= e($user['slug']) ?>" target="_blank" title="Vedi pagina pubblica" style="display:inline-flex;">
+        <?php if (!empty($user['avatar_path'])): ?>
+          <img src="/<?= e($user['avatar_path']) ?>" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">
+        <?php else: ?>
+          <span style="width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">
+            <?= e(mb_strtoupper(mb_substr($user['display_name'] ?? '?', 0, 1))) ?>
+          </span>
+        <?php endif; ?>
+      </a>
+    <?php endif; ?>
     <a href="/logout.php">Esci</a>
   </nav>
-  <?php if ($managedProfiles): ?>
-    <div class="container" style="padding-top:10px;padding-bottom:0;">
-      <div class="card" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;margin-bottom:14px;">
-        <i class="fa-solid fa-people-arrows" style="color:var(--accent);"></i>
-        <span style="font-size:13px;color:var(--text-muted);">Stai gestendo:</span>
-        <a href="?acting_as=<?= (int) $user['id'] ?>" style="font-size:13px;font-weight:<?= !$actingAsId ? '700' : '400' ?>;<?= !$actingAsId ? 'color:var(--accent);' : '' ?>">Il tuo profilo</a>
-        <?php foreach ($managedProfiles as $mp): ?>
-          <span style="color:var(--text-muted);">·</span>
-          <a href="?acting_as=<?= (int) $mp['id'] ?>" style="font-size:13px;font-weight:<?= $actingAsId == $mp['id'] ? '700' : '400' ?>;<?= $actingAsId == $mp['id'] ? 'color:var(--accent);' : '' ?>"><?= e($mp['display_name']) ?></a>
-        <?php endforeach; ?>
-      </div>
-    </div>
-  <?php endif; ?>
 </div>
+<?php if ($managedProfiles): ?>
+<script>
+document.addEventListener('click', function (e) {
+  document.querySelectorAll('.profile-switcher[open]').forEach(function (el) {
+    if (!el.contains(e.target)) el.removeAttribute('open');
+  });
+});
+</script>
+<?php endif; ?>
 
 <!-- Pannello laterale "Account e impostazioni": Profilo, password, integrazioni esterne -->
 <div id="account-menu-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:300;"></div>
