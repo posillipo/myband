@@ -168,6 +168,21 @@ CREATE TABLE IF NOT EXISTS account_follows (
     FOREIGN KEY (followed_user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- Chat interna: consentita solo tra due account che si seguono a vicenda (verificato a ogni
+-- invio, non solo alla creazione della conversazione — se uno smette di seguire l'altro, la
+-- conversazione resta leggibile ma non si possono più mandare nuovi messaggi).
+CREATE TABLE IF NOT EXISTS direct_messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    sender_id INT NOT NULL,
+    recipient_id INT NOT NULL,
+    message TEXT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    read_at DATETIME DEFAULT NULL,
+    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_conversation (sender_id, recipient_id, created_at)
+) ENGINE=InnoDB;
+
 -- Aggiornamenti brevi pubblicati direttamente sulla Timeline (un pensiero, una foto con
 -- didascalia, o entrambi) — diverso da un articolo blog completo, pensato per condivisioni
 -- rapide, come il "cosa c'è di nuovo?" del vecchio myband.it.

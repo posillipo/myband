@@ -16,6 +16,10 @@ $stmt = getDB()->prepare('SELECT COUNT(*) c FROM contact_requests WHERE user_id 
 $stmt->execute([$user['id']]);
 $unreadMessages = (int) $stmt->fetch()['c'];
 
+$stmt = getDB()->prepare('SELECT COUNT(*) c FROM direct_messages WHERE recipient_id = ? AND read_at IS NULL');
+$stmt->execute([$user['id']]);
+$unreadDirectMessages = (int) $stmt->fetch()['c'];
+
 // Avatar mostrato nella barra in alto: il proprio, a meno che non si stia gestendo un altro
 // profilo — in quel caso mostriamo l'avatar DI QUEL profilo, così è sempre chiaro a colpo
 // d'occhio su chi si sta agendo, senza dover aprire il menu.
@@ -53,11 +57,19 @@ if ($actingAsId) {
     <?php if (!empty($user['is_admin'])): ?>
       <a href="/admin_dashboard.php" title="Area Admin" style="font-size:17px;"><i class="fa-solid fa-shield-halved"></i></a>
     <?php endif; ?>
-    <a href="/dashboard_contacts.php" title="Messaggi" style="position:relative;font-size:17px;">
+    <a href="/dashboard_contacts.php" title="Contatti" style="position:relative;font-size:17px;">
       <i class="fa-solid fa-bell"></i>
       <?php if ($unreadMessages > 0): ?>
         <span style="position:absolute;top:-7px;right:-9px;background:#e74c3c;color:#fff;border-radius:999px;font-size:10.5px;font-weight:700;padding:1px 5px;line-height:1.3;min-width:16px;text-align:center;">
           <?= $unreadMessages > 9 ? '9+' : $unreadMessages ?>
+        </span>
+      <?php endif; ?>
+    </a>
+    <a href="/dashboard_messages.php" title="Messaggi" style="position:relative;font-size:17px;">
+      <i class="fa-solid fa-comment-dots"></i>
+      <?php if ($unreadDirectMessages > 0): ?>
+        <span style="position:absolute;top:-7px;right:-9px;background:#e74c3c;color:#fff;border-radius:999px;font-size:10.5px;font-weight:700;padding:1px 5px;line-height:1.3;min-width:16px;text-align:center;">
+          <?= $unreadDirectMessages > 9 ? '9+' : $unreadDirectMessages ?>
         </span>
       <?php endif; ?>
     </a>

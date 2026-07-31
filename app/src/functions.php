@@ -623,6 +623,33 @@ function notifyAdminsNewUser(string $newUserEmail, string $newUserName, string $
     return $sentAny;
 }
 
+// Verifica se due account si seguono A VICENDA (condizione necessaria per potersi scrivere).
+function areMutualFollowers(int $userIdA, int $userIdB): bool {
+    $stmt = getDB()->prepare('SELECT COUNT(*) c FROM account_follows
+        WHERE (follower_user_id = ? AND followed_user_id = ?) OR (follower_user_id = ? AND followed_user_id = ?)');
+    $stmt->execute([$userIdA, $userIdB, $userIdB, $userIdA]);
+    return (int) $stmt->fetch()['c'] === 2;
+}
+
+// Notifica "hai un nuovo messaggio" — non rivela mai il contenuto, solo un link alla
+// conversazione. Va chiamata al massimo una volta al giorno per coppia di utenti (il controllo
+// se sia il primo messaggio della giornata lo fa chi chiama questa funzione, non lei stessa).
+function notifyNewMessage(string $toEmail, string $toName, string $fromName, string $conversationUrl): bool {
+    $cfg = getSmtpConfig();
+    if (!$cfg['host']) {
+        return false;
+    }
+    require_once __DIR__ . '/mailer.php';
+    $mailer = new SimpleSmtpMailer($cfg['host'], $cfg['port'], $cfg['user'], $cfg['pass'], $cfg['secure'], $cfg['verifyCert']);
+
+    $subject = "{$fromName} ti ha scritto su myBand";
+    $body = "Ciao {$toName},\n\n"
+          . "{$fromName} ti ha mandato un messaggio su myBand.\n\n"
+          . "Leggilo qui: {$conversationUrl}";
+
+    return $mailer->send($cfg['from'], $cfg['fromName'], $toEmail, $toName, $subject, $body);
+}
+
 // Notifica a un profilo quando un altro account inizia a seguirlo.
 function notifyNewFollower(string $toEmail, string $toName, string $followerSlug, string $followerName): bool {
     $cfg = getSmtpConfig();
@@ -1069,7 +1096,8 @@ const RESERVED_SLUGS = ['login','register','logout','dashboard','dashboard_profi
     'choose_account_type','dashboard_fan_bands','band_che_amo','admin_apply_percorso','admin_link_avatars',
     'follow_account','dashboard_timeline','timeline','dashboard_post','timeline_post','feed','admin_import_old_timeline','timeline_more','track_review','admin_reviews','dashboard_password','dashboard_timeline_more',
     'login_otp_request','login_otp_verify','request_access','admin_access_requests','dashboard_theme','credits',
-    'dashboard_invite','dashboard_following','dashboard_team','dashboard_log','track_lyrics'];
+    'dashboard_invite','dashboard_following','dashboard_team','dashboard_log','track_lyrics',
+    'dashboard_messages','dashboard_chat'];
 
 // Genera uno slug univoco per un articolo di un dato utente (title -> slug, con suffisso -2, -3... se già esistente)
 function generateUniquePostSlug(int $userId, string $title, ?int $excludePostId = null): string {
