@@ -7,9 +7,12 @@ $dashTheme = 'light-theme';
 $isBandOrLabel = in_array($user['account_type'] ?? 'band', ['band', 'label'], true);
 
 // Profili che questo utente co-gestisce (oltre al proprio) — se ce ne sono, mostriamo un
-// selettore per scegliere su quale si sta agendo in questo momento.
-syncActingProfileFromRequest((int) $user['id']);
+// selettore per scegliere su quale si sta agendo in questo momento. getActingProfile() sincronizza
+// da sé l'eventuale ?acting_as= e risolve il profilo su cui si sta effettivamente agendo (il
+// proprio, o quello co-gestito) — va usato ovunque nella dashboard occorra sapere "di chi" sono i
+// dati mostrati (avatar in barra, link alla pagina pubblica, ecc.), non solo $user.
 $managedProfiles = getManagedProfiles((int) $user['id']);
+$actingProfile = getActingProfile($user);
 $actingAsId = $_SESSION['acting_as_user_id'] ?? null;
 
 $stmt = getDB()->prepare('SELECT COUNT(*) c FROM contact_requests WHERE user_id = ? AND is_read = 0');
@@ -23,17 +26,8 @@ $unreadDirectMessages = (int) $stmt->fetch()['c'];
 // Avatar mostrato nella barra in alto: il proprio, a meno che non si stia gestendo un altro
 // profilo — in quel caso mostriamo l'avatar DI QUEL profilo, così è sempre chiaro a colpo
 // d'occhio su chi si sta agendo, senza dover aprire il menu.
-$barAvatarPath = $user['avatar_path'] ?? null;
-$barAvatarName = $user['display_name'] ?? '?';
-if ($actingAsId) {
-    foreach ($managedProfiles as $mp) {
-        if ($mp['id'] == $actingAsId) {
-            $barAvatarPath = $mp['avatar_path'];
-            $barAvatarName = $mp['display_name'];
-            break;
-        }
-    }
-}
+$barAvatarPath = $actingProfile['avatar_path'] ?? null;
+$barAvatarName = $actingProfile['display_name'] ?? '?';
 ?>
 <!doctype html>
 <html lang="it">
@@ -108,9 +102,9 @@ if ($actingAsId) {
             </a>
           <?php endforeach; ?>
           <div class="profile-switcher-divider"></div>
-          <a href="/<?= e($user['slug']) ?>" target="_blank" class="profile-switcher-item">
+          <a href="/<?= e($actingProfile['slug']) ?>" target="_blank" class="profile-switcher-item">
             <i class="fa-solid fa-arrow-up-right-from-square" style="width:26px;text-align:center;color:var(--text-muted);"></i>
-            <span>Vedi la tua pagina pubblica</span>
+            <span><?= $actingAsId ? 'Vedi la pagina pubblica di ' . e($actingProfile['display_name']) : 'Vedi la tua pagina pubblica' ?></span>
           </a>
         </div>
       </details>
