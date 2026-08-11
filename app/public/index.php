@@ -85,29 +85,44 @@ $user = currentUser();
 
   .lp-footer { text-align: center; padding: 30px 24px; color: #999; font-size: 13px; border-top: 1px solid #eee; }
 
-  /* Tabella di confronto tra i profili (Visitatore / Band Manager / Fan / Etichetta) */
-  .lp-compare { max-width: 1180px; margin: 20px auto 90px; padding: 0 24px; }
-  .lp-compare-head { text-align: center; margin-bottom: 36px; }
-  .lp-compare-head h2 { font-size: 32px; margin: 0 0 10px; }
-  .lp-compare-head p { color: #666; max-width: 560px; margin: 0 auto; font-size: 15px; line-height: 1.6; }
+  /* Confronto profili (Visitatore / Band Manager / Fan / Etichetta) — mobile-first:
+     le regole di base sono per schermo stretto (card impilate, nessuno scroll orizzontale);
+     i breakpoint con min-width AGGIUNGONO la disposizione a griglia man mano che c'è spazio. */
+  .lp-compare { max-width: 1180px; margin: 10px auto 60px; padding: 0 20px; }
+  .lp-compare-head { text-align: center; margin-bottom: 28px; }
+  .lp-compare-head h2 { font-size: 24px; margin: 0 0 10px; }
+  .lp-compare-head p { color: #666; max-width: 560px; margin: 0 auto; font-size: 14.5px; line-height: 1.6; }
 
-  .lp-compare-scroll { overflow-x: auto; border-radius: 18px; box-shadow: 0 4px 20px rgba(23,23,43,0.06); background: #fff; }
-  .lp-compare-table { width: 100%; border-collapse: collapse; min-width: 760px; }
-  .lp-compare-table th, .lp-compare-table td { padding: 13px 18px; text-align: center; border-bottom: 1px solid #f2f2f2; font-size: 13.5px; }
-  .lp-compare-table td:first-child { text-align: left; font-weight: 600; color: #17172b; white-space: nowrap; }
-  .lp-compare-table thead th { vertical-align: top; padding-top: 26px; border-bottom: 2px solid #eee; }
-  .lp-compare-col-head { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-  .lp-compare-icon { font-size: 22px; }
-  .lp-compare-title { font-weight: 800; font-size: 15px; color: #17172b; }
-  .lp-compare-desc { font-size: 11.5px; color: #888; font-weight: 500; max-width: 150px; line-height: 1.4; }
-  .lp-compare-cta { margin-top: 10px; background: #17172b; color: #fff; padding: 8px 16px; border-radius: 999px; font-weight: 700; font-size: 12px; white-space: nowrap; }
-  .lp-compare-table th.lp-compare-featured { background: rgba(108,92,231,0.07); position: relative; }
-  .lp-compare-badge { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); background: rgb(108,92,231); color: #fff; font-size: 10px; font-weight: 800; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
-  .lp-compare-table tr.lp-compare-group td { background: #FAF5EE; text-align: left; font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: rgb(108,92,231); padding: 9px 18px; }
-  .lp-compare-table .yes { color: #10ac84; font-weight: 800; font-size: 15px; }
-  .lp-compare-table .no { color: #ddd; font-size: 15px; }
-  .lp-compare-note { font-size: 12px; color: #999; text-align: center; margin-top: 16px; }
-  @media (max-width: 600px) { .lp-compare-head h2 { font-size: 26px; } }
+  .lp-compare-grid { display: flex; flex-direction: column; gap: 16px; }
+  .plan-card { background: #fff; border-radius: 18px; padding: 22px 18px; box-shadow: 0 4px 20px rgba(23,23,43,0.06); position: relative; }
+  .plan-card.featured { border: 2px solid rgb(108,92,231); background: rgba(108,92,231,0.03); }
+  .plan-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: rgb(108,92,231); color: #fff; font-size: 10.5px; font-weight: 800; padding: 4px 12px; border-radius: 999px; white-space: nowrap; }
+  .plan-head { text-align: center; margin-bottom: 16px; }
+  .plan-icon { font-size: 26px; }
+  .plan-title { font-weight: 800; font-size: 17px; margin: 6px 0 4px; }
+  .plan-desc { font-size: 12.5px; color: #888; line-height: 1.4; }
+  .plan-cta { display: inline-block; margin-top: 14px; background: #17172b; color: #fff; padding: 10px 22px; border-radius: 999px; font-weight: 700; font-size: 13px; }
+  .plan-group { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: rgb(108,92,231); margin: 16px 0 6px; padding-top: 12px; border-top: 1px solid #f0f0f0; }
+  .plan-group:first-of-type { border-top: none; margin-top: 4px; }
+  .plan-features { list-style: none; margin: 0; padding: 0; }
+  .plan-features li { display: flex; align-items: flex-start; gap: 8px; font-size: 13.5px; padding: 6px 0; color: #333; line-height: 1.4; }
+  .plan-features li.no-item { color: #aaa; }
+  .plan-features li .ico { flex: 0 0 16px; text-align: center; font-weight: 800; }
+  .plan-features li.yes-item .ico { color: #10ac84; }
+  .plan-features li.no-item .ico { color: #ddd; }
+  .lp-compare-note { font-size: 12px; color: #999; text-align: center; margin-top: 20px; }
+
+  /* Tablet: 2 colonne */
+  @media (min-width: 620px) {
+    .lp-compare-grid { display: grid; grid-template-columns: repeat(2, 1fr); align-items: start; gap: 16px; }
+  }
+  /* Desktop: le 4 card affiancate come nel riferimento a colonne */
+  @media (min-width: 1000px) {
+    .lp-compare-head h2 { font-size: 32px; }
+    .lp-compare-head p { font-size: 15px; }
+    .lp-compare-grid { grid-template-columns: repeat(4, 1fr); gap: 18px; }
+    .plan-card.featured { transform: translateY(-8px); }
+  }
 </style>
 </head>
 <body>
@@ -180,6 +195,47 @@ $user = currentUser();
   </div>
 </section>
 
+<?php
+// Dati del confronto profili: un'unica fonte per generare le 4 card (Visitatore / Band Manager /
+// Fan / Etichetta), così l'ordine delle funzionalità resta identico in ognuna senza doverle
+// ripetere a mano 4 volte.
+$comparePlans = [
+    'visitor' => ['icon' => '👀', 'title' => 'Visitatore', 'desc' => 'Scopre le band, nessuna registrazione', 'badge' => null, 'featured' => false],
+    'band'    => ['icon' => '🎤', 'title' => 'Band Manager', 'desc' => 'Gestisce la pagina della band', 'badge' => 'Per artisti e band', 'featured' => true],
+    'fan'     => ['icon' => '❤️', 'title' => 'Fan', 'desc' => 'Segue e sostiene i suoi artisti', 'badge' => null, 'featured' => false],
+    'label'   => ['icon' => '🏷️', 'title' => 'Etichetta', 'desc' => 'Presenta la propria etichetta discografica', 'badge' => null, 'featured' => false],
+];
+// Nota: il campo testo si chiama "feature" (non "label") perché "label" è già una delle chiavi
+// di $comparePlans (colonna Etichetta) — usarlo per entrambi causava una collisione silenziosa
+// (la seconda occorrenza della chiave in un array PHP sovrascrive la prima).
+$compareGroups = [
+    'Pagina pubblica' => [
+        ['feature' => 'Pagina pubblica personalizzata (myband.it/tuoslug)', 'visitor' => false, 'band' => true, 'fan' => true, 'label' => true],
+        ['feature' => 'Link in bio (social, sito web, ecc.)', 'visitor' => false, 'band' => true, 'fan' => true, 'label' => true],
+        ['feature' => 'Blog con permalink SEO', 'visitor' => false, 'band' => true, 'fan' => true, 'label' => true],
+        ['feature' => 'Timeline e aggiornamenti', 'visitor' => false, 'band' => true, 'fan' => true, 'label' => true],
+        ['feature' => 'Brani preferiti (da Spotify)', 'visitor' => false, 'band' => true, 'fan' => true, 'label' => true],
+        ['feature' => 'Calendario eventi e concerti', 'visitor' => false, 'band' => true, 'fan' => false, 'label' => true],
+        ['feature' => 'Discografia Spotify', 'visitor' => false, 'band' => true, 'fan' => false, 'label' => true],
+        ['feature' => 'Podcast', 'visitor' => false, 'band' => true, 'fan' => false, 'label' => true],
+        ['feature' => 'Video / canale YouTube', 'visitor' => false, 'band' => true, 'fan' => false, 'label' => true],
+        ['feature' => 'Form contatti / booking', 'visitor' => false, 'band' => true, 'fan' => true, 'label' => true],
+    ],
+    'Community' => [
+        ['feature' => 'Segui una band via email, senza account', 'visitor' => true, 'band' => false, 'fan' => false, 'label' => false],
+        ['feature' => 'Segui altri profili myBand', 'visitor' => false, 'band' => true, 'fan' => true, 'label' => true],
+        ['feature' => 'Lista "Band che amo"', 'visitor' => false, 'band' => true, 'fan' => true, 'label' => true],
+        ['feature' => 'Messaggi diretti (chat)', 'visitor' => false, 'band' => true, 'fan' => true, 'label' => true],
+        ['feature' => 'Vota e recensisci brani e band', 'visitor' => false, 'band' => true, 'fan' => true, 'label' => true],
+        ['feature' => 'Statistiche follower', 'visitor' => false, 'band' => true, 'fan' => true, 'label' => true],
+    ],
+    'Gestione avanzata' => [
+        ['feature' => 'Inviti per nuovi utenti', 'visitor' => false, 'band' => true, 'fan' => true, 'label' => true],
+        ['feature' => 'Team e co-admin sullo stesso profilo', 'visitor' => false, 'band' => true, 'fan' => false, 'label' => true],
+        ['feature' => 'Log delle attività', 'visitor' => false, 'band' => true, 'fan' => false, 'label' => true],
+    ],
+];
+?>
 <section class="lp-compare" id="confronto">
   <div class="lp-compare-head">
     <h2>Quale profilo fa per te?</h2>
@@ -187,72 +243,31 @@ $user = currentUser();
       il profilo più adatto a te: Band Manager, Fan o Etichetta discografica.</p>
   </div>
 
-  <div class="lp-compare-scroll">
-  <table class="lp-compare-table">
-    <thead>
-      <tr>
-        <th></th>
-        <th>
-          <div class="lp-compare-col-head">
-            <div class="lp-compare-icon">👀</div>
-            <div class="lp-compare-title">Visitatore</div>
-            <div class="lp-compare-desc">Scopre le band, nessuna registrazione</div>
-          </div>
-        </th>
-        <th class="lp-compare-featured">
-          <div class="lp-compare-badge">Per artisti e band</div>
-          <div class="lp-compare-col-head">
-            <div class="lp-compare-icon">🎤</div>
-            <div class="lp-compare-title">Band Manager</div>
-            <div class="lp-compare-desc">Gestisce la pagina della band</div>
-            <a href="/request_access.php" class="lp-compare-cta">Richiedi l'accesso</a>
-          </div>
-        </th>
-        <th>
-          <div class="lp-compare-col-head">
-            <div class="lp-compare-icon">❤️</div>
-            <div class="lp-compare-title">Fan</div>
-            <div class="lp-compare-desc">Segue e sostiene i suoi artisti</div>
-            <a href="/request_access.php" class="lp-compare-cta">Richiedi l'accesso</a>
-          </div>
-        </th>
-        <th>
-          <div class="lp-compare-col-head">
-            <div class="lp-compare-icon">🏷️</div>
-            <div class="lp-compare-title">Etichetta</div>
-            <div class="lp-compare-desc">Presenta la propria etichetta discografica</div>
-            <a href="/request_access.php" class="lp-compare-cta">Richiedi l'accesso</a>
-          </div>
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr class="lp-compare-group"><td colspan="5">Pagina pubblica</td></tr>
-      <tr><td>Pagina pubblica personalizzata (myband.it/tuoslug)</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-      <tr><td>Link in bio (social, sito web, ecc.)</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-      <tr><td>Blog con permalink SEO</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-      <tr><td>Timeline e aggiornamenti</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-      <tr><td>Brani preferiti (da Spotify)</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-      <tr><td>Calendario eventi e concerti</td><td class="no">–</td><td class="yes">✓</td><td class="no">–</td><td class="yes">✓</td></tr>
-      <tr><td>Discografia Spotify</td><td class="no">–</td><td class="yes">✓</td><td class="no">–</td><td class="yes">✓</td></tr>
-      <tr><td>Podcast</td><td class="no">–</td><td class="yes">✓</td><td class="no">–</td><td class="yes">✓</td></tr>
-      <tr><td>Video / canale YouTube</td><td class="no">–</td><td class="yes">✓</td><td class="no">–</td><td class="yes">✓</td></tr>
-      <tr><td>Form contatti / booking</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-
-      <tr class="lp-compare-group"><td colspan="5">Community</td></tr>
-      <tr><td>Segui una band via email, senza account</td><td class="yes">✓</td><td class="no">–</td><td class="no">–</td><td class="no">–</td></tr>
-      <tr><td>Segui altri profili myBand</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-      <tr><td>Lista "Band che amo"</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-      <tr><td>Messaggi diretti (chat)</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-      <tr><td>Vota e recensisci brani e band</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-      <tr><td>Statistiche follower</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-
-      <tr class="lp-compare-group"><td colspan="5">Gestione avanzata</td></tr>
-      <tr><td>Inviti per nuovi utenti</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-      <tr><td>Team e co-admin sullo stesso profilo</td><td class="no">–</td><td class="yes">✓</td><td class="no">–</td><td class="yes">✓</td></tr>
-      <tr><td>Log delle attività</td><td class="no">–</td><td class="yes">✓</td><td class="no">–</td><td class="yes">✓</td></tr>
-    </tbody>
-  </table>
+  <div class="lp-compare-grid">
+    <?php foreach ($comparePlans as $planKey => $plan): ?>
+    <div class="plan-card<?= $plan['featured'] ? ' featured' : '' ?>">
+      <?php if ($plan['badge']): ?><div class="plan-badge"><?= e($plan['badge']) ?></div><?php endif; ?>
+      <div class="plan-head">
+        <div class="plan-icon"><?= $plan['icon'] ?></div>
+        <div class="plan-title"><?= e($plan['title']) ?></div>
+        <div class="plan-desc"><?= e($plan['desc']) ?></div>
+        <?php if ($planKey !== 'visitor'): ?>
+          <a href="/request_access.php" class="plan-cta">Richiedi l'accesso</a>
+        <?php endif; ?>
+      </div>
+      <ul class="plan-features">
+        <?php foreach ($compareGroups as $groupName => $rows): ?>
+          <li class="plan-group"><?= e($groupName) ?></li>
+          <?php foreach ($rows as $row): $included = $row[$planKey]; ?>
+            <li class="<?= $included ? 'yes-item' : 'no-item' ?>">
+              <span class="ico"><?= $included ? '✓' : '–' ?></span>
+              <span><?= e($row['feature']) ?></span>
+            </li>
+          <?php endforeach; ?>
+        <?php endforeach; ?>
+      </ul>
+    </div>
+    <?php endforeach; ?>
   </div>
   <p class="lp-compare-note">myBand è ad accesso su invito: ogni richiesta viene valutata personalmente.</p>
 </section>
