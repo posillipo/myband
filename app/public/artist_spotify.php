@@ -47,6 +47,13 @@ $pageUrl = siteUrl('/' . $slug . '/spotify');
 <div class="container">
   <?= publicProfileHeader($artist, 'spotify') ?>
 
+  <p style="text-align:center;color:rgba(var(--text-rgb),0.6);margin:-6px 0 20px;font-size:13.5px;">
+    Discografia Spotify di
+    <a href="https://open.spotify.com/artist/<?= e($artist['spotify_artist_id']) ?>" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;font-weight:700;">
+      <?= e($artist['spotify_artist_name'] ?: 'profilo collegato') ?> <i class="fa-brands fa-spotify" style="color:#1DB954;"></i>
+    </a>
+  </p>
+
   <?php if ($topTracks): ?>
     <div class="section-title">Brani più ascoltati</div>
     <?php foreach ($topTracks as $t): ?>

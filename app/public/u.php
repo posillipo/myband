@@ -6,7 +6,7 @@ header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 
 $slug = $_GET['slug'] ?? '';
-$stmt = getDB()->prepare('SELECT u.*, p.display_name, p.bio, p.avatar_path, p.theme_color, p.page_theme, p.spotify_artist_id, p.spotify_show_id, p.genere, p.youtube_channel_id
+$stmt = getDB()->prepare('SELECT u.*, p.display_name, p.bio, p.avatar_path, p.theme_color, p.page_theme, p.spotify_artist_id, p.spotify_artist_name, p.spotify_show_id, p.genere, p.youtube_channel_id
                           FROM users u JOIN profiles p ON p.user_id = u.id
                           WHERE u.slug = ? AND u.is_active = 1');
 $stmt->execute([$slug]);
@@ -188,7 +188,13 @@ $bandReviewers = $bandReviewers->fetchAll();
   <?php endif; ?>
 
   <?php if ($spotifyPreview): ?>
-    <div class="section-title" style="text-align:center;color:rgba(var(--text-rgb),0.6);margin:18px 0 10px;">Spotify</div>
+    <div class="section-title" style="text-align:center;color:rgba(var(--text-rgb),0.6);margin:18px 0 10px;">
+      Spotify:
+      <a href="https://open.spotify.com/artist/<?= e($artist['spotify_artist_id']) ?>" target="_blank" rel="noopener"
+         style="color:inherit;text-decoration:underline;">
+        <?= e($artist['spotify_artist_name'] ?: 'profilo collegato') ?> <i class="fa-brands fa-spotify" style="color:#1DB954;"></i>
+      </a>
+    </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px;margin-bottom:10px;">
       <?php foreach ($spotifyPreview as $a): ?>
         <a href="<?= e($a['spotify_url']) ?>" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">
