@@ -445,13 +445,50 @@ function publicProfileHeader(array $artist, string $active, bool $showBio = fals
         $html .= '<p>' . nl2br(e($artist['bio'])) . '</p>';
     }
     $html .= '<h1>' . e($artist['display_name']) . '</h1>';
-    $html .= '<p class="profile-meta">@' . e($artist['slug']);
+    $profileUrl = siteUrl('/' . $artist['slug']);
+    $html .= '<p class="profile-meta">';
+    $html .= '<a href="/' . e($artist['slug']) . '">@' . e($artist['slug']) . '</a>';
+    $html .= ' <button type="button" class="profile-copy-link" data-copy-url="' . e($profileUrl) . '" title="Copia il link del profilo per condividerlo" aria-label="Copia il link del profilo per condividerlo">'
+           . '<i class="fa-regular fa-copy" aria-hidden="true"></i></button>';
     if (!empty($artist['genere'])) {
         $html .= '<span> · </span>' . e($artist['genere']);
     }
     $html .= '</p>';
     $html .= publicNav($artist['slug'], $active, !empty($artist['spotify_artist_id']), !empty($artist['youtube_channel_id']), !empty($artist['spotify_show_id']), $artist['account_type'] ?? 'band', isset($artist['id']) ? (int) $artist['id'] : null);
     $html .= '</div>';
+    // Copia il link del profilo negli appunti al click sull'iconcina, con Clipboard API e un
+    // fallback (execCommand) per browser/contesti che non la supportano (es. http non sicuro).
+    $html .= '<script>
+(function () {
+  var btn = document.querySelector(".profile-copy-link");
+  if (!btn) return;
+  btn.addEventListener("click", function () {
+    var url = btn.getAttribute("data-copy-url");
+    var confirmCopy = function () {
+      var icon = btn.querySelector("i");
+      icon.className = "fa-solid fa-check";
+      btn.classList.add("copied");
+      setTimeout(function () { icon.className = "fa-regular fa-copy"; btn.classList.remove("copied"); }, 1600);
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(url).then(confirmCopy).catch(function () { fallbackCopyProfileLink(url, confirmCopy); });
+    } else {
+      fallbackCopyProfileLink(url, confirmCopy);
+    }
+  });
+  function fallbackCopyProfileLink(text, cb) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); } catch (e) {}
+    document.body.removeChild(ta);
+    cb();
+  }
+})();
+</script>';
     return $html;
 }
 
