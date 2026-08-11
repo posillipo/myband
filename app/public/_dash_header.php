@@ -4,19 +4,25 @@
 // resta nel database per un'eventuale reintroduzione futura della scelta, ma non viene più
 // letta qui.
 $dashTheme = 'light-theme';
-$isBandOrLabel = in_array($user['account_type'] ?? 'band', ['band', 'label'], true);
 
 // Profili che questo utente co-gestisce (oltre al proprio) — se ce ne sono, mostriamo un
 // selettore per scegliere su quale si sta agendo in questo momento. getActingProfile() sincronizza
 // da sé l'eventuale ?acting_as= e risolve il profilo su cui si sta effettivamente agendo (il
 // proprio, o quello co-gestito) — va usato ovunque nella dashboard occorra sapere "di chi" sono i
-// dati mostrati (avatar in barra, link alla pagina pubblica, ecc.), non solo $user.
+// dati mostrati (avatar in barra, link alla pagina pubblica, tab Eventi/integrazioni, ecc.).
 $managedProfiles = getManagedProfiles((int) $user['id']);
 $actingProfile = getActingProfile($user);
 $actingAsId = $_SESSION['acting_as_user_id'] ?? null;
 
+// Due varianti distinte, non un solo flag: Eventi/Spotify/Podcast/YouTube riguardano il profilo
+// che si sta gestendo ORA (può essere co-gestito); Team/Log restano invece riservati sempre e solo
+// al vero titolare del profilo (mai delegabili, vedi il testo in dashboard_team.php) — per questo
+// vanno mostrati solo quando NON si sta agendo su un profilo altrui.
+$isActingBandOrLabel = in_array($actingProfile['account_type'] ?? 'band', ['band', 'label'], true);
+$isOwnBandOrLabel = !$actingAsId && in_array($user['account_type'] ?? 'band', ['band', 'label'], true);
+
 $stmt = getDB()->prepare('SELECT COUNT(*) c FROM contact_requests WHERE user_id = ? AND is_read = 0');
-$stmt->execute([$user['id']]);
+$stmt->execute([$actingProfile['id']]);
 $unreadMessages = (int) $stmt->fetch()['c'];
 
 $stmt = getDB()->prepare('SELECT COUNT(*) c FROM direct_messages WHERE recipient_id = ? AND read_at IS NULL');
@@ -155,7 +161,7 @@ document.addEventListener('click', function (e) {
     <a href="/dashboard_following.php" class="account-sidebar-link <?= $activeTab==='following'?'active':'' ?>">
       <i class="fa-solid fa-heart"></i> Seguiti
     </a>
-    <?php if ($isBandOrLabel): ?>
+    <?php if ($isOwnBandOrLabel): ?>
       <a href="/dashboard_team.php" class="account-sidebar-link <?= $activeTab==='team'?'active':'' ?>">
         <i class="fa-solid fa-people-group"></i> Team e co-admin
       </a>
@@ -163,19 +169,19 @@ document.addEventListener('click', function (e) {
         <i class="fa-solid fa-clock-rotate-left"></i> Log
       </a>
     <?php endif; ?>
-    <?php if ($isBandOrLabel): ?>
+    <?php if ($isActingBandOrLabel): ?>
       <div style="padding:14px 18px 4px;font-size:11.5px;text-transform:uppercase;color:var(--text-muted);">Integrazioni</div>
       <a href="/dashboard_spotify.php" class="account-sidebar-link <?= $activeTab==='spotify'?'active':'' ?>">
         <i class="fa-brands fa-spotify"></i> Account Spotify
-        <?php if (!empty($user['spotify_artist_id'])): ?><span class="account-sidebar-dot"></span><?php endif; ?>
+        <?php if (!empty($actingProfile['spotify_artist_id'])): ?><span class="account-sidebar-dot"></span><?php endif; ?>
       </a>
       <a href="/dashboard_podcast.php" class="account-sidebar-link <?= $activeTab==='podcast'?'active':'' ?>">
         <i class="fa-solid fa-microphone"></i> Account Podcast
-        <?php if (!empty($user['spotify_show_id'])): ?><span class="account-sidebar-dot"></span><?php endif; ?>
+        <?php if (!empty($actingProfile['spotify_show_id'])): ?><span class="account-sidebar-dot"></span><?php endif; ?>
       </a>
       <a href="/dashboard_youtube.php" class="account-sidebar-link <?= $activeTab==='youtube'?'active':'' ?>">
         <i class="fa-brands fa-youtube"></i> Account YouTube
-        <?php if (!empty($user['youtube_channel_id'])): ?><span class="account-sidebar-dot"></span><?php endif; ?>
+        <?php if (!empty($actingProfile['youtube_channel_id'])): ?><span class="account-sidebar-dot"></span><?php endif; ?>
       </a>
     <?php endif; ?>
   </div>
@@ -201,7 +207,7 @@ document.addEventListener('click', function (e) {
     <a href="/dashboard_fan_bands.php" class="<?= $activeTab==='fan_bands'?'active':'' ?>">Band che amo</a>
     <a href="/dashboard_links.php" class="<?= $activeTab==='links'?'active':'' ?>">LINK</a>
     <a href="/dashboard_audio.php" class="<?= $activeTab==='audio'?'active':'' ?>">Brani</a>
-    <?php if ($isBandOrLabel): ?>
+    <?php if ($isActingBandOrLabel): ?>
     <a href="/dashboard_events.php" class="<?= $activeTab==='events'?'active':'' ?>">Eventi</a>
     <?php endif; ?>
     <a href="/dashboard_blog.php" class="<?= $activeTab==='blog'?'active':'' ?>">Blog</a>
