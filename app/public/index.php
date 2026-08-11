@@ -84,6 +84,30 @@ $user = currentUser();
   .lp-final-cta p { color: #666; margin-bottom: 28px; }
 
   .lp-footer { text-align: center; padding: 30px 24px; color: #999; font-size: 13px; border-top: 1px solid #eee; }
+
+  /* Tabella di confronto tra i profili (Visitatore / Band Manager / Fan / Etichetta) */
+  .lp-compare { max-width: 1180px; margin: 20px auto 90px; padding: 0 24px; }
+  .lp-compare-head { text-align: center; margin-bottom: 36px; }
+  .lp-compare-head h2 { font-size: 32px; margin: 0 0 10px; }
+  .lp-compare-head p { color: #666; max-width: 560px; margin: 0 auto; font-size: 15px; line-height: 1.6; }
+
+  .lp-compare-scroll { overflow-x: auto; border-radius: 18px; box-shadow: 0 4px 20px rgba(23,23,43,0.06); background: #fff; }
+  .lp-compare-table { width: 100%; border-collapse: collapse; min-width: 760px; }
+  .lp-compare-table th, .lp-compare-table td { padding: 13px 18px; text-align: center; border-bottom: 1px solid #f2f2f2; font-size: 13.5px; }
+  .lp-compare-table td:first-child { text-align: left; font-weight: 600; color: #17172b; white-space: nowrap; }
+  .lp-compare-table thead th { vertical-align: top; padding-top: 26px; border-bottom: 2px solid #eee; }
+  .lp-compare-col-head { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .lp-compare-icon { font-size: 22px; }
+  .lp-compare-title { font-weight: 800; font-size: 15px; color: #17172b; }
+  .lp-compare-desc { font-size: 11.5px; color: #888; font-weight: 500; max-width: 150px; line-height: 1.4; }
+  .lp-compare-cta { margin-top: 10px; background: #17172b; color: #fff; padding: 8px 16px; border-radius: 999px; font-weight: 700; font-size: 12px; white-space: nowrap; }
+  .lp-compare-table th.lp-compare-featured { background: rgba(108,92,231,0.07); position: relative; }
+  .lp-compare-badge { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); background: rgb(108,92,231); color: #fff; font-size: 10px; font-weight: 800; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+  .lp-compare-table tr.lp-compare-group td { background: #FAF5EE; text-align: left; font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: rgb(108,92,231); padding: 9px 18px; }
+  .lp-compare-table .yes { color: #10ac84; font-weight: 800; font-size: 15px; }
+  .lp-compare-table .no { color: #ddd; font-size: 15px; }
+  .lp-compare-note { font-size: 12px; color: #999; text-align: center; margin-top: 16px; }
+  @media (max-width: 600px) { .lp-compare-head h2 { font-size: 26px; } }
 </style>
 </head>
 <body>
@@ -94,6 +118,7 @@ $user = currentUser();
   <div class="lp-nav-links">
     <a href="#come-funziona">Come funziona</a>
     <a href="#funzionalita">Funzionalità</a>
+    <a href="#confronto">Confronta i profili</a>
     <a href="/request_access.php">Richiedi accesso</a>
   </div>
   <?php if ($user): ?>
@@ -153,6 +178,83 @@ $user = currentUser();
     <h3>Timeline e community</h3>
     <p>Pubblica aggiornamenti, segui altri artisti, costruisci la tua rete su myBand.</p>
   </div>
+</section>
+
+<section class="lp-compare" id="confronto">
+  <div class="lp-compare-head">
+    <h2>Quale profilo fa per te?</h2>
+    <p>Su myBand puoi anche solo scoprire le band che ami senza registrarti. Se vuoi di più, scegli
+      il profilo più adatto a te: Band Manager, Fan o Etichetta discografica.</p>
+  </div>
+
+  <div class="lp-compare-scroll">
+  <table class="lp-compare-table">
+    <thead>
+      <tr>
+        <th></th>
+        <th>
+          <div class="lp-compare-col-head">
+            <div class="lp-compare-icon">👀</div>
+            <div class="lp-compare-title">Visitatore</div>
+            <div class="lp-compare-desc">Scopre le band, nessuna registrazione</div>
+          </div>
+        </th>
+        <th class="lp-compare-featured">
+          <div class="lp-compare-badge">Per artisti e band</div>
+          <div class="lp-compare-col-head">
+            <div class="lp-compare-icon">🎤</div>
+            <div class="lp-compare-title">Band Manager</div>
+            <div class="lp-compare-desc">Gestisce la pagina della band</div>
+            <a href="/request_access.php" class="lp-compare-cta">Richiedi l'accesso</a>
+          </div>
+        </th>
+        <th>
+          <div class="lp-compare-col-head">
+            <div class="lp-compare-icon">❤️</div>
+            <div class="lp-compare-title">Fan</div>
+            <div class="lp-compare-desc">Segue e sostiene i suoi artisti</div>
+            <a href="/request_access.php" class="lp-compare-cta">Richiedi l'accesso</a>
+          </div>
+        </th>
+        <th>
+          <div class="lp-compare-col-head">
+            <div class="lp-compare-icon">🏷️</div>
+            <div class="lp-compare-title">Etichetta</div>
+            <div class="lp-compare-desc">Presenta la propria etichetta discografica</div>
+            <a href="/request_access.php" class="lp-compare-cta">Richiedi l'accesso</a>
+          </div>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="lp-compare-group"><td colspan="5">Pagina pubblica</td></tr>
+      <tr><td>Pagina pubblica personalizzata (myband.it/tuoslug)</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+      <tr><td>Link in bio (social, sito web, ecc.)</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+      <tr><td>Blog con permalink SEO</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+      <tr><td>Timeline e aggiornamenti</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+      <tr><td>Brani preferiti (da Spotify)</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+      <tr><td>Calendario eventi e concerti</td><td class="no">–</td><td class="yes">✓</td><td class="no">–</td><td class="yes">✓</td></tr>
+      <tr><td>Discografia Spotify</td><td class="no">–</td><td class="yes">✓</td><td class="no">–</td><td class="yes">✓</td></tr>
+      <tr><td>Podcast</td><td class="no">–</td><td class="yes">✓</td><td class="no">–</td><td class="yes">✓</td></tr>
+      <tr><td>Video / canale YouTube</td><td class="no">–</td><td class="yes">✓</td><td class="no">–</td><td class="yes">✓</td></tr>
+      <tr><td>Form contatti / booking</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+
+      <tr class="lp-compare-group"><td colspan="5">Community</td></tr>
+      <tr><td>Segui una band via email, senza account</td><td class="yes">✓</td><td class="no">–</td><td class="no">–</td><td class="no">–</td></tr>
+      <tr><td>Segui altri profili myBand</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+      <tr><td>Lista "Band che amo"</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+      <tr><td>Messaggi diretti (chat)</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+      <tr><td>Vota e recensisci brani e band</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+      <tr><td>Statistiche follower</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+
+      <tr class="lp-compare-group"><td colspan="5">Gestione avanzata</td></tr>
+      <tr><td>Inviti per nuovi utenti</td><td class="no">–</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+      <tr><td>Team e co-admin sullo stesso profilo</td><td class="no">–</td><td class="yes">✓</td><td class="no">–</td><td class="yes">✓</td></tr>
+      <tr><td>Log delle attività</td><td class="no">–</td><td class="yes">✓</td><td class="no">–</td><td class="yes">✓</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="lp-compare-note">myBand è ad accesso su invito: ogni richiesta viene valutata personalmente.</p>
 </section>
 
 <section class="lp-final-cta">
