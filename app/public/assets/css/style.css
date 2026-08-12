@@ -1033,8 +1033,8 @@ body.golden-page {
    leggermente disallineati, che si accavallano creando l'effetto "fratturato" senza bisogno
    di immagini). Avatar e icone social con bagliore neon, pulsanti a forma di frontale
    d'amplificatore (trama a griglia + due "viti"/knob agli angoli), copertine con riflesso
-   sotto in stile palco bagnato. Font geometrico (Rajdhani) solo per nome/handle. ===== */
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap');
+   sotto in stile palco bagnato. Font geometrico solo per nome/handle, con lo stack di system
+   font (nessuna dipendenza esterna, a differenza di un web font da Google Fonts). ===== */
 
 body.distortion-page {
   background: linear-gradient(165deg, #12121e 0%, #1b0f30 45%, #24123e 75%, #14121e 100%);
@@ -1095,13 +1095,13 @@ body.distortion-page::after {
 }
 .distortion-page .profile-header h1 {
   color: #fff; font-size: 28px; font-weight: 700;
-  font-family: 'Rajdhani', -apple-system, sans-serif;
+  font-family: 'Century Gothic', 'Futura', -apple-system, 'Segoe UI', Roboto, sans-serif;
   letter-spacing: 0.5px; line-height: 1.1; text-transform: uppercase;
 }
 .distortion-page .profile-header p { color: rgba(255,255,255,0.7); }
 .distortion-page .profile-meta {
   color: rgba(255,255,255,0.55);
-  font-family: 'Rajdhani', -apple-system, sans-serif; font-weight: 600; letter-spacing: 0.3px;
+  font-family: 'Century Gothic', 'Futura', -apple-system, 'Segoe UI', Roboto, sans-serif; font-weight: 600; letter-spacing: 0.3px;
 }
 
 /* Pulsanti di categoria: frammenti spigolosi (parallelogramma via clip-path) invece di pillole */
