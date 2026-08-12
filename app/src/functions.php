@@ -321,6 +321,7 @@ const PAGE_THEMES = [
     'aurora' => ['label' => 'Aurora', 'description' => 'Cielo stellato che sfuma verso il tramonto, pulsanti corallo con profondità', 'body_class' => 'aurora-page'],
     'plasma' => ['label' => 'Plasma', 'description' => 'Sfumatura viola-magenta-blu satura, pulsanti arancioni a pillola', 'body_class' => 'plasma-page'],
     'golden' => ['label' => 'Golden', 'description' => 'Tramonto caldo, pulsanti bianchi minimal, atmosfera quieta', 'body_class' => 'golden-page'],
+    'distortion' => ['label' => 'The Distortion Wave', 'description' => 'Blu notte verso viola elettrico, onde distorte che vibrano, pulsanti stile amplificatore', 'body_class' => 'distortion-page'],
 ];
 
 // Parametri della griglia 3D per ciascuna variante Wave — stesso script (wave-bg.js), letto

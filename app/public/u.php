@@ -199,7 +199,7 @@ $bandReviewers = $bandReviewers->fetchAll();
       <?php foreach ($spotifyPreview as $a): ?>
         <a href="<?= e($a['spotify_url']) ?>" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">
           <?php if ($a['image']): ?>
-            <img src="<?= e($a['image']) ?>" alt="" style="width:100%;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,0.12);">
+            <img src="<?= e($a['image']) ?>" alt="" class="album-cover" style="width:100%;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,0.12);">
           <?php endif; ?>
           <div style="margin-top:6px;font-size:13px;font-weight:700;"><?= e($a['name']) ?></div>
         </a>

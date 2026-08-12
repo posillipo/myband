@@ -88,6 +88,13 @@ include __DIR__ . '/_dash_header.php';
                 <div style="background:rgba(255,255,255,0.6);border-radius:999px;height:10px;margin-bottom:4px;"></div>
                 <div style="background:rgba(255,255,255,0.6);border-radius:999px;height:10px;"></div>
               </div>
+            <?php elseif ($key === 'distortion'): ?>
+              <div style="background:linear-gradient(165deg,#12121e,#1b0f30,#24123e);border-radius:6px;padding:16px 10px;margin-bottom:10px;position:relative;overflow:hidden;">
+                <div style="position:absolute;inset:0;background:repeating-radial-gradient(circle at 50% 35%, rgba(160,32,240,0.35) 0px, rgba(160,32,240,0.35) 1px, transparent 2px, transparent 10px);"></div>
+                <div style="position:relative;width:40px;height:40px;border-radius:50%;background:#1a1a24;margin:0 auto 8px;border:2px solid #a020f0;box-shadow:0 0 8px rgba(160,32,240,0.7);"></div>
+                <div style="position:relative;background:radial-gradient(circle,rgba(0,0,0,0.35) 1px,transparent 1.4px) 0 0/5px 5px, linear-gradient(155deg,#ff8f1f,#e64500);border-radius:14px/8px;height:11px;margin-bottom:4px;"></div>
+                <div style="position:relative;background:radial-gradient(circle,rgba(0,0,0,0.35) 1px,transparent 1.4px) 0 0/5px 5px, linear-gradient(155deg,#ff8f1f,#e64500);border-radius:14px/8px;height:11px;"></div>
+              </div>
             <?php endif; ?>
             <strong><?= e($theme['label']) ?></strong>
             <?php if ($isSelected): ?><span style="color:var(--accent);font-size:12px;font-weight:700;"> ✓ attivo</span><?php endif; ?>
