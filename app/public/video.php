@@ -22,6 +22,7 @@ $uploadsPlaylistId = 'UU' . substr($artist['youtube_channel_id'], 2);
 $videos = youtubeGetChannelVideos($uploadsPlaylistId, 12);
 
 $pageUrl = siteUrl('/' . $slug . '/video');
+$ogImage = $videos[0]['thumbnail'] ?? ($artist['avatar_path'] ? siteUrl($artist['avatar_path']) : null);
 ?>
 <!doctype html>
 <html lang="it">
@@ -32,6 +33,7 @@ $pageUrl = siteUrl('/' . $slug . '/video');
 <meta property="og:type" content="website">
 <meta property="og:title" content="<?= e($artist['display_name']) ?> su YouTube">
 <meta property="og:url" content="<?= e($pageUrl) ?>">
+<?php if ($ogImage): ?><meta property="og:image" content="<?= e($ogImage) ?>"><?php endif; ?>
 <link rel="canonical" href="<?= e($pageUrl) ?>">
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
