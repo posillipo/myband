@@ -14,13 +14,13 @@ services:
     container_name: myband_v2_test_app
     restart: unless-stopped
     ports:
-      - "8086:80"
+      - "8090:80"
     environment:
       - DB_HOST=myband_db
       - DB_NAME=myband_v2_test
       - DB_USER=root
       - DB_PASS=${DB_ROOT_PASSWORD:-cambiami_root_123}
-      - SITE_URL=${SITE_URL_TEST:-http://localhost:8086}
+      - SITE_URL=${SITE_URL_TEST:-http://localhost:8090}
       - SMTP_HOST=
       - SMTP_PORT=587
       - SMTP_USER=
