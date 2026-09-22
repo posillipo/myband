@@ -1,0 +1,38 @@
+version: '3.8'
+
+# Stack di TEST per la Fase 2 (codice applicativo allineato a chifacosa), isolato dalla
+# produzione: container e porta diversi, database SEPARATO (una copia di "myband", non quello
+# live). Riusa lo stesso server MySQL già esistente (container myband_db) tramite la rete
+# esterna che sia myband che chifacosa già condividono — non serve un secondo database server.
+#
+# Setup in Portainer: Stacks -> Add stack -> Build method "Repository" -> Repository reference
+# refs/heads/phase2-chifacosa-app -> Compose path "docker-compose.v2-test.yml".
+
+services:
+  app:
+    build: ./app
+    container_name: myband_v2_test_app
+    restart: unless-stopped
+    ports:
+      - "8086:80"
+    environment:
+      - DB_HOST=myband_db
+      - DB_NAME=myband_v2_test
+      - DB_USER=root
+      - DB_PASS=${DB_ROOT_PASSWORD:-cambiami_root_123}
+      - SITE_URL=${SITE_URL_TEST:-http://localhost:8086}
+      - SMTP_HOST=
+      - SMTP_PORT=587
+      - SMTP_USER=
+      - SMTP_PASS=
+      - SMTP_SECURE=tls
+      - SMTP_FROM=
+      - SMTP_FROM_NAME=myband.it (TEST)
+    volumes:
+      - /data/compose/26/app/public/uploads:/var/www/html/uploads:ro
+    networks:
+      - myband2_myband_net
+
+networks:
+  myband2_myband_net:
+    external: true
