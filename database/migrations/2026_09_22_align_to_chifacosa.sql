@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS profile_navigation_menu (
 -- ============================================================
 -- 26. Prenotazione tavoli per gli eventi
 -- ============================================================
-ALTER TABLE events ADD COLUMN IF NOT EXISTS accepts_reservations TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE events ADD COLUMN accepts_reservations TINYINT(1) NOT NULL DEFAULT 0;
 
 CREATE TABLE IF NOT EXISTS table_reservations (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -68,26 +68,27 @@ CREATE TABLE IF NOT EXISTS table_reservations (
 -- 27. Separatori e mappa (gratuita, OpenStreetMap) tra i Link in Bio
 -- ============================================================
 ALTER TABLE links
-  ADD COLUMN IF NOT EXISTS link_type ENUM('link','divider','map') NOT NULL DEFAULT 'link',
-  ADD COLUMN IF NOT EXISTS map_lat DECIMAL(10,7) DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS map_lng DECIMAL(10,7) DEFAULT NULL;
+  ADD COLUMN link_type ENUM('link','divider','map') NOT NULL DEFAULT 'link',
+  ADD COLUMN map_lat DECIMAL(10,7) DEFAULT NULL,
+  ADD COLUMN map_lng DECIMAL(10,7) DEFAULT NULL;
 
 -- ============================================================
 -- 28. Link personalizzato per i post (redirect via JS sulla pagina, non nel feed)
 -- ============================================================
 ALTER TABLE profiles
-  ADD COLUMN IF NOT EXISTS custom_feed_guid VARCHAR(500) DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS custom_feed_guid_since DATETIME DEFAULT NULL;
+  ADD COLUMN custom_feed_guid VARCHAR(500) DEFAULT NULL,
+  ADD COLUMN custom_feed_guid_since DATETIME DEFAULT NULL;
 
 -- ============================================================
 -- 29. Profili multipli per utente ("Crea nuovo profilo")
 -- ============================================================
-ALTER TABLE profile_admins ADD COLUMN IF NOT EXISTS role ENUM('coadmin','owner') NOT NULL DEFAULT 'coadmin';
+-- GIA' PRESENTE IN PRODUZIONE (drift non documentato, verificato identico: enum('coadmin','owner') NOT NULL DEFAULT 'coadmin') — riga omessa volutamente
+-- ALTER TABLE profile_admins ADD COLUMN role ENUM('coadmin','owner') NOT NULL DEFAULT 'coadmin';
 
 -- ============================================================
 -- 30. Privacy/Cookie e Tracking personalizzabili per profilo
 -- ============================================================
-ALTER TABLE profiles ADD COLUMN IF NOT EXISTS privacy_tracking_settings TEXT DEFAULT NULL;
+ALTER TABLE profiles ADD COLUMN privacy_tracking_settings TEXT DEFAULT NULL;
 
 -- ============================================================
 -- 31. Assistente AI (Google Gemini) per generare i testi della Timeline
@@ -97,7 +98,7 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS privacy_tracking_settings TEXT DEF
 -- ============================================================
 -- 32. Miniatura leggera per le foto della Timeline (`timeline_posts.image_thumb_path`)
 -- ============================================================
-ALTER TABLE timeline_posts ADD COLUMN IF NOT EXISTS image_thumb_path VARCHAR(255) DEFAULT NULL;
+ALTER TABLE timeline_posts ADD COLUMN image_thumb_path VARCHAR(255) DEFAULT NULL;
 
 -- ============================================================
 -- 33. Nuovo modulo "Attori che amo" (`fan_favorite_actors`)
@@ -132,41 +133,41 @@ CREATE TABLE IF NOT EXISTS fan_favorite_movies (
 -- ============================================================
 -- 35. Nota personale + pagina di dettaglio condivisibile per Band/Attori/Film che amo
 -- ============================================================
-ALTER TABLE fan_favorite_bands ADD COLUMN IF NOT EXISTS note TEXT DEFAULT NULL;
-ALTER TABLE fan_favorite_actors ADD COLUMN IF NOT EXISTS note TEXT DEFAULT NULL;
-ALTER TABLE fan_favorite_movies ADD COLUMN IF NOT EXISTS note TEXT DEFAULT NULL;
+ALTER TABLE fan_favorite_bands ADD COLUMN note TEXT DEFAULT NULL;
+ALTER TABLE fan_favorite_actors ADD COLUMN note TEXT DEFAULT NULL;
+ALTER TABLE fan_favorite_movies ADD COLUMN note TEXT DEFAULT NULL;
 
 -- ============================================================
 -- 36. Controllo visibilità nel Feed per Band/Attori/Film che amo
 -- ============================================================
-ALTER TABLE fan_favorite_bands ADD COLUMN IF NOT EXISTS show_in_feed TINYINT(1) NOT NULL DEFAULT 1;
-ALTER TABLE fan_favorite_actors ADD COLUMN IF NOT EXISTS show_in_feed TINYINT(1) NOT NULL DEFAULT 1;
-ALTER TABLE fan_favorite_movies ADD COLUMN IF NOT EXISTS show_in_feed TINYINT(1) NOT NULL DEFAULT 1;
+ALTER TABLE fan_favorite_bands ADD COLUMN show_in_feed TINYINT(1) NOT NULL DEFAULT 1;
+ALTER TABLE fan_favorite_actors ADD COLUMN show_in_feed TINYINT(1) NOT NULL DEFAULT 1;
+ALTER TABLE fan_favorite_movies ADD COLUMN show_in_feed TINYINT(1) NOT NULL DEFAULT 1;
 
 -- ============================================================
 -- 37. Logica di pubblicazione stile Timeline per Band/Attori/Film/Brani che amo
 -- ============================================================
 ALTER TABLE fan_favorite_bands
-  ADD COLUMN IF NOT EXISTS image_path VARCHAR(500) DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS image_thumb_path VARCHAR(500) DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS publish_at DATETIME DEFAULT NULL;
+  ADD COLUMN image_path VARCHAR(500) DEFAULT NULL,
+  ADD COLUMN image_thumb_path VARCHAR(500) DEFAULT NULL,
+  ADD COLUMN publish_at DATETIME DEFAULT NULL;
 
 ALTER TABLE fan_favorite_actors
-  ADD COLUMN IF NOT EXISTS image_path VARCHAR(500) DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS image_thumb_path VARCHAR(500) DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS publish_at DATETIME DEFAULT NULL;
+  ADD COLUMN image_path VARCHAR(500) DEFAULT NULL,
+  ADD COLUMN image_thumb_path VARCHAR(500) DEFAULT NULL,
+  ADD COLUMN publish_at DATETIME DEFAULT NULL;
 
 ALTER TABLE fan_favorite_movies
-  ADD COLUMN IF NOT EXISTS image_path VARCHAR(500) DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS image_thumb_path VARCHAR(500) DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS publish_at DATETIME DEFAULT NULL;
+  ADD COLUMN image_path VARCHAR(500) DEFAULT NULL,
+  ADD COLUMN image_thumb_path VARCHAR(500) DEFAULT NULL,
+  ADD COLUMN publish_at DATETIME DEFAULT NULL;
 
 ALTER TABLE favorite_tracks
-  ADD COLUMN IF NOT EXISTS note TEXT DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS show_in_feed TINYINT(1) NOT NULL DEFAULT 1,
-  ADD COLUMN IF NOT EXISTS image_path VARCHAR(500) DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS image_thumb_path VARCHAR(500) DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS publish_at DATETIME DEFAULT NULL;
+  ADD COLUMN note TEXT DEFAULT NULL,
+  ADD COLUMN show_in_feed TINYINT(1) NOT NULL DEFAULT 1,
+  ADD COLUMN image_path VARCHAR(500) DEFAULT NULL,
+  ADD COLUMN image_thumb_path VARCHAR(500) DEFAULT NULL,
+  ADD COLUMN publish_at DATETIME DEFAULT NULL;
 
 UPDATE profile_navigation_menu SET name = 'Brani che amo' WHERE name = 'Brani';
 
@@ -174,12 +175,12 @@ UPDATE profile_navigation_menu SET name = 'Brani che amo' WHERE name = 'Brani';
 -- 38. Sincronizzazione Cinema: film in programmazione nel modulo Link
 -- ============================================================
 ALTER TABLE profiles
-  ADD COLUMN IF NOT EXISTS cinema_films_json_url VARCHAR(500) DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS cinema_films_synced_at DATETIME DEFAULT NULL;
+  ADD COLUMN cinema_films_json_url VARCHAR(500) DEFAULT NULL,
+  ADD COLUMN cinema_films_synced_at DATETIME DEFAULT NULL;
 
 ALTER TABLE links
   MODIFY COLUMN link_type ENUM('link','divider','map','film') NOT NULL DEFAULT 'link',
-  ADD COLUMN IF NOT EXISTS external_ref VARCHAR(64) DEFAULT NULL,
+  ADD COLUMN external_ref VARCHAR(64) DEFAULT NULL,
   ADD UNIQUE KEY uniq_user_external_ref (user_id, external_ref);
 
 -- ============================================================
@@ -291,13 +292,13 @@ CREATE TABLE IF NOT EXISTS fan_favorite_trip_photos (
 -- ============================================================
 -- 45. Sezione Eventi: descrizione + modifica + copertina non ritagliata
 -- ============================================================
-ALTER TABLE events ADD COLUMN IF NOT EXISTS description TEXT DEFAULT NULL AFTER ticket_url;
+ALTER TABLE events ADD COLUMN description TEXT DEFAULT NULL AFTER ticket_url;
 
 -- ============================================================
 -- 46. Eventi perpetui e ricorrenti (Lun-Ven / Weekend)
 -- ============================================================
-ALTER TABLE events ADD COLUMN IF NOT EXISTS is_perpetual TINYINT(1) NOT NULL DEFAULT 0 AFTER event_date;
-ALTER TABLE events ADD COLUMN IF NOT EXISTS recurrence ENUM('none','weekdays','weekend') NOT NULL DEFAULT 'none' AFTER is_perpetual;
+ALTER TABLE events ADD COLUMN is_perpetual TINYINT(1) NOT NULL DEFAULT 0 AFTER event_date;
+ALTER TABLE events ADD COLUMN recurrence ENUM('none','weekdays','weekend') NOT NULL DEFAULT 'none' AFTER is_perpetual;
 
 -- ============================================================
 -- 47. Fuso orario del profilo (nessuna migrazione: riuso di una colonna inutilizzata)
@@ -410,7 +411,7 @@ CREATE TABLE IF NOT EXISTS fan_favorite_publications (
 -- ============================================================
 -- 52. Data di aggiunta per i Link (`links.created_at`)
 -- ============================================================
-ALTER TABLE links ADD COLUMN IF NOT EXISTS created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE links ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
 -- ============================================================
 -- 53. API di sola lettura per i film Cinema + tool MCP
@@ -420,4 +421,4 @@ ALTER TABLE links ADD COLUMN IF NOT EXISTS created_at DATETIME NOT NULL DEFAULT 
 -- ============================================================
 -- 54. Link di reindirizzamento fisso per singolo post Timeline (`timeline_posts.redirect_link`)
 -- ============================================================
-ALTER TABLE timeline_posts ADD COLUMN IF NOT EXISTS redirect_link VARCHAR(500) DEFAULT NULL AFTER call_to_action;
+ALTER TABLE timeline_posts ADD COLUMN redirect_link VARCHAR(500) DEFAULT NULL AFTER call_to_action;
