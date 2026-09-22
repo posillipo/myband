@@ -30,6 +30,13 @@ services:
       - SMTP_FROM_NAME=myband.it (TEST)
     volumes:
       - /data/compose/26/app/public/uploads:/var/www/html/uploads:ro
+    # Salta lo script di avvio standard (docker-entrypoint-wrapper.sh): tenta un chown -R sulla
+    # cartella uploads, che qui è in sola lettura apposta (protegge i file veri) — con quel
+    # mount lo script fallisce sempre (set -e) e il container resta in crash loop. Il resto
+    # dell'inizializzazione di quello script serve solo se si scrive davvero su uploads/config,
+    # cosa che questo stack di test non fa mai.
+    entrypoint: ["docker-php-entrypoint"]
+    command: ["apache2-foreground"]
     networks:
       - myband2_myband_net
 
