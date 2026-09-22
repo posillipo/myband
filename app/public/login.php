@@ -1,18 +1,22 @@
 <?php
 session_start();
 require_once __DIR__ . '/../src/functions.php';
+require_once __DIR__ . '/../src/google_oauth.php';
 
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 
 $error = null;
 $unverified = false;
+if (!empty($_GET['google_error'])) {
+    $error = 'Accesso con Google non riuscito. Riprova, o accedi con email e password.';
+}
 
 // Redirect opzionale verso la pagina di partenza (es. "Vota" quando non loggato) — accettiamo
-// solo percorsi interni relativi, mai URL esterni, per evitare un open-redirect.
+// solo percorsi interni relativi, mai URL esterni, per evitare un open-redirect (vedi
+// isSafeInternalRedirect() in functions.php).
 $redirect = $_GET['redirect'] ?? $_POST['redirect'] ?? '';
-$isValidRedirect = $redirect !== '' && str_starts_with($redirect, '/') && !str_starts_with($redirect, '//') && !str_contains($redirect, '://');
-if (!$isValidRedirect) {
+if (!isSafeInternalRedirect($redirect)) {
     $redirect = '';
 }
 
@@ -32,12 +36,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (!$u['email_verified']) {
         $unverified = true;
     } else {
+        // Rigenera l'ID di sessione PRIMA di autenticare: impedisce un attacco di "session
+        // fixation" (un ID di sessione impostato dall'esterno prima del login, che altrimenti
+        // resterebbe valido anche dopo).
+        session_regenerate_id(true);
         $_SESSION['user_id'] = $u['id'];
         if (!empty($_POST['remember'])) {
             issueRememberToken((int) $u['id']);
         }
         if (!$u['account_type_chosen']) {
-            header('Location: /choose_account_type.php');
+            header('Location: /onboarding_setup.php');
         } else {
             header('Location: ' . ($redirect ?: '/dashboard.php'));
         }
@@ -50,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Accedi — myband.it</title>
+<title>Accedi — <?= e(siteName()) ?></title>
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <?= embedPrivacyScript() ?>
 <?= embedTrackingHead() ?>
@@ -60,8 +68,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?= embedTrackingBodyStart() ?>
 <div class="auth-split">
   <div class="auth-split-brand">
-    <div class="logo">my<span>Band</span>.it</div>
-    <h1>Ciao! <span class="highlight">Accedi</span><br>al tuo account myBand.</h1>
+    <div class="logo"><?= e(siteName()) ?></div>
+    <h1>Ciao! <span class="highlight">Accedi</span><br>al tuo account <?= e(siteName()) ?>.</h1>
   </div>
   <div class="auth-split-form">
     <div class="auth-split-form-inner">
@@ -71,6 +79,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           Devi prima confermare la tua email. Controlla la posta, oppure
           <a href="/resend_verification.php">richiedi un nuovo invio</a>.
         </div>
+      <?php endif; ?>
+
+      <?php $googleReady = getGoogleOAuthClientId() && getGoogleOAuthClientSecret(); ?>
+      <?php if ($googleReady): ?>
+        <a href="/auth_google_start.php<?= $redirect ? '?redirect=' . urlencode($redirect) : '' ?>" class="btn-dark" style="display:block;text-align:center;">Accedi con Google</a>
+        <div class="auth-divider">oppure con email e password</div>
       <?php endif; ?>
 
       <form method="post">
@@ -84,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <input type="checkbox" name="remember" value="1" style="width:auto;">
           Ricordami su questo dispositivo (resta connesso per 30 giorni)
         </label>
-        <button type="submit" class="btn-dark">Accedi</button>
+        <button type="submit" class="<?= $googleReady ? 'btn-outline' : 'btn-dark' ?>" style="cursor:pointer;">Accedi</button>
       </form>
 
       <div class="auth-divider">oppure</div>

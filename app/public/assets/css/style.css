@@ -8,6 +8,15 @@
 }
 
 * { box-sizing: border-box; }
+/* Nessuna immagine (anteprima foto caricata, avatar, copertina...) deve poter essere più larga
+   del suo contenitore: senza questo, una foto grande caricata da chi gestisce il profilo poteva
+   sfondare la larghezza della pagina su schermi stretti. */
+img, video { max-width: 100%; height: auto; }
+form input[type=file] { max-width: 100%; }
+/* La pagina non deve mai scorrere in orizzontale: bloccarlo solo su <body> (come fatto finora)
+   non basta su alcuni browser mobile, dove è <html> a scorrere davvero — va bloccato su
+   entrambi per essere sicuri che l'intera pagina resti ferma. */
+html { overflow-x: hidden; }
 
 body {
   margin: 0;
@@ -15,6 +24,9 @@ body {
   background: var(--bg);
   color: var(--text);
   line-height: 1.5;
+  /* Un testo lungo senza spazi (URL, slug, email) non deve mai spingere la pagina più larga
+     dello schermo: va a capo dentro il suo contenitore invece di farlo scorrere in orizzontale. */
+  overflow-wrap: anywhere;
 }
 
 a { color: var(--accent); text-decoration: none; }
@@ -79,15 +91,49 @@ a { color: var(--accent); text-decoration: none; }
 
 .navbar {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  row-gap: 10px;
   padding: 16px 20px;
   border-bottom: 1px solid #26262f;
 }
-.navbar .brand { font-weight: 700; font-size: 20px; }
+/* Solo la barra in alto della dashboard (non le altre pagine che riusano .navbar, es. login/
+   reset password): resta sempre visibile scorrendo, invece di sparire dopo il primo scroll —
+   utile soprattutto su liste lunghe (Timeline, Che Amo...) per riaccedere subito ad account,
+   notifiche e messaggi senza dover tornare su a mano.
+   "fixed" invece di "sticky": <html> ha overflow-x:hidden (vedi sopra, contro lo sbandamento
+   orizzontale su mobile) — su alcuni browser questo rompe position:sticky degli elementi
+   figli di <body>. "fixed" funziona sempre, a costo di dover riservare a mano lo spazio sotto
+   (vedi il JS accanto al markup della barra in _dash_header.php, che imposta il padding-top
+   del body pari all'altezza reale della barra — necessario perché su schermi stretti la barra
+   può andare su due righe, quindi l'altezza non è un valore fisso indovinabile qui in CSS). */
+.navbar.navbar-dash-sticky {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 500;
+  background: var(--bg);
+}
+.navbar .brand { font-weight: 700; font-size: 20px; white-space: nowrap; }
 .navbar .brand span { color: var(--accent); }
+/* Logo della dashboard: "CHIFACOSA" tutto attaccato, con "FA" in risalto — carattere grassetto
+   squadrato (Poppins Black), invece del font di sistema usato per il resto del testo. */
+.navbar .brand.brand-dash { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 21px; letter-spacing: -0.3px; }
+.navbar .brand.brand-dash strong { font-weight: 900; color: var(--accent); }
 .navbar nav a { margin-left: 16px; color: var(--text-muted); }
 .navbar nav a:hover { color: var(--text); }
+/* Riga icone della dashboard (contatti, messaggi, switch profilo, occhiolino, "Esci"): con lo
+   spazio contato su schermi stretti, senza flex-wrap la riga veniva "schiacciata" e il testo
+   "Esci" finiva spezzato lettera per lettera invece di andare semplicemente a capo. */
+.dash-icons-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; row-gap: 10px; }
+.dash-icons-nav a { margin-left: 0; white-space: nowrap; }
+@media (max-width: 480px) {
+  .navbar { padding: 14px 16px; }
+  .navbar .brand.brand-dash { font-size: 18px; }
+  .dash-icons-nav { gap: 12px; }
+}
 
 .hero { text-align: center; padding: 60px 20px; }
 .hero h1 { font-size: 40px; margin-bottom: 12px; }
@@ -144,6 +190,8 @@ form input[type=url],
 form input[type=date],
 form input[type=datetime-local],
 form input[type=color],
+form input[type=tel],
+form input[type=number],
 form textarea,
 form select {
   width: 100%;
@@ -157,31 +205,27 @@ form select {
 }
 form label { display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 14px; }
 
-.tabs { display: flex; gap: 3px; margin-bottom: 20px; flex-wrap: wrap; }
+/* Griglia di tasti tutti della stessa larghezza, che va a capo su più righe quando non
+   entrano tutti in una — niente più scorrimento orizzontale (né a rotellina né a tastini). */
+.tabs-wrap { margin-bottom: 20px; padding: 0 4px; }
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(122px, 1fr));
+  gap: 6px;
+}
 .tabs a {
-  padding: 8px 14px;
+  padding: 9px 10px;
   border-radius: 8px;
   background: var(--card-bg);
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 13.5px;
   border: 1px solid #26262f;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .tabs a.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-
-/* Solo su mobile: il menu scorre orizzontalmente invece di andare a capo. Il desktop resta
-   invariato (va a capo in modo ordinato). */
-@media (max-width: 760px) {
-  .tabs {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
-    padding-bottom: 2px;
-  }
-  .tabs::-webkit-scrollbar { display: none; }
-  .tabs a { flex-shrink: 0; }
-}
 
 /* Barra laterale "Account e impostazioni" (Profilo, password, integrazioni) */
 /* Menu a comparsa "Stai gestendo" (switch tra profili), ancorato all'avatar in alto a destra —
@@ -201,6 +245,22 @@ form label { display: block; margin-bottom: 6px; color: var(--text-muted); font-
   z-index: 400;
   overflow: hidden;
   padding-bottom: 6px;
+}
+/* Su schermi stretti l'avatar che apre questo pannello non è detto che sia vicino al bordo
+   destro (nella barra della dashboard ci sono altre icone dopo di lui) — ancorare il pannello
+   alla sua destra poteva farlo partire fuori dallo schermo a sinistra, tagliando il testo.
+   Sotto i 480px lo si posiziona invece rispetto allo schermo intero, non più all'avatar. */
+@media (max-width: 480px) {
+  .profile-switcher-panel {
+    position: fixed;
+    top: 120px; /* sotto la barra in alto, che qui va spesso su due righe (logo + icone) */
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-width: none;
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
+  }
 }
 .profile-switcher-item {
   display: flex;
@@ -273,7 +333,12 @@ form label { display: block; margin-bottom: 6px; color: var(--text-muted); font-
   border: 1px solid #26262f;
   border-radius: 10px;
   margin-bottom: 8px;
+  max-width: 100%;
 }
+/* Un elemento flex di default non si restringe mai sotto la larghezza del suo contenuto (es. un
+   titolo lungo, un URL) — senza min-width:0 continuava a spingere la riga oltre lo schermo anche
+   con flex-wrap attivo sul genitore. */
+.link-item > *, .list-item > * { min-width: 0; }
 
 /* Pagina pubblica profilo */
 .profile-header { text-align: center; margin-bottom: 28px; }
@@ -313,6 +378,9 @@ body.light-theme {
   --card-bg: #ffffff;
   --text: #1a1a1a;
   --text-muted: #5f5f66;
+  /* Come per i temi della pagina pubblica: la dashboard non deve mai scorrere in orizzontale
+     (evita lo "sbandamento" causato da testi lunghi su schermi stretti). */
+  overflow-x: hidden;
 }
 body.light-theme .navbar { border-bottom-color: #e2e2e7; }
 body.light-theme .card { border-color: #e2e2e7; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
@@ -379,14 +447,26 @@ body.colorful-page {
 .colorful-page .profile-header h1 { color: #22223b; font-size: 28px; font-weight: 800; }
 .colorful-page .profile-header p { color: rgba(34,34,59,0.75); }
 .profile-meta { font-size: 13.5px; color: rgba(34,34,59,0.55); margin: -6px 0 4px; }
-.profile-meta a { color: inherit; text-decoration: none; }
-.profile-meta a:hover { text-decoration: underline; }
-.profile-copy-link {
-  background: none; border: none; padding: 4px; margin-left: 2px; color: inherit; opacity: 0.75;
-  cursor: pointer; font-size: 0.95em; vertical-align: -3px; display: inline-block; min-width: 20px; min-height: 20px;
+
+/* "+" accanto al nome utente, scorciatoia al pulsante Segui (stessa ancora #segui-widget della
+   voce "Segui" nel menu) — colore accento del profilo, riconoscibile su ogni tema grafico senza
+   bisogno di una regola per tema, come .nav-active-tab/.nav-segui-tab qui sopra. */
+.profile-follow-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent, #6C5CE7);
+  color: var(--accent-text, #fff);
+  font-size: 10px;
+  vertical-align: middle;
+  margin-left: 4px;
+  text-decoration: none;
+  transition: transform 0.15s ease, opacity 0.15s ease;
 }
-.profile-copy-link:hover { opacity: 1; }
-.profile-copy-link.copied { color: #10ac84; opacity: 1; }
+.profile-follow-plus:hover { transform: scale(1.15); opacity: 0.85; }
 
 /* Vignetta con la bio, visibile passando il mouse sull'avatar */
 .avatar-wrap { position: relative; display: inline-block; }
@@ -421,8 +501,8 @@ body.colorful-page {
 .avatar-wrap:hover .avatar-bio-tooltip,
 .avatar-wrap:focus-within .avatar-bio-tooltip { display: block; }
 
-/* Footer di tutte le pagine pubbliche: link Cookie/Privacy/myBand + pulsante promozionale
-   "myband.it/tu". È un blocco normale nel flusso della pagina (non "fixed"), quindi non copre
+/* Footer di tutte le pagine pubbliche: link Cookie/Privacy/CHI FA COSA + pulsante promozionale
+   "CHI FA COSA/tu". È un blocco normale nel flusso della pagina (non "fixed"), quindi non copre
    mai il contenuto sopra di esso — resta comunque sempre visibile in fondo alla pagina anche a
    contenuto vuoto, grazie al layout flessibile impostato su body.colorful-page. */
 .site-footer-fixed {
@@ -449,7 +529,7 @@ body.colorful-page {
 }
 .site-footer-fixed .footer-links span { opacity: 0.6; color: rgba(var(--text-rgb, 34,34,59), 0.9); }
 
-/* Pulsante "myband.it/tu", posizionato sopra la riga Cookie/Privacy, con un piccolo richiamo
+/* Pulsante "CHI FA COSA/tu", posizionato sopra la riga Cookie/Privacy, con un piccolo richiamo
    visivo periodico (una breve vibrazione ogni pochi secondi, non continua) */
 /* Pulsanti flottanti: torna su + link alla dashboard (se loggato). Sempre sopra a tutto il
    resto, incluso il badge/footer, e sopra alla barra fissa "Unisciti" se presente. */
@@ -465,8 +545,8 @@ body.colorful-page {
   position: relative;
   overflow: hidden;
   display: inline-block;
-  background: rgb(108,92,231);
-  color: #fff;
+  background: var(--accent, rgb(108,92,231));
+  color: var(--accent-text, #fff);
   font-weight: 700;
   font-size: 13px;
   padding: 7px 18px;
@@ -519,6 +599,7 @@ body.colorful-page {
 .short-link-badge {
   display: inline-block;
   margin: 0 auto 12px;
+  max-width: calc(100vw - 40px);
   background: #ffffff;
   color: #22223b;
   border-radius: 999px;
@@ -526,7 +607,7 @@ body.colorful-page {
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
-  white-space: nowrap;
+  text-align: center;
   animation: badge-attention-shake 6s ease-in-out infinite;
 }
 .short-link-badge:hover, .short-link-badge:visited, .short-link-badge:active { color: #22223b; }
@@ -542,17 +623,23 @@ body.colorful-page {
 }
 
 /* Menu di navigazione della pagina pubblica: ogni voce è una piccola "pillola" arrotondata,
-   va a capo in modo ordinato quando lo spazio non basta (nessuno scorrimento). */
+   sempre tutte sulla stessa riga (mai a capo) — se non entrano tutte, la riga scorre in
+   orizzontale, su qualsiasi dimensione di schermo, desktop incluso. */
 .colorful-nav {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-wrap: nowrap;
   gap: 2px 2px;
   margin: 12px 0 0;
   padding: 0;
   list-style: none;
   max-width: 100%;
+  border-radius: 10px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
 }
+.colorful-nav::-webkit-scrollbar { display: none; }
 .colorful-nav a {
   display: inline-block;
   color: #22223b;
@@ -563,42 +650,93 @@ body.colorful-page {
   border-radius: 8px;
   background: rgba(255,255,255,0.45);
   transition: background 0.15s ease;
+  flex-shrink: 0;
 }
 .colorful-nav a:hover { background: rgba(255,255,255,0.65); }
-/* Colore fisso della voce attiva nel menu, identico su tutti i profili — non più legato al
-   colore tema di ciascuno, per coerenza visiva su tutta la piattaforma */
-.colorful-nav a[style*="color:#fff"] { background: rgb(108,92,231); }
-
-/* Tab "Segui": sempre acceso, ben distinto dagli altri, indipendentemente dal fatto che sia
-   la pagina attiva o meno */
+/* Voce attiva nel menu e tab "Segui" (sempre acceso): sfondo nel colore accento scelto dal
+   profilo, testo bianco o scuro calcolato automaticamente in base al contrasto migliore
+   (vedi getContrastTextColor() in functions.php) — vale su ogni tema, con !important per
+   vincere anche sullo sfondo/bordo che ciascun tema imposta di default sulle pillole del menu. */
+.colorful-nav a.nav-active-tab,
 .colorful-nav a.nav-segui-tab {
-  background: rgb(108,92,231) !important;
-  color: #fff !important;
+  background: var(--accent, rgb(108,92,231)) !important;
+  color: var(--accent-text, #fff) !important;
+  border-color: var(--accent, rgb(108,92,231)) !important;
 }
-.colorful-nav a.nav-segui-tab:hover { opacity: 0.9; background: rgb(108,92,231) !important; }
+.colorful-nav a.nav-segui-tab:hover { opacity: 0.9; }
 
 @media (max-width: 400px) {
   .colorful-nav a { font-size: 13.5px; padding: 4px 10px; }
 }
 
-/* Solo su mobile: il menu scorre orizzontalmente invece di andare a capo (come richiesto),
-   contenuto correttamente dentro il proprio contenitore. Il desktop resta invariato (va a
-   capo in modo ordinato). */
-@media (max-width: 760px) {
-  .colorful-nav {
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
-  }
-  .colorful-nav::-webkit-scrollbar { display: none; }
-  .colorful-nav a { flex-shrink: 0; }
+/* Su desktop il menu si vede quasi sempre per intero: lo spostamento della voce attiva al
+   secondo posto (utile su mobile per ritrovarla subito su una barra che scorre in orizzontale,
+   vedi publicNav() in functions.php) qui risulterebbe solo un salto innaturale — ogni pillola
+   torna quindi al proprio posto "naturale" (quello scelto in Menu di Navigazione), grazie
+   all'indice che publicNav() scrive già in --nav-order su ciascun link. */
+@media (min-width: 761px) {
+  .colorful-nav a { order: var(--nav-order, 0); }
 }
 
 .colorful-nav-wrap { position: relative; }
-.colorful-nav-arrow { display: none; }
+
+/* Indicatore statico "c'è altro da scorrere" sul menu, ispirato al comportamento della
+   console Hetzner (freccina + leggera ombra sul bordo destro): quasi tutto CSS, quindi visibile
+   da subito senza dipendere da un timer. nav-scroll-hint.js aggiunge/toglie la classe
+   "has-overflow" sul wrap in base a se c'è davvero altro da scorrere e a se si è già arrivati in
+   fondo. Vale su ogni dimensione di schermo, desktop incluso, dato che ora le pillole non vanno
+   mai a capo. */
+/* È un <button> vero (non solo un indicatore visivo): cliccandolo il menu scorre di un passo
+   verso destra, vedi nav-scroll-hint.js. Cliccabile (pointer-events: auto) SOLO quando c'è
+   davvero altro da scorrere (classe "has-overflow", stessa che lo rende visibile) — altrimenti,
+   pur essendo praticamente invisibile, resterebbe comunque sopra all'ultima voce del menu e ne
+   intercetterebbe i click. */
+.colorful-nav-arrow {
+  display: flex;
+  position: absolute;
+  top: 50%;
+  right: -2px;
+  transform: translateY(-50%);
+  width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: rgba(20, 20, 30, 0.55);
+  color: #fff;
+  font-size: 11px;
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  cursor: pointer;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.colorful-nav-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 34px;
+  background: linear-gradient(to right, transparent, rgba(0,0,0,0.12));
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+.colorful-nav-wrap.has-overflow::after { opacity: 1; }
+.colorful-nav-wrap.has-overflow .colorful-nav-arrow { opacity: 1; pointer-events: auto; }
+
+/* Trascinamento col mouse per scorrere il menu su desktop (touch/trackpad scorrono già in modo
+   nativo grazie a overflow-x: auto — qui serve solo per chi ha un mouse senza gesture
+   orizzontali). Le classi sono aggiunte/rimosse da nav-scroll-hint.js durante il drag. */
+.colorful-nav { cursor: grab; }
+.colorful-nav.is-dragging { cursor: grabbing; scroll-snap-type: none; user-select: none; }
+.colorful-nav.is-dragging a { pointer-events: none; }
 
 .social-icons-row {
   display: flex;
@@ -644,6 +782,46 @@ body.colorful-page {
   height: 40px;
   border-radius: 8px;
   object-fit: cover;
+}
+
+/* Separatore tra i pulsanti Link in Bio: solo un titolo di sezione, non cliccabile — usa
+   --text-rgb (già definita da ogni tema) invece di un colore fisso, così si legge bene sia sui
+   temi chiari che su quelli scuri senza bisogno di regole per-tema separate. */
+.link-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 24px 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(var(--text-rgb, 34,34,59), 0.6);
+}
+.link-divider::before, .link-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(var(--text-rgb, 34,34,59), 0.18);
+}
+
+/* Mappa OpenStreetMap incorporata tra i Link in Bio (vedi geocoding.php) — gratuita, nessuna
+   chiave API, funziona allo stesso modo su ogni tema grafico. */
+.link-map-label {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: rgba(var(--text-rgb, 34,34,59), 0.75);
+}
+.link-map-embed { margin-bottom: 14px; }
+.link-map-embed iframe { max-width: 100%; }
+.link-map-directions {
+  display: block;
+  text-align: center;
+  font-size: 12.5px;
+  margin-top: 6px;
+  color: rgba(var(--text-rgb, 34,34,59), 0.6);
 }
 
 .colorful-page .card {
@@ -701,8 +879,6 @@ body.rock-page {
   background: #202020; color: #eaeaea; border: 1px solid #2c2c2c; border-radius: 4px;
 }
 .rock-page .colorful-nav a:hover { background: #262626; }
-.rock-page .colorful-nav a[style*="color:#fff"] { background: var(--accent, #6C5CE7) !important; color: var(--accent-text, #fff) !important; border-color: var(--accent, #6C5CE7); }
-.rock-page .colorful-nav a.nav-segui-tab { background: rgb(108,92,231) !important; color: #fff !important; border-color: rgb(108,92,231); }
 
 .rock-page .social-icon-btn {
   background: #202020; border: 1px solid #2c2c2c; border-radius: 6px; color: #eaeaea;
@@ -772,8 +948,6 @@ body.wave-page {
   backdrop-filter: blur(6px);
 }
 .wave-page .colorful-nav a:hover { background: rgba(30,30,45,0.8); }
-.wave-page .colorful-nav a[style*="color:#fff"] { background: var(--accent, #6C5CE7) !important; color: var(--accent-text, #fff) !important; }
-.wave-page .colorful-nav a.nav-segui-tab { background: rgb(108,92,231) !important; color: #fff !important; }
 
 .wave-page .social-icon-btn { background: rgba(20,20,30,0.7); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(6px); }
 .wave-page .color-link-btn {
@@ -828,8 +1002,6 @@ body.wave-neon-page {
 .wave-neon-page .avatar { box-shadow: 0 10px 40px rgba(0,0,0,0.7); }
 .wave-neon-page .colorful-nav a { background: rgba(15,15,22,0.75); color: #f2f2f5; border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(6px); }
 .wave-neon-page .colorful-nav a:hover { background: rgba(25,25,36,0.85); }
-.wave-neon-page .colorful-nav a[style*="color:#fff"] { background: var(--accent, #6C5CE7) !important; color: var(--accent-text, #fff) !important; }
-.wave-neon-page .colorful-nav a.nav-segui-tab { background: rgb(108,92,231) !important; color: #fff !important; }
 .wave-neon-page .social-icon-btn { background: rgba(15,15,22,0.75); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(6px); }
 .wave-neon-page .color-link-btn {
   background: rgba(12,12,18,0.8) !important;
@@ -869,8 +1041,6 @@ body.wave-light-page {
 .wave-light-page .avatar { box-shadow: 0 10px 32px rgba(34,34,59,0.25); }
 .wave-light-page .colorful-nav a { background: rgba(255,255,255,0.75); color: #22223b; border: 1px solid rgba(34,34,59,0.1); backdrop-filter: blur(6px); }
 .wave-light-page .colorful-nav a:hover { background: rgba(255,255,255,0.9); }
-.wave-light-page .colorful-nav a[style*="color:#fff"] { background: var(--accent, #6C5CE7) !important; color: var(--accent-text, #fff) !important; }
-.wave-light-page .colorful-nav a.nav-segui-tab { background: rgb(108,92,231) !important; color: #fff !important; }
 .wave-light-page .social-icon-btn { background: rgba(255,255,255,0.75); border: 1px solid rgba(34,34,59,0.1); backdrop-filter: blur(6px); }
 .wave-light-page .color-link-btn {
   background: rgba(255,255,255,0.8) !important;
@@ -924,8 +1094,6 @@ body.aurora-page {
 .aurora-page .profile-meta { color: rgba(255,255,255,0.55); }
 .aurora-page .colorful-nav a { background: rgba(255,255,255,0.14); color: #fff; border: 1px solid rgba(255,255,255,0.18); }
 .aurora-page .colorful-nav a:hover { background: rgba(255,255,255,0.22); }
-.aurora-page .colorful-nav a[style*="color:#fff"] { background: var(--accent, #6C5CE7) !important; color: var(--accent-text, #fff) !important; }
-.aurora-page .colorful-nav a.nav-segui-tab { background: rgb(108,92,231) !important; color: #fff !important; }
 .aurora-page .social-icon-btn { background: #fff; color: #1c2540; }
 .aurora-page .color-link-btn {
   background: #e0654f !important;
@@ -969,8 +1137,6 @@ body.plasma-page {
 .plasma-page .profile-meta { color: rgba(255,255,255,0.55); }
 .plasma-page .colorful-nav a { background: rgba(255,255,255,0.16); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
 .plasma-page .colorful-nav a:hover { background: rgba(255,255,255,0.26); }
-.plasma-page .colorful-nav a[style*="color:#fff"] { background: var(--accent, #6C5CE7) !important; color: var(--accent-text, #fff) !important; }
-.plasma-page .colorful-nav a.nav-segui-tab { background: rgb(108,92,231) !important; color: #fff !important; }
 .plasma-page .social-icon-btn { background: #fff; color: #4b1266; }
 .plasma-page .color-link-btn {
   background: #ff8a3d !important;
@@ -1010,8 +1176,6 @@ body.golden-page {
 .golden-page .profile-meta { color: rgba(255,255,255,0.55); }
 .golden-page .colorful-nav a { background: rgba(255,255,255,0.16); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
 .golden-page .colorful-nav a:hover { background: rgba(255,255,255,0.26); }
-.golden-page .colorful-nav a[style*="color:#fff"] { background: var(--accent, #6C5CE7) !important; color: var(--accent-text, #fff) !important; }
-.golden-page .colorful-nav a.nav-segui-tab { background: rgb(108,92,231) !important; color: #fff !important; }
 .golden-page .social-icon-btn { background: rgba(0,0,0,0.35); color: #fff; }
 .golden-page .color-link-btn {
   background: #fff !important;
@@ -1027,166 +1191,1741 @@ body.golden-page {
 .golden-page a { color: #ffd9a8; }
 .golden-page form textarea, .golden-page form input { background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.3); color: #fff; }
 .golden-page form label { color: rgba(255,255,255,0.65); }
+.golden-page .help-box { background: rgba(0,0,0,0.25); border-color: rgba(255,255,255,0.12); color: #fff; }
 
-/* ===== Tema "The Distortion Wave": blu notte verso viola elettrico, con anelli d'onda
-   distorti che "vibrano" dal centro verso i bordi (due sistemi di anelli concentrici
-   leggermente disallineati, che si accavallano creando l'effetto "fratturato" senza bisogno
-   di immagini). Avatar e icone social con bagliore neon, pulsanti a forma di frontale
-   d'amplificatore (trama a griglia + due "viti"/knob agli angoli), copertine con riflesso
-   sotto in stile palco bagnato. Font geometrico solo per nome/handle, con lo stack di system
-   font (nessuna dipendenza esterna, a differenza di un web font da Google Fonts). ===== */
-
-body.distortion-page {
-  background: linear-gradient(165deg, #12121e 0%, #1b0f30 45%, #24123e 75%, #14121e 100%);
-  color: #fff;
-  --text-rgb: 255,255,255;
+/* ===== Tema "Electric": sfondo scuro con bagliore soffuso, il blocco profilo è racchiuso da
+   un bordo animato "elettrico" (rumore procedurale su canvas + bagliore CSS), disegnato da
+   assets/js/electric-border.js. Il colore del bordo segue l'accento scelto dal profilo. ===== */
+body.electric-page {
+  background: radial-gradient(ellipse at 50% -10%, rgba(108,92,231,0.25), transparent 55%), #0a0a0f;
+  color: #f2f2f5;
+  --text-rgb: 242,242,245;
   min-height: 100vh;
   margin: 0;
   overflow-x: hidden;
-  position: relative;
   display: flex;
   flex-direction: column;
 }
-/* Due sistemi di "anelli" concentrici con centro leggermente diverso: sovrapponendosi creano
-   un pattern d'interferenza irregolare — la distorsione — invece di cerchi perfetti e statici.
-   Animati solo su transform/opacity (performanti), con uno "scatto" a metà ciclo che imita un
-   piccolo glitch elettrico invece di un movimento morbido. */
-body.distortion-page::before,
-body.distortion-page::after {
-  content: "";
-  position: fixed;
-  inset: -15%;
-  z-index: 0;
+.electric-page .container { flex: 1 0 auto; max-width: 100%; }
+@media (min-width: 761px) { .electric-page .container { max-width: 720px; } }
+.electric-page footer.site { color: rgba(242,242,245,0.5); }
+.electric-page .avatar { border: 3px solid var(--accent, #6C5CE7); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.electric-page .profile-header h1 { color: #fff; font-size: 28px; font-weight: 800; }
+.electric-page .profile-header p { color: rgba(242,242,245,0.7); }
+.electric-page .profile-meta { color: rgba(242,242,245,0.5); }
+.electric-page .colorful-nav a { background: rgba(20,20,30,0.7); color: #f2f2f5; border: 1px solid rgba(255,255,255,0.1); }
+.electric-page .colorful-nav a:hover { background: rgba(30,30,45,0.85); }
+.electric-page .social-icon-btn { background: rgba(20,20,30,0.7); border: 1px solid rgba(255,255,255,0.1); }
+.electric-page .color-link-btn { background: rgba(20,20,30,0.7) !important; border: 1px solid rgba(255,255,255,0.12) !important; color: #f2f2f5 !important; }
+.electric-page .color-link-btn:hover { background: rgba(30,30,45,0.85) !important; transform: translateY(-2px); }
+.electric-page .card { background: rgba(16,16,24,0.78); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(8px); color: #f2f2f5; }
+.electric-page .section-title { color: rgba(242,242,245,0.55); }
+.electric-page .event-item, .electric-page .blog-item { border-bottom-color: rgba(255,255,255,0.1); }
+.electric-page a { color: var(--accent, #6C5CE7); }
+.electric-page form textarea, .electric-page form input { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14); color: #f2f2f5; }
+.electric-page form label { color: rgba(242,242,245,0.6); }
+.electric-page .help-box { background: rgba(16,16,24,0.78); border-color: rgba(255,255,255,0.08); color: #f2f2f5; }
+
+.electric-page .profile-header.electric-border {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+  padding: 28px 20px 20px;
+  margin: 0 auto 28px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.03);
+}
+.eb-canvas-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 2; }
+.eb-canvas { display: block; }
+.eb-layers { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 0; }
+.eb-glow-1, .eb-glow-2, .eb-background-glow { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; box-sizing: border-box; }
+.eb-glow-1 { border: 2px solid color-mix(in srgb, var(--electric-border-color) 60%, transparent); filter: blur(1px); }
+.eb-glow-2 { border: 2px solid var(--electric-border-color); filter: blur(4px); }
+.eb-background-glow {
+  z-index: -1;
+  transform: scale(1.08);
+  filter: blur(28px);
+  opacity: 0.35;
+  background: linear-gradient(-30deg, var(--electric-border-color), transparent, var(--electric-border-color));
+}
+
+/* ===== Tema "Circuit": griglia 3D di tessere che ruotano lentamente (tecnica Truchet tiles,
+   puro CSS/JS via assets/js/circuit-bg.js), a formare un disegno stile circuito stampato che
+   cambia nel tempo. Le linee delle tessere seguono l'accento scelto dal profilo. ===== */
+body.circuit-page {
+  background: #0b0b0f;
+  color: #f2f2f5;
+  --text-rgb: 242,242,245;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.circuit-page .container { position: relative; z-index: 1; flex: 1 0 auto; max-width: 100%; }
+@media (min-width: 761px) { .circuit-page .container { max-width: 720px; } }
+.circuit-page footer.site { color: rgba(242,242,245,0.5); position: relative; z-index: 1; }
+.circuit-page .profile-header h1 { color: #fff; font-size: 30px; font-weight: 800; }
+.circuit-page .profile-header p { color: rgba(242,242,245,0.65); }
+.circuit-page .profile-meta { color: rgba(242,242,245,0.5); }
+.circuit-page .avatar { box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+.circuit-page .colorful-nav a { background: rgba(15,15,22,0.75); color: #f2f2f5; border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(6px); }
+.circuit-page .colorful-nav a:hover { background: rgba(25,25,36,0.85); }
+.circuit-page .social-icon-btn { background: rgba(15,15,22,0.75); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(6px); }
+.circuit-page .color-link-btn { background: rgba(15,15,22,0.75) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: #f2f2f5 !important; }
+.circuit-page .color-link-btn:hover { background: rgba(25,25,36,0.85) !important; transform: translateY(-2px); }
+.circuit-page .card { background: rgba(12,12,18,0.8); border: 1px solid rgba(255,255,255,0.07); backdrop-filter: blur(8px); color: #f2f2f5; }
+.circuit-page .section-title { color: rgba(242,242,245,0.5); }
+.circuit-page .event-item, .circuit-page .blog-item { border-bottom-color: rgba(255,255,255,0.1); }
+.circuit-page a { color: var(--accent, #6C5CE7); }
+.circuit-page form textarea, .circuit-page form input { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #f2f2f5; }
+.circuit-page form label { color: rgba(242,242,245,0.55); }
+.circuit-page .help-box { background: rgba(12,12,18,0.8); border-color: rgba(255,255,255,0.07); color: #f2f2f5; }
+
+#circuit-bg {
+  position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none;
+  perspective: 1000px;
+  background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%), #0b0b0f;
+}
+#circuit-bg::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(0deg, #0b0b0f 0%, transparent 45%);
   pointer-events: none;
-  mix-blend-mode: screen;
 }
-body.distortion-page::before {
-  background-image: repeating-radial-gradient(circle at 50% 38%, rgba(160,32,240,0.32) 0px, rgba(160,32,240,0.32) 2px, transparent 3px, transparent 30px);
-  animation: distortion-ring-1 8s steps(24) infinite;
+#circuit-bg .cirContainer {
+  transform: translateY(-12%) rotateX(28deg);
+  transform-style: preserve-3d;
+  --tc: 2.5px;
+  width: fit-content;
 }
-body.distortion-page::after {
-  background-image: repeating-radial-gradient(circle at 53% 41%, rgba(0,255,255,0.14) 0px, rgba(0,255,255,0.14) 1px, transparent 2px, transparent 44px);
-  animation: distortion-ring-2 11s steps(30) infinite;
+#circuit-bg .cirRow { display: flex; height: fit-content; }
+#circuit-bg .cir {
+  position: relative;
+  width: var(--size); height: var(--size);
+  overflow: hidden;
+  transition: transform 1.4s ease-in-out;
+  box-shadow: inset 0 0 0 0.5px rgba(255,255,255,0.06);
 }
-@keyframes distortion-ring-1 {
-  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.55; }
-  35% { transform: translate(-0.6%, 0.4%) scale(1.015); opacity: 0.4; }
-  36% { opacity: 0.65; }
-  68% { transform: translate(0.5%, -0.3%) scale(0.995); opacity: 0.5; }
+#circuit-bg .cir::before, #circuit-bg .cir::after {
+  content: ''; display: block; position: absolute; inset: 0;
 }
-@keyframes distortion-ring-2 {
-  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.3; }
-  50% { transform: translate(0.8%, -0.5%) scale(1.02); opacity: 0.18; }
-  51% { opacity: 0.42; }
-  80% { transform: translate(-0.4%, 0.3%); opacity: 0.28; }
+#circuit-bg .cir::before {
+  background: radial-gradient(circle at 0.1% 0.1%,
+    transparent 0px, transparent calc((var(--size) / 2) - var(--tc)),
+    var(--circuit-line-color) calc((var(--size) / 2) - var(--tc)),
+    var(--circuit-line-color) calc((var(--size) / 2) + var(--tc)),
+    transparent calc((var(--size) / 2) + var(--tc)));
+  opacity: 0.55;
 }
-.distortion-page .container { position: relative; z-index: 1; flex: 1 0 auto; max-width: 100%; }
-@media (min-width: 761px) { .distortion-page .container { max-width: 720px; } }
-.distortion-page footer.site { color: rgba(255,255,255,0.5); }
-
-.distortion-page .avatar {
-  border: 3px solid #a020f0;
-  box-shadow: 0 0 10px 2px rgba(160,32,240,0.75), 0 0 26px 6px rgba(160,32,240,0.35);
-  animation: distortion-glow 2.6s ease-in-out infinite;
-}
-@keyframes distortion-glow {
-  0%, 100% { box-shadow: 0 0 10px 2px rgba(160,32,240,0.75), 0 0 26px 6px rgba(160,32,240,0.35); }
-  50% { box-shadow: 0 0 14px 3px rgba(160,32,240,0.95), 0 0 34px 10px rgba(160,32,240,0.5); }
-}
-.distortion-page .profile-header h1 {
-  color: #fff; font-size: 28px; font-weight: 700;
-  font-family: 'Century Gothic', 'Futura', -apple-system, 'Segoe UI', Roboto, sans-serif;
-  letter-spacing: 0.5px; line-height: 1.1; text-transform: uppercase;
-}
-.distortion-page .profile-header p { color: rgba(255,255,255,0.7); }
-.distortion-page .profile-meta {
-  color: rgba(255,255,255,0.55);
-  font-family: 'Century Gothic', 'Futura', -apple-system, 'Segoe UI', Roboto, sans-serif; font-weight: 600; letter-spacing: 0.3px;
+#circuit-bg .cir::after {
+  background: radial-gradient(circle at 99.9% 99.9%,
+    transparent 0px, transparent calc((var(--size) / 2) - var(--tc)),
+    var(--circuit-line-color) calc((var(--size) / 2) - var(--tc)),
+    var(--circuit-line-color) calc((var(--size) / 2) + var(--tc)),
+    transparent calc((var(--size) / 2) + var(--tc)));
+  opacity: 0.55;
 }
 
-/* Pulsanti di categoria: frammenti spigolosi (parallelogramma via clip-path) invece di pillole */
-.distortion-page .colorful-nav a {
-  background: transparent;
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.3);
-  border-radius: 3px;
-  clip-path: polygon(7% 0, 100% 0, 93% 100%, 0 100%);
-  padding-left: 14px; padding-right: 14px;
+/* ===== Temi "Cosplay": sfondo pastello piatto, bordo nero spesso e ombra netta (senza sfocatura)
+   su ogni elemento — stile sticker/fumetto/locandina da fiera cosplay, ispirato alle pillole con
+   bordo nero delle FAQ di Ko-fi. Quattro varianti colore identiche nella forma, cambia solo la
+   tinta pastello: Blu, Rosa, Menta, Giallo. Le pillole dei link usano una tinta più chiara dello
+   sfondo pagina, così restano leggibili sopra qualunque variante senza bisogno di regole diverse
+   per l'accento del profilo (quello resta sempre governato da --accent, come negli altri temi). */
+body.cosplay-blue-page, body.cosplay-pink-page, body.cosplay-mint-page, body.cosplay-yellow-page {
+  color: #14141a;
+  --text-rgb: 20,20,26;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
 }
-.distortion-page .colorful-nav a:hover { border-color: #00ffff; color: #00ffff; }
-.distortion-page .colorful-nav a[style*="color:#fff"] {
-  background: #00ffff !important; color: #0a0a14 !important; border-color: #00ffff !important; font-weight: 800;
+.cosplay-blue-page, .cosplay-pink-page, .cosplay-mint-page, .cosplay-yellow-page { --cosplay-ink: #14141a; }
+body.cosplay-blue-page { background: #AFC8FB; }
+body.cosplay-pink-page { background: #FBB8D3; }
+body.cosplay-mint-page { background: #A9EAD1; }
+body.cosplay-yellow-page { background: #FCE28B; }
+
+.cosplay-blue-page .container, .cosplay-pink-page .container, .cosplay-mint-page .container, .cosplay-yellow-page .container {
+  flex: 1 0 auto; max-width: 100%;
 }
-.distortion-page .colorful-nav a.nav-segui-tab {
-  background: #a020f0 !important; color: #fff !important; border-color: #a020f0 !important;
+@media (min-width: 761px) {
+  .cosplay-blue-page .container, .cosplay-pink-page .container, .cosplay-mint-page .container, .cosplay-yellow-page .container { max-width: 720px; }
+}
+.cosplay-blue-page footer.site, .cosplay-pink-page footer.site, .cosplay-mint-page footer.site, .cosplay-yellow-page footer.site {
+  color: rgba(20,20,26,0.6);
+}
+.cosplay-blue-page .avatar, .cosplay-pink-page .avatar, .cosplay-mint-page .avatar, .cosplay-yellow-page .avatar {
+  border: 4px solid var(--cosplay-ink); box-shadow: 4px 4px 0 var(--cosplay-ink); background: #fff;
+}
+.cosplay-blue-page .profile-header h1, .cosplay-pink-page .profile-header h1, .cosplay-mint-page .profile-header h1, .cosplay-yellow-page .profile-header h1 {
+  color: #14141a; font-size: 29px; font-weight: 900;
+}
+.cosplay-blue-page .profile-header p, .cosplay-pink-page .profile-header p, .cosplay-mint-page .profile-header p, .cosplay-yellow-page .profile-header p {
+  color: rgba(20,20,26,0.75);
+}
+.cosplay-blue-page .profile-meta, .cosplay-pink-page .profile-meta, .cosplay-mint-page .profile-meta, .cosplay-yellow-page .profile-meta {
+  color: rgba(20,20,26,0.6);
+}
+.cosplay-blue-page .colorful-nav a, .cosplay-pink-page .colorful-nav a, .cosplay-mint-page .colorful-nav a, .cosplay-yellow-page .colorful-nav a {
+  background: #fff; color: #14141a; border: 2px solid var(--cosplay-ink); font-weight: 700;
+}
+.cosplay-blue-page .colorful-nav a:hover, .cosplay-pink-page .colorful-nav a:hover, .cosplay-mint-page .colorful-nav a:hover, .cosplay-yellow-page .colorful-nav a:hover {
+  transform: translateY(-2px);
+}
+.cosplay-blue-page .social-icon-btn, .cosplay-pink-page .social-icon-btn, .cosplay-mint-page .social-icon-btn, .cosplay-yellow-page .social-icon-btn {
+  background: #fff; color: #14141a; border: 2px solid var(--cosplay-ink); box-shadow: 2px 2px 0 var(--cosplay-ink);
+}
+.cosplay-blue-page .color-link-btn, .cosplay-pink-page .color-link-btn, .cosplay-mint-page .color-link-btn, .cosplay-yellow-page .color-link-btn {
+  border: 3px solid var(--cosplay-ink) !important;
+  border-radius: 999px;
+  color: #14141a !important;
+  font-weight: 800;
+  box-shadow: 4px 4px 0 var(--cosplay-ink);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.cosplay-blue-page .color-link-btn { background: #E1EBFF !important; }
+.cosplay-pink-page .color-link-btn { background: #FFE1EF !important; }
+.cosplay-mint-page .color-link-btn { background: #DFFBEF !important; }
+.cosplay-yellow-page .color-link-btn { background: #FFF6D6 !important; }
+.cosplay-blue-page .color-link-btn:hover, .cosplay-pink-page .color-link-btn:hover, .cosplay-mint-page .color-link-btn:hover, .cosplay-yellow-page .color-link-btn:hover {
+  transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--cosplay-ink);
+}
+.cosplay-blue-page .card, .cosplay-pink-page .card, .cosplay-mint-page .card, .cosplay-yellow-page .card {
+  background: #fff; border: 3px solid var(--cosplay-ink); border-radius: 20px; color: #14141a;
+  box-shadow: 4px 4px 0 var(--cosplay-ink);
+}
+.cosplay-blue-page .section-title, .cosplay-pink-page .section-title, .cosplay-mint-page .section-title, .cosplay-yellow-page .section-title {
+  color: rgba(20,20,26,0.65);
+}
+.cosplay-blue-page .event-item, .cosplay-blue-page .blog-item,
+.cosplay-pink-page .event-item, .cosplay-pink-page .blog-item,
+.cosplay-mint-page .event-item, .cosplay-mint-page .blog-item,
+.cosplay-yellow-page .event-item, .cosplay-yellow-page .blog-item {
+  border-bottom-color: rgba(20,20,26,0.2);
+}
+.cosplay-blue-page a, .cosplay-pink-page a, .cosplay-mint-page a, .cosplay-yellow-page a {
+  color: #14141a; font-weight: 700; text-decoration: underline;
+}
+.cosplay-blue-page form textarea, .cosplay-blue-page form input,
+.cosplay-pink-page form textarea, .cosplay-pink-page form input,
+.cosplay-mint-page form textarea, .cosplay-mint-page form input,
+.cosplay-yellow-page form textarea, .cosplay-yellow-page form input {
+  background: #fff; border: 2px solid var(--cosplay-ink); color: #14141a; border-radius: 12px;
+}
+.cosplay-blue-page form label, .cosplay-pink-page form label, .cosplay-mint-page form label, .cosplay-yellow-page form label {
+  color: rgba(20,20,26,0.7); font-weight: 700;
+}
+.cosplay-blue-page .help-box, .cosplay-pink-page .help-box, .cosplay-mint-page .help-box, .cosplay-yellow-page .help-box {
+  background: #fff; border: 2px solid var(--cosplay-ink); color: #14141a;
+}
+.cosplay-blue-page .link-divider, .cosplay-pink-page .link-divider, .cosplay-mint-page .link-divider, .cosplay-yellow-page .link-divider {
+  color: rgba(20,20,26,0.7);
+}
+.cosplay-blue-page .link-divider::before, .cosplay-blue-page .link-divider::after,
+.cosplay-pink-page .link-divider::before, .cosplay-pink-page .link-divider::after,
+.cosplay-mint-page .link-divider::before, .cosplay-mint-page .link-divider::after,
+.cosplay-yellow-page .link-divider::before, .cosplay-yellow-page .link-divider::after {
+  background: rgba(20,20,26,0.35);
 }
 
-.distortion-page .social-icon-btn {
-  width: 40px; height: 40px; font-size: 17px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(160,32,240,0.55);
-  color: #fff;
-  box-shadow: 0 0 8px rgba(160,32,240,0.45);
+/* ===== Temi "Fantascienza": pannelli in stile HUD di un'astronave — sfondo scuro con leggere
+   scanline, bordo neon sottile, angoli appena smussati (non a pillola come la maggior parte
+   degli altri temi) e bagliore sul testo/bordo. Due varianti: Ciano (classico "terminale") e
+   Magenta (più cyberpunk). ===== */
+body.scifi-cyan-page, body.scifi-magenta-page {
+  min-height: 100vh; margin: 0; overflow-x: hidden; display: flex; flex-direction: column;
 }
-.distortion-page .social-icon-btn:hover { box-shadow: 0 0 14px rgba(160,32,240,0.75); }
-
-/* Pulsanti dei link principali: frontale d'amplificatore — trama a griglia (grille cloth),
-   angoli arrotondati "a barile", due viti/knob agli angoli superiori, ombra interna per
-   dare profondità al piano metallico/vinile. */
-.distortion-page .color-link-btn {
-  background:
-    radial-gradient(circle, rgba(0,0,0,0.35) 1px, transparent 1.4px) 0 0/7px 7px,
-    linear-gradient(155deg, #ff8f1f 0%, #ff5c00 55%, #e64500 100%) !important;
-  border: 2px solid #8a3d00;
-  border-radius: 30px / 18px;
+body.scifi-cyan-page {
+  color: #d8f6ff; --text-rgb: 216,246,255; --scifi-neon: #29f5ff;
+  background-color: #060c16;
+  background-image:
+    radial-gradient(ellipse at 50% -10%, rgba(41,245,255,0.16), transparent 55%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0px, transparent 1px, transparent 3px),
+    linear-gradient(160deg, #060c16 0%, #081824 100%);
+}
+body.scifi-magenta-page {
+  color: #ffe3fb; --text-rgb: 255,227,251; --scifi-neon: #ff3df0;
+  background-color: #0c0616;
+  background-image:
+    radial-gradient(ellipse at 50% -10%, rgba(255,61,240,0.16), transparent 55%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0px, transparent 1px, transparent 3px),
+    linear-gradient(160deg, #0c0616 0%, #180a22 100%);
+}
+.scifi-cyan-page .container, .scifi-magenta-page .container { flex: 1 0 auto; max-width: 100%; }
+@media (min-width: 761px) { .scifi-cyan-page .container, .scifi-magenta-page .container { max-width: 720px; } }
+.scifi-cyan-page footer.site, .scifi-magenta-page footer.site { color: rgba(var(--text-rgb),0.55); }
+.scifi-cyan-page .avatar, .scifi-magenta-page .avatar {
+  border: 2px solid var(--scifi-neon); box-shadow: 0 0 16px rgba(41,245,255,0.4);
+}
+.scifi-magenta-page .avatar { box-shadow: 0 0 16px rgba(255,61,240,0.4); }
+.scifi-cyan-page .profile-header h1, .scifi-magenta-page .profile-header h1 {
+  color: #fff; font-size: 27px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+  text-shadow: 0 0 10px var(--scifi-neon);
+}
+.scifi-cyan-page .profile-header p, .scifi-magenta-page .profile-header p { color: rgba(var(--text-rgb),0.8); }
+.scifi-cyan-page .profile-meta, .scifi-magenta-page .profile-meta { color: rgba(var(--text-rgb),0.6); }
+.scifi-cyan-page .colorful-nav a, .scifi-magenta-page .colorful-nav a {
+  background: rgba(255,255,255,0.05); color: rgba(var(--text-rgb),0.9);
+  border: 1px solid var(--scifi-neon); border-radius: 6px;
+  text-transform: uppercase; letter-spacing: 0.5px; font-size: 12.5px;
+}
+.scifi-cyan-page .colorful-nav a:hover, .scifi-magenta-page .colorful-nav a:hover { background: rgba(255,255,255,0.1); }
+.scifi-cyan-page .social-icon-btn, .scifi-magenta-page .social-icon-btn {
+  background: rgba(255,255,255,0.06); border: 1px solid var(--scifi-neon); border-radius: 6px; color: rgba(var(--text-rgb),0.9);
+}
+.scifi-cyan-page .color-link-btn, .scifi-magenta-page .color-link-btn {
+  background: rgba(255,255,255,0.05) !important;
+  border: 1px solid var(--scifi-neon) !important;
+  border-radius: 6px;
   color: #fff !important;
-  box-shadow:
-    inset 0 3px 8px rgba(0,0,0,0.4),
-    inset 0 -2px 5px rgba(255,255,255,0.16),
-    0 6px 16px rgba(255,94,0,0.3);
-  padding-top: 22px; padding-bottom: 22px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  box-shadow: 0 0 14px rgba(41,245,255,0.2), inset 0 0 20px rgba(41,245,255,0.05);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
-.distortion-page .color-link-btn::before,
-.distortion-page .color-link-btn::after {
-  content: "";
+.scifi-magenta-page .color-link-btn { box-shadow: 0 0 14px rgba(255,61,240,0.2), inset 0 0 20px rgba(255,61,240,0.05); }
+.scifi-cyan-page .color-link-btn:hover, .scifi-magenta-page .color-link-btn:hover {
+  background: rgba(255,255,255,0.09) !important; transform: translateY(-2px);
+}
+.scifi-cyan-page .card, .scifi-magenta-page .card {
+  background: rgba(255,255,255,0.04); border: 1px solid var(--scifi-neon); border-radius: 6px; color: rgba(var(--text-rgb),0.95);
+  box-shadow: 0 0 20px rgba(41,245,255,0.14);
+}
+.scifi-magenta-page .card { box-shadow: 0 0 20px rgba(255,61,240,0.14); }
+.scifi-cyan-page .section-title, .scifi-magenta-page .section-title { color: rgba(var(--text-rgb),0.55); text-transform: uppercase; letter-spacing: 1px; }
+.scifi-cyan-page .event-item, .scifi-cyan-page .blog-item,
+.scifi-magenta-page .event-item, .scifi-magenta-page .blog-item { border-bottom-color: rgba(255,255,255,0.12); }
+.scifi-cyan-page a, .scifi-magenta-page a { color: var(--scifi-neon); }
+.scifi-cyan-page form textarea, .scifi-cyan-page form input,
+.scifi-magenta-page form textarea, .scifi-magenta-page form input {
+  background: rgba(255,255,255,0.05); border: 1px solid var(--scifi-neon); color: #fff; border-radius: 6px;
+}
+.scifi-cyan-page form label, .scifi-magenta-page form label { color: rgba(var(--text-rgb),0.65); }
+.scifi-cyan-page .help-box, .scifi-magenta-page .help-box {
+  background: rgba(255,255,255,0.04); border-color: var(--scifi-neon); color: rgba(var(--text-rgb),0.95);
+}
+.scifi-cyan-page .link-divider, .scifi-magenta-page .link-divider { color: rgba(var(--text-rgb),0.65); }
+.scifi-cyan-page .link-divider::before, .scifi-cyan-page .link-divider::after,
+.scifi-magenta-page .link-divider::before, .scifi-magenta-page .link-divider::after { background: var(--scifi-neon); opacity: 0.4; }
+
+/* ===== Temi "Horror": sfondo scuro con vignettatura pesante (i bordi restano quasi neri, il
+   centro appena più chiaro, come illuminato da un'unica fonte di luce), angoli quasi netti e
+   ombra dura — atmosfera inquietante senza alcuna animazione lampeggiante, per non creare
+   disagio a chi è sensibile ai flash. Due varianti: Sangue (rosso) e Nebbia (verde-grigio,
+   più torbido/psicologico). ===== */
+body.horror-blood-page, body.horror-fog-page {
+  min-height: 100vh; margin: 0; overflow-x: hidden; display: flex; flex-direction: column;
+}
+body.horror-blood-page {
+  color: #ece2e2; --text-rgb: 236,226,226; --horror-accent: #8a1414; --horror-accent-bright: #c81f1f; --horror-panel: #161010;
+  background-color: #0a0505;
+  background-image: radial-gradient(ellipse at 50% 25%, #241010 0%, #0a0505 72%);
+}
+body.horror-fog-page {
+  color: #d9e4de; --text-rgb: 217,228,222; --horror-accent: #3f5c4d; --horror-accent-bright: #6a9280; --horror-panel: #141814;
+  background-color: #0e1210;
+  background-image: radial-gradient(ellipse at 50% 25%, #2a332e 0%, #0e1210 72%);
+}
+.horror-blood-page .container, .horror-fog-page .container { flex: 1 0 auto; max-width: 100%; }
+@media (min-width: 761px) { .horror-blood-page .container, .horror-fog-page .container { max-width: 720px; } }
+.horror-blood-page footer.site, .horror-fog-page footer.site { color: rgba(var(--text-rgb),0.5); }
+.horror-blood-page .avatar, .horror-fog-page .avatar { border: 2px solid var(--horror-accent); box-shadow: 0 0 22px rgba(0,0,0,0.7); }
+.horror-blood-page .profile-header h1, .horror-fog-page .profile-header h1 {
+  color: #fff; font-size: 28px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+}
+.horror-blood-page .profile-header p, .horror-fog-page .profile-header p { color: rgba(var(--text-rgb),0.75); }
+.horror-blood-page .profile-meta, .horror-fog-page .profile-meta { color: rgba(var(--text-rgb),0.55); }
+.horror-blood-page .colorful-nav a, .horror-fog-page .colorful-nav a {
+  background: var(--horror-panel); color: rgba(var(--text-rgb),0.85); border: 1px solid var(--horror-accent); border-radius: 3px;
+}
+.horror-blood-page .colorful-nav a:hover, .horror-fog-page .colorful-nav a:hover { border-color: var(--horror-accent-bright); }
+.horror-blood-page .social-icon-btn, .horror-fog-page .social-icon-btn {
+  background: var(--horror-panel); border: 1px solid var(--horror-accent); border-radius: 3px; color: rgba(var(--text-rgb),0.85);
+}
+.horror-blood-page .color-link-btn, .horror-fog-page .color-link-btn {
+  background: var(--horror-panel) !important; border: 2px solid var(--horror-accent) !important; border-radius: 3px;
+  color: rgba(var(--text-rgb),0.95) !important; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.6);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.horror-blood-page .color-link-btn:hover, .horror-fog-page .color-link-btn:hover {
+  border-color: var(--horror-accent-bright) !important; transform: translate(-2px,-2px); box-shadow: 6px 6px 0 rgba(0,0,0,0.6);
+}
+.horror-blood-page .card, .horror-fog-page .card {
+  background: var(--horror-panel); border: 1px solid var(--horror-accent); border-radius: 4px; color: rgba(var(--text-rgb),0.95);
+}
+.horror-blood-page .section-title, .horror-fog-page .section-title { color: rgba(var(--text-rgb),0.5); text-transform: uppercase; letter-spacing: 1px; }
+.horror-blood-page .event-item, .horror-blood-page .blog-item,
+.horror-fog-page .event-item, .horror-fog-page .blog-item { border-bottom-color: rgba(var(--text-rgb),0.15); }
+.horror-blood-page a, .horror-fog-page a { color: var(--horror-accent-bright); }
+.horror-blood-page form textarea, .horror-blood-page form input,
+.horror-fog-page form textarea, .horror-fog-page form input {
+  background: var(--horror-panel); border: 1px solid var(--horror-accent); color: rgba(var(--text-rgb),0.95); border-radius: 3px;
+}
+.horror-blood-page form label, .horror-fog-page form label { color: rgba(var(--text-rgb),0.6); }
+.horror-blood-page .help-box, .horror-fog-page .help-box { background: var(--horror-panel); border-color: var(--horror-accent); color: rgba(var(--text-rgb),0.95); }
+.horror-blood-page .link-divider, .horror-fog-page .link-divider { color: rgba(var(--text-rgb),0.6); }
+.horror-blood-page .link-divider::before, .horror-blood-page .link-divider::after,
+.horror-fog-page .link-divider::before, .horror-fog-page .link-divider::after { background: var(--horror-accent); }
+
+/* ===== Temi "Thriller": vignettatura a faretto (da interrogatorio), palette quasi monocroma con
+   un solo colore d'accento usato con parsimonia (come un dettaglio evidenziato in un dossier) e
+   una striscia laterale colorata sui pulsanti, come una scheda di un fascicolo. Due varianti:
+   Noir (bianco e nero, accento rosso) e Ombra (grigio-blu freddo, accento ghiaccio). ===== */
+body.thriller-noir-page, body.thriller-shadow-page {
+  min-height: 100vh; margin: 0; overflow-x: hidden; display: flex; flex-direction: column;
+}
+body.thriller-noir-page {
+  color: #e8e8e8; --text-rgb: 232,232,232; --thriller-accent: #c11119; --thriller-panel: #141414;
+  background-color: #050505;
+  background-image: radial-gradient(ellipse at 50% -5%, #2c2c2c 0%, #050505 68%);
+}
+body.thriller-shadow-page {
+  color: #dfe6ec; --text-rgb: 223,230,236; --thriller-accent: #3aa7c9; --thriller-panel: #0e141a;
+  background-color: #05080c;
+  background-image: radial-gradient(ellipse at 50% -5%, #1c2733 0%, #05080c 68%);
+}
+.thriller-noir-page .container, .thriller-shadow-page .container { flex: 1 0 auto; max-width: 100%; }
+@media (min-width: 761px) { .thriller-noir-page .container, .thriller-shadow-page .container { max-width: 720px; } }
+.thriller-noir-page footer.site, .thriller-shadow-page footer.site { color: rgba(var(--text-rgb),0.5); }
+.thriller-noir-page .avatar, .thriller-shadow-page .avatar { border: 2px solid rgba(var(--text-rgb),0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+.thriller-noir-page .profile-header h1, .thriller-shadow-page .profile-header h1 { color: #fff; font-size: 28px; font-weight: 800; }
+.thriller-noir-page .profile-header p, .thriller-shadow-page .profile-header p { color: rgba(var(--text-rgb),0.7); }
+.thriller-noir-page .profile-meta, .thriller-shadow-page .profile-meta { color: rgba(var(--text-rgb),0.5); }
+.thriller-noir-page .colorful-nav a, .thriller-shadow-page .colorful-nav a {
+  background: var(--thriller-panel); color: rgba(var(--text-rgb),0.9); border: 1px solid rgba(var(--text-rgb),0.15); border-radius: 10px;
+}
+.thriller-noir-page .colorful-nav a:hover, .thriller-shadow-page .colorful-nav a:hover { border-color: var(--thriller-accent); }
+.thriller-noir-page .social-icon-btn, .thriller-shadow-page .social-icon-btn {
+  background: var(--thriller-panel); border: 1px solid rgba(var(--text-rgb),0.15); color: rgba(var(--text-rgb),0.9);
+}
+.thriller-noir-page .color-link-btn, .thriller-shadow-page .color-link-btn {
+  background: var(--thriller-panel) !important; border: 1px solid rgba(var(--text-rgb),0.15) !important;
+  border-left: 4px solid var(--thriller-accent) !important;
+  border-radius: 10px; color: rgba(var(--text-rgb),0.95) !important; font-weight: 700;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.5);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.thriller-noir-page .color-link-btn:hover, .thriller-shadow-page .color-link-btn:hover {
+  transform: translate(-2px,-2px); box-shadow: 6px 6px 0 rgba(0,0,0,0.5);
+}
+.thriller-noir-page .card, .thriller-shadow-page .card {
+  background: var(--thriller-panel); border: 1px solid rgba(var(--text-rgb),0.12); border-radius: 10px; color: rgba(var(--text-rgb),0.95);
+}
+.thriller-noir-page .section-title, .thriller-shadow-page .section-title { color: rgba(var(--text-rgb),0.5); }
+.thriller-noir-page .event-item, .thriller-noir-page .blog-item,
+.thriller-shadow-page .event-item, .thriller-shadow-page .blog-item { border-bottom-color: rgba(var(--text-rgb),0.12); }
+.thriller-noir-page a, .thriller-shadow-page a { color: var(--thriller-accent); }
+.thriller-noir-page form textarea, .thriller-noir-page form input,
+.thriller-shadow-page form textarea, .thriller-shadow-page form input {
+  background: var(--thriller-panel); border: 1px solid rgba(var(--text-rgb),0.2); color: rgba(var(--text-rgb),0.95); border-radius: 8px;
+}
+.thriller-noir-page form label, .thriller-shadow-page form label { color: rgba(var(--text-rgb),0.55); }
+.thriller-noir-page .help-box, .thriller-shadow-page .help-box { background: var(--thriller-panel); border-color: rgba(var(--text-rgb),0.12); color: rgba(var(--text-rgb),0.95); }
+.thriller-noir-page .link-divider, .thriller-shadow-page .link-divider { color: rgba(var(--text-rgb),0.55); }
+.thriller-noir-page .link-divider::before, .thriller-noir-page .link-divider::after,
+.thriller-shadow-page .link-divider::before, .thriller-shadow-page .link-divider::after { background: rgba(var(--text-rgb),0.2); }
+
+/* ===== Temi "007": nero elegante con dettagli metallici, sfumatura diagonale che ricorda il
+   "gun barrel" dei titoli di testa, bordi sottili e testo con leggero tracking — stile titoli di
+   apertura da film di spionaggio. Due varianti: Oro (classico) e Argento (più freddo). ===== */
+body.agent-gold-page, body.agent-silver-page {
+  min-height: 100vh; margin: 0; overflow-x: hidden; display: flex; flex-direction: column;
+}
+body.agent-gold-page {
+  color: #f2e9d8; --text-rgb: 242,233,216; --agent-metal: #d4af37; --agent-metal-bright: #f0cf6b; --agent-panel: #111111;
+  background-color: #0a0a0a;
+  background-image: linear-gradient(120deg, transparent 42%, rgba(255,215,120,0.1) 50%, transparent 58%), linear-gradient(160deg, #0a0a0a 0%, #161616 50%, #0a0a0a 100%);
+}
+body.agent-silver-page {
+  color: #e9ecef; --text-rgb: 233,236,239; --agent-metal: #c7ccd1; --agent-metal-bright: #eef1f3; --agent-panel: #111111;
+  background-color: #0a0a0a;
+  background-image: linear-gradient(120deg, transparent 42%, rgba(220,225,230,0.1) 50%, transparent 58%), linear-gradient(160deg, #0a0a0a 0%, #16181a 50%, #0a0a0a 100%);
+}
+.agent-gold-page .container, .agent-silver-page .container { flex: 1 0 auto; max-width: 100%; }
+@media (min-width: 761px) { .agent-gold-page .container, .agent-silver-page .container { max-width: 720px; } }
+.agent-gold-page footer.site, .agent-silver-page footer.site { color: rgba(var(--text-rgb),0.5); }
+.agent-gold-page .avatar, .agent-silver-page .avatar { border: 2px solid var(--agent-metal); box-shadow: 0 10px 26px rgba(0,0,0,0.6); }
+.agent-gold-page .profile-header h1, .agent-silver-page .profile-header h1 {
+  color: #fff; font-size: 27px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+}
+.agent-gold-page .profile-header p, .agent-silver-page .profile-header p { color: rgba(var(--text-rgb),0.75); }
+.agent-gold-page .profile-meta, .agent-silver-page .profile-meta { color: rgba(var(--text-rgb),0.55); letter-spacing: 1px; }
+.agent-gold-page .colorful-nav a, .agent-silver-page .colorful-nav a {
+  background: rgba(255,255,255,0.04); color: var(--agent-metal-bright); border: 1px solid var(--agent-metal);
+  border-radius: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-size: 12.5px;
+}
+.agent-gold-page .colorful-nav a:hover, .agent-silver-page .colorful-nav a:hover { background: rgba(255,255,255,0.08); }
+.agent-gold-page .social-icon-btn, .agent-silver-page .social-icon-btn {
+  background: rgba(255,255,255,0.04); border: 1px solid var(--agent-metal); color: var(--agent-metal-bright);
+}
+.agent-gold-page .color-link-btn, .agent-silver-page .color-link-btn {
+  background: var(--agent-panel) !important; border: 1.5px solid var(--agent-metal) !important; border-radius: 8px;
+  color: var(--agent-metal-bright) !important; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.agent-gold-page .color-link-btn:hover, .agent-silver-page .color-link-btn:hover {
+  background: #161616 !important; transform: translateY(-2px); border-color: var(--agent-metal-bright) !important;
+}
+.agent-gold-page .card, .agent-silver-page .card {
+  background: var(--agent-panel); border: 1px solid var(--agent-metal); border-radius: 8px; color: rgba(var(--text-rgb),0.95);
+}
+.agent-gold-page .section-title, .agent-silver-page .section-title { color: var(--agent-metal); text-transform: uppercase; letter-spacing: 1px; }
+.agent-gold-page .event-item, .agent-gold-page .blog-item,
+.agent-silver-page .event-item, .agent-silver-page .blog-item { border-bottom-color: rgba(var(--text-rgb),0.15); }
+.agent-gold-page a, .agent-silver-page a { color: var(--agent-metal-bright); }
+.agent-gold-page form textarea, .agent-gold-page form input,
+.agent-silver-page form textarea, .agent-silver-page form input {
+  background: var(--agent-panel); border: 1px solid var(--agent-metal); color: rgba(var(--text-rgb),0.95); border-radius: 8px;
+}
+.agent-gold-page form label, .agent-silver-page form label { color: rgba(var(--text-rgb),0.6); }
+.agent-gold-page .help-box, .agent-silver-page .help-box { background: var(--agent-panel); border-color: var(--agent-metal); color: rgba(var(--text-rgb),0.95); }
+.agent-gold-page .link-divider, .agent-silver-page .link-divider { color: var(--agent-metal); }
+.agent-gold-page .link-divider::before, .agent-gold-page .link-divider::after,
+.agent-silver-page .link-divider::before, .agent-silver-page .link-divider::after { background: var(--agent-metal); opacity: 0.5; }
+
+/* ===== Tema "Sartoria Elegante": nero caldo da boutique con dettagli oro, un motivo a righe
+   sartoriali (pinstripe) molto sottile sullo sfondo che richiama il tessuto di un abito su
+   misura, titoli in serif e pulsanti bordati invece che pieni — stessa impalcatura dei temi
+   "007" ma con tono da sartoria/moda uomo invece che da spionaggio. ===== */
+body.sartoria-page {
+  color: #f1ead9; --text-rgb: 241,234,217; --sartoria-gold: #c9a227; --sartoria-gold-bright: #e0be55; --sartoria-panel: #1c1914;
+  background-color: #14120d;
+  background-image: repeating-linear-gradient(115deg, rgba(201,162,39,0.06) 0px, rgba(201,162,39,0.06) 1px, transparent 1px, transparent 26px);
+  min-height: 100vh; margin: 0; overflow-x: hidden; display: flex; flex-direction: column;
+}
+.sartoria-page .container { flex: 1 0 auto; max-width: 100%; }
+@media (min-width: 761px) { .sartoria-page .container { max-width: 720px; } }
+.sartoria-page footer.site { color: rgba(var(--text-rgb),0.5); }
+.sartoria-page .avatar { border: 2px solid var(--sartoria-gold); box-shadow: 0 10px 26px rgba(0,0,0,0.55); }
+.sartoria-page .profile-header h1 {
+  font-family: Georgia, 'Times New Roman', serif; color: #fff; font-size: 27px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+}
+.sartoria-page .profile-header p { font-family: Georgia, 'Times New Roman', serif; font-style: italic; color: rgba(var(--text-rgb),0.75); }
+.sartoria-page .profile-meta { color: rgba(var(--text-rgb),0.55); letter-spacing: 1px; }
+.sartoria-page .colorful-nav a {
+  background: rgba(255,255,255,0.03); color: var(--sartoria-gold-bright); border: 1px solid var(--sartoria-gold);
+  border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; font-size: 12.5px;
+}
+.sartoria-page .colorful-nav a:hover { background: rgba(255,255,255,0.07); }
+.sartoria-page .social-icon-btn {
+  background: rgba(255,255,255,0.03); border: 1px solid var(--sartoria-gold); color: var(--sartoria-gold-bright);
+}
+.sartoria-page .color-link-btn {
+  background: var(--sartoria-panel) !important; border: 1px solid var(--sartoria-gold) !important; border-radius: 4px;
+  color: var(--sartoria-gold-bright) !important; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; font-size: 13px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.45);
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.sartoria-page .color-link-btn:hover {
+  background: #201c15 !important; transform: translateY(-2px); border-color: var(--sartoria-gold-bright) !important;
+}
+.sartoria-page .card {
+  background: var(--sartoria-panel); border: 1px solid var(--sartoria-gold); border-radius: 4px; color: rgba(var(--text-rgb),0.95);
+}
+.sartoria-page .section-title { font-family: Georgia, 'Times New Roman', serif; color: var(--sartoria-gold); text-transform: uppercase; letter-spacing: 1.5px; }
+.sartoria-page .event-item, .sartoria-page .blog-item { border-bottom-color: rgba(var(--text-rgb),0.12); }
+.sartoria-page a { color: var(--sartoria-gold-bright); }
+.sartoria-page form textarea, .sartoria-page form input {
+  background: var(--sartoria-panel); border: 1px solid var(--sartoria-gold); color: rgba(var(--text-rgb),0.95); border-radius: 4px;
+}
+.sartoria-page form label { color: rgba(var(--text-rgb),0.6); }
+.sartoria-page .help-box { background: var(--sartoria-panel); border-color: var(--sartoria-gold); color: rgba(var(--text-rgb),0.95); }
+.sartoria-page .link-divider { color: var(--sartoria-gold); }
+.sartoria-page .link-divider::before, .sartoria-page .link-divider::after { background: var(--sartoria-gold); opacity: 0.5; }
+
+/* ===== Tema "GeolierStyle": atmosfera scura da grafica "link in bio" urban/trap — bagliore
+   ambrato caldo (come un faretto/lampadario) che sfuma nel nero dietro l'avatar, titolo
+   maiuscolo grassetto molto marcato, pulsanti pieni a rettangolo scuro (non a pillola) con
+   bordo sottile chiaro, icone social a cerchio solo contornato invece che riempito. ===== */
+/* Palette misurata a campione sull'originale (screenshot reale, non a occhio): i pulsanti sono
+   un grigio ardesia neutro (#32-49, R≈G≈B, niente tinta calda) e lo sfondo scorrendo oltre la
+   copertina resta neutro — il caldo che si vede in cima viene tutto dalla foto stessa, non da
+   un accento scelto a parte. Palette quindi grigio/argento invece di ambra/oro. */
+body.geolierstyle-page {
+  color: #f0f0f0; --text-rgb: 240,240,240; --geolier-accent: #cfcfd4; --geolier-accent-bright: #ffffff; --geolier-panel: #2a2a2e;
+  /* Colore piatto, uniforme in ogni angolo della pagina — niente più bagliore/sfumatura radiale. */
+  background-color: #48484d;
+  min-height: 100vh; margin: 0; overflow-x: hidden; display: flex; flex-direction: column;
+}
+.geolierstyle-page .container { flex: 1 0 auto; max-width: 100%; }
+@media (min-width: 761px) { .geolierstyle-page .container { max-width: 720px; } }
+.geolierstyle-page footer.site { color: rgba(var(--text-rgb),0.5); }
+
+/* Copertina a tutta larghezza al posto del tondino avatar: la foto profilo diventa un grande
+   "hero" rettangolare che sfonda i bordi dello schermo (stile copertina disco/link-in-bio),
+   con titolo e sottotitolo scritti sopra, dentro la sfumatura scura in basso — non sotto come
+   negli altri temi. .avatar-wrap è l'unico elemento "sfondato" (il classico trucco
+   left:50%/margin-left:-50vw, indipendente da eventuali padding dei contenitori sopra);
+   h1/.profile-meta restano al loro posto nel flusso normale della pagina, tirati su con un
+   margine negativo per sovrapporsi visivamente alla parte bassa della foto. */
+/* Il "recupero" del padding superiore del contenitore va fatto qui, sul genitore, non sul
+   figlio (.avatar-wrap) — altrimenti il figlio "sporge" sopra il bordo del proprio genitore. Il
+   min-height ripete la stessa formula di dimensionamento della foto (aspect-ratio 4/5, tetto
+   560px): senza di esso, il margine negativo di h1 (usato per farlo sovrapporre alla foto)
+   "risucchia" l'altezza automatica di .profile-header al di sotto di quella reale della foto —
+   il contenuto successivo (icone social) partirebbe qualche pixel troppo presto, tagliando il
+   bordo superiore dei cerchi contro il fondo della foto/sfumatura invece di iniziare tutto sotto. */
+.geolierstyle-page .profile-header { margin-bottom: 20px; margin-top: -24px; min-height: min(125vw, 560px); }
+.geolierstyle-page .avatar-wrap {
+  display: block; position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw;
+  width: 100vw;
+  aspect-ratio: 4 / 5; max-height: 560px; overflow: hidden;
+}
+.geolierstyle-page .avatar {
+  width: 100%; height: 100%; object-fit: cover; object-position: center;
+  border: none; border-radius: 0; box-shadow: none; margin: 0; display: block;
+}
+.geolierstyle-page .avatar-wrap::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to top, #48484d 0%, rgba(72,72,77,0.88) 24%, rgba(72,72,77,0.35) 55%, transparent 78%);
+}
+.geolierstyle-page .profile-header h1 {
+  position: relative; margin: 0; margin-top: -126px; padding: 0 22px;
+  color: #fff; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; line-height: 1.15;
+  text-shadow: 0 4px 22px rgba(0,0,0,0.7);
+  /* Sempre su una sola riga, come nel riferimento — il font-size scala con la larghezza dello
+     schermo (clamp) così un nome lungo si rimpicciolisce invece di andare a capo; se anche
+     questo non bastasse (nome davvero lunghissimo), i tre puntini di overflow evitano che sfori
+     dalla foto invece di spezzarsi su due righe. */
+  font-size: clamp(20px, 7vw, 30px);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.geolierstyle-page .profile-header p { color: rgba(var(--text-rgb),0.75); }
+.geolierstyle-page .profile-meta {
+  position: relative; color: rgba(var(--text-rgb),0.8); letter-spacing: 0.5px;
+  margin: 6px 0 0; padding: 0 22px;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+}
+/* Senza avatar non c'è nessuna foto da sfondare: niente sfumatura né margine negativo, il
+   titolo torna semplicemente sotto, come su tutti gli altri temi. */
+.geolierstyle-page .profile-header:not(:has(.avatar-wrap)) h1 { margin-top: 8px; }
+.geolierstyle-page .profile-header:not(:has(.avatar-wrap)) .profile-meta { text-shadow: none; }
+.geolierstyle-page .colorful-nav a {
+  background: rgba(255,255,255,0.06); color: rgba(var(--text-rgb),0.85); border: 1px solid rgba(255,255,255,0.12);
+}
+.geolierstyle-page .colorful-nav a:hover { background: rgba(255,255,255,0.12); }
+.geolierstyle-page .social-icon-btn {
+  background: transparent; border: 1.5px solid rgba(255,255,255,0.7); color: #fff;
+}
+/* Effetto lucido: una sfumatura chiara sulla metà superiore del pulsante (come un riflesso di
+   vetro) sopra il colore pieno del pannello — due sfondi sovrapposti, il primo (il riflesso)
+   vince sul secondo (il colore vero) dove non è trasparente. Il bordo superiore un filo più
+   chiaro del resto rinforza la sensazione di luce che colpisce dall'alto. */
+.geolierstyle-page .color-link-btn {
+  background: linear-gradient(to bottom, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.05) 45%, rgba(255,255,255,0) 55%), var(--geolier-panel) !important;
+  border: 1px solid rgba(255,255,255,0.14) !important; border-top-color: rgba(255,255,255,0.3) !important; border-radius: 14px;
+  color: #fff !important; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; font-size: 14px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2);
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.geolierstyle-page .color-link-btn:hover {
+  background: linear-gradient(to bottom, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.06) 45%, rgba(255,255,255,0) 55%), #38383d !important;
+  transform: translateY(-2px); border-color: rgba(255,255,255,0.4) !important;
+}
+.geolierstyle-page .card {
+  background: rgba(30,30,33,0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; color: rgba(var(--text-rgb),0.95);
+  backdrop-filter: blur(6px);
+}
+.geolierstyle-page .section-title { color: var(--geolier-accent); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; }
+.geolierstyle-page .event-item, .geolierstyle-page .blog-item { border-bottom-color: rgba(255,255,255,0.1); }
+.geolierstyle-page a { color: var(--geolier-accent-bright); }
+.geolierstyle-page form textarea, .geolierstyle-page form input {
+  background: var(--geolier-panel); border: 1px solid rgba(255,255,255,0.16); color: rgba(var(--text-rgb),0.95); border-radius: 8px;
+}
+.geolierstyle-page form label { color: rgba(var(--text-rgb),0.6); }
+.geolierstyle-page .help-box { background: var(--geolier-panel); border-color: rgba(255,255,255,0.14); color: rgba(var(--text-rgb),0.95); }
+.geolierstyle-page .link-divider { color: var(--geolier-accent); }
+.geolierstyle-page .link-divider::before, .geolierstyle-page .link-divider::after { background: var(--geolier-accent); opacity: 0.5; }
+
+/* ===== Tema "Coniglietti": pastello rosa soffice, ombre morbide (sfocate, non nette come nei
+   temi Cosplay) e due orecchie da coniglio disegnate in puro CSS (::before/::after su
+   .avatar-wrap, già position:relative) che spuntano dietro l'avatar — nessuna immagine esterna.
+   Piccole zampette 🐾 sui pulsanti e attorno ai separatori, per un tocco giocoso in più. ===== */
+body.bunny-page {
+  color: #6b4a4a;
+  --text-rgb: 107,74,74;
+  background: linear-gradient(160deg, #FFF6F0 0%, #FFE1EC 55%, #FFD1E3 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.bunny-page .container { flex: 1 0 auto; max-width: 100%; }
+@media (min-width: 761px) { .bunny-page .container { max-width: 720px; } }
+.bunny-page footer.site { color: rgba(107,74,74,0.6); }
+.bunny-page .avatar {
+  width: 118px; height: 118px;
+  position: relative; z-index: 1;
+  border: 3px solid #fff;
+  box-shadow: 0 8px 22px rgba(255,143,179,0.4);
+}
+/* Le due orecchie: ovali allungati, ruotati in direzioni opposte, con una sfumatura rosa al
+   centro che imita l'interno dell'orecchio — restano dietro all'avatar (z-index 0 contro 1). */
+.bunny-page .avatar-wrap::before, .bunny-page .avatar-wrap::after {
+  content: '';
   position: absolute;
-  top: 9px;
-  width: 11px; height: 11px;
+  top: -38px;
+  width: 32px;
+  height: 60px;
+  border-radius: 50% 50% 45% 45% / 65% 65% 35% 35%;
+  background: radial-gradient(ellipse 55% 85% at 50% 62%, #FFAFCB 0%, transparent 72%), #fff;
+  border: 2px solid #6b4a4a;
+  z-index: 0;
+}
+.bunny-page .avatar-wrap::before { left: 8px; transform: rotate(-22deg); }
+.bunny-page .avatar-wrap::after { right: 8px; transform: rotate(22deg); }
+.bunny-page .profile-header h1 { color: #6b4a4a; font-size: 28px; font-weight: 800; }
+.bunny-page .profile-header p { color: rgba(107,74,74,0.75); }
+.bunny-page .profile-meta { color: rgba(107,74,74,0.6); }
+.bunny-page .colorful-nav a {
+  background: #fff; color: #6b4a4a; border: 1.5px solid #FFC2D9; font-weight: 700;
+}
+.bunny-page .colorful-nav a:hover { background: #FFF0F5; }
+.bunny-page .social-icon-btn { background: #fff; color: #6b4a4a; border: 1.5px solid #FFC2D9; }
+.bunny-page .color-link-btn {
+  background: #fff !important;
+  border: 2px solid #FFC2D9 !important;
+  border-radius: 999px;
+  color: #6b4a4a !important;
+  font-weight: 700;
+  box-shadow: 0 6px 18px rgba(255,143,179,0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.bunny-page .color-link-btn::before { content: '🐾'; margin-right: 6px; }
+.bunny-page .color-link-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(255,143,179,0.5); }
+.bunny-page .card {
+  background: #fff; border: 2px solid #FFD9E8; border-radius: 20px; color: #6b4a4a;
+  box-shadow: 0 8px 22px rgba(255,143,179,0.25);
+}
+.bunny-page .section-title { color: rgba(107,74,74,0.6); }
+.bunny-page .event-item, .bunny-page .blog-item { border-bottom-color: rgba(107,74,74,0.15); }
+.bunny-page a { color: #FF6FA0; font-weight: 700; }
+.bunny-page form textarea, .bunny-page form input {
+  background: #fff; border: 1.5px solid #FFC2D9; color: #6b4a4a; border-radius: 14px;
+}
+.bunny-page form label { color: rgba(107,74,74,0.7); }
+.bunny-page .help-box { background: #fff; border-color: #FFD9E8; color: #6b4a4a; }
+.bunny-page .link-divider { color: rgba(107,74,74,0.65); }
+.bunny-page .link-divider::before, .bunny-page .link-divider::after { background: #FFC2D9; }
+.bunny-page .link-divider span::before { content: '🐾 '; }
+.bunny-page .link-divider span::after { content: ' 🐾'; }
+
+/* ===== Tema "Zebrato": lo sfondo VERO della pagina è a righe zebrate (non solo un dettaglio sui
+   pulsanti) — più strisce di larghezza diversa per un effetto meno "codice a barre" e più
+   animalier. Card/pulsanti restano bianchi opachi con bordo nero, altrimenti sarebbero
+   illeggibili sopra le righe; il rosa acceso è l'unico colore che spezza il bianco/nero. ===== */
+body.zebra-page {
+  color: #1a1a1a;
+  --text-rgb: 26,26,26;
+  background-color: #f5f5f5;
+  background-image: repeating-linear-gradient(125deg,
+    #0a0a0a 0 10px, #f5f5f5 10px 18px,
+    #0a0a0a 18px 24px, #f5f5f5 24px 40px,
+    #0a0a0a 40px 46px, #f5f5f5 46px 64px);
+  background-attachment: fixed;
+  min-height: 100vh; margin: 0; overflow-x: hidden; display: flex; flex-direction: column;
+}
+.zebra-page .container { flex: 1 0 auto; max-width: 100%; }
+@media (min-width: 761px) { .zebra-page .container { max-width: 720px; } }
+.zebra-page footer.site { color: rgba(26,26,26,0.65); }
+.zebra-page .avatar { border: 4px solid #0a0a0a; box-shadow: 4px 4px 0 #FF1493; background: #fff; }
+/* Il testo del profilo sta direttamente sopra le righe zebrate (nessuna card sotto), quindi un
+   colore pieno da solo non basta: capiterebbe su un tratto nero e sparirebbe. Un contorno bianco
+   spesso (via text-shadow multidirezionale, più affidabile di -webkit-text-stroke su ogni
+   browser) lo rende leggibile sopra qualunque punto della striscia. */
+.zebra-page .profile-header h1 {
+  color: #0a0a0a; font-size: 29px; font-weight: 900;
+  text-shadow: -2px 0 #fff, 2px 0 #fff, 0 -2px #fff, 0 2px #fff, -2px -2px #fff, 2px -2px #fff, -2px 2px #fff, 2px 2px #fff;
+}
+.zebra-page .profile-header p {
+  color: #0a0a0a; font-weight: 600;
+  text-shadow: -1.5px 0 #fff, 1.5px 0 #fff, 0 -1.5px #fff, 0 1.5px #fff, -1.5px -1.5px #fff, 1.5px -1.5px #fff, -1.5px 1.5px #fff, 1.5px 1.5px #fff;
+}
+.zebra-page .profile-meta {
+  color: #0a0a0a; font-weight: 600;
+  text-shadow: -1.5px 0 #fff, 1.5px 0 #fff, 0 -1.5px #fff, 0 1.5px #fff, -1.5px -1.5px #fff, 1.5px -1.5px #fff, -1.5px 1.5px #fff, 1.5px 1.5px #fff;
+}
+.zebra-page .colorful-nav a { background: #fff; color: #0a0a0a; border: 2px solid #0a0a0a; font-weight: 700; }
+.zebra-page .colorful-nav a:hover { border-color: #FF1493; }
+.zebra-page .social-icon-btn { background: #fff; color: #0a0a0a; border: 2px solid #0a0a0a; }
+.zebra-page .color-link-btn {
+  background: #fff !important; border: 3px solid #0a0a0a !important; border-radius: 999px;
+  color: #0a0a0a !important; font-weight: 800;
+  box-shadow: 4px 4px 0 #FF1493;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.zebra-page .color-link-btn:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 #FF1493; }
+.zebra-page .card { background: #fff; border: 3px solid #0a0a0a; border-radius: 18px; color: #1a1a1a; box-shadow: 4px 4px 0 #FF1493; }
+/* section-title e link-divider compaiono spesso direttamente sopra le righe (non sempre dentro
+   una .card), quindi ricevono lo stesso contorno bianco del resto del testo del profilo. */
+.zebra-page .section-title {
+  color: #0a0a0a; font-weight: 700;
+  text-shadow: -1.5px 0 #fff, 1.5px 0 #fff, 0 -1.5px #fff, 0 1.5px #fff, -1.5px -1.5px #fff, 1.5px -1.5px #fff, -1.5px 1.5px #fff, 1.5px 1.5px #fff;
+}
+.zebra-page .event-item, .zebra-page .blog-item { border-bottom-color: rgba(26,26,26,0.2); }
+.zebra-page a { color: #FF1493; font-weight: 700; }
+.zebra-page form textarea, .zebra-page form input { background: #fff; border: 2px solid #0a0a0a; color: #1a1a1a; border-radius: 12px; }
+.zebra-page form label { color: rgba(26,26,26,0.7); }
+.zebra-page .help-box { background: #fff; border-color: #0a0a0a; color: #1a1a1a; }
+.zebra-page .link-divider {
+  color: #FF1493; font-weight: 700;
+  text-shadow: -1.5px 0 #fff, 1.5px 0 #fff, 0 -1.5px #fff, 0 1.5px #fff, -1.5px -1.5px #fff, 1.5px -1.5px #fff, -1.5px 1.5px #fff, 1.5px 1.5px #fff;
+}
+.zebra-page .link-divider::before, .zebra-page .link-divider::after { background: #0a0a0a; }
+
+/* ===== Tema "Pois": sfondo giallo caldo puntinato di bianco (pattern radiale ripetuto),
+   pulsanti bianchi con bordo rosso ciliegia — tono vintage/picnic, allegro e leggibile. ===== */
+body.polka-page {
+  color: #2b2b2b;
+  --text-rgb: 43,43,43;
+  background-color: #FFD23F;
+  background-image: radial-gradient(circle, #fff 22%, transparent 24%);
+  background-size: 34px 34px;
+  background-attachment: fixed;
+  min-height: 100vh; margin: 0; overflow-x: hidden; display: flex; flex-direction: column;
+}
+.polka-page .container { flex: 1 0 auto; max-width: 100%; }
+@media (min-width: 761px) { .polka-page .container { max-width: 720px; } }
+.polka-page footer.site { color: rgba(43,43,43,0.65); }
+.polka-page .avatar { border: 4px solid #fff; box-shadow: 0 6px 18px rgba(0,0,0,0.2); background: #fff; }
+.polka-page .profile-header h1 { color: #2b2b2b; font-size: 29px; font-weight: 800; }
+.polka-page .profile-header p { color: rgba(43,43,43,0.75); }
+.polka-page .profile-meta { color: rgba(43,43,43,0.6); }
+.polka-page .colorful-nav a { background: #fff; color: #2b2b2b; border: 2px solid #E63946; font-weight: 700; }
+.polka-page .colorful-nav a:hover { background: #FFF3F3; }
+.polka-page .social-icon-btn { background: #fff; color: #E63946; border: 2px solid #E63946; }
+.polka-page .color-link-btn {
+  background: #fff !important; border: 3px solid #E63946 !important; border-radius: 999px;
+  color: #E63946 !important; font-weight: 800;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.polka-page .color-link-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(0,0,0,0.2); }
+.polka-page .card { background: #fff; border: 2px solid #E63946; border-radius: 18px; color: #2b2b2b; }
+.polka-page .section-title { color: rgba(43,43,43,0.6); }
+.polka-page .event-item, .polka-page .blog-item { border-bottom-color: rgba(43,43,43,0.2); }
+.polka-page a { color: #E63946; font-weight: 700; }
+.polka-page form textarea, .polka-page form input { background: #fff; border: 2px solid #E63946; color: #2b2b2b; border-radius: 12px; }
+.polka-page form label { color: rgba(43,43,43,0.7); }
+.polka-page .help-box { background: #fff; border-color: #E63946; color: #2b2b2b; }
+.polka-page .link-divider { color: #E63946; }
+.polka-page .link-divider::before, .polka-page .link-divider::after { background: #E63946; opacity: 0.4; }
+
+/* ===== Tema "67" (il meme): sfondo scuro a raggiera stile "cartone animato/meme energy burst"
+   (repeating-conic-gradient), con i due numeri giganti "6" e "7" semitrasparenti negli angoli
+   opposti — sempre dietro al contenuto (z-index sul .container, stesso trucco già usato per lo
+   sfondo animato del tema Circuit). Verde neon + arancione (rimando al basket, l'origine del
+   meme: 6'7" di altezza), tipografia bold/corsiva con contorno nero in stile didascalia. ===== */
+body.meme67-page {
+  color: #f5f5f5;
+  --text-rgb: 245,245,245;
+  background-color: #111;
+  background-image: repeating-conic-gradient(from 0deg at 50% 10%, rgba(255,255,255,0.045) 0deg 8deg, transparent 8deg 16deg);
+  min-height: 100vh; margin: 0; overflow-x: hidden; display: flex; flex-direction: column;
+  position: relative;
+}
+body.meme67-page::before {
+  content: '6';
+  position: fixed; top: -10vw; left: -8vw;
+  font-size: 46vw; font-weight: 900; font-style: italic; line-height: 1;
+  color: rgba(255,122,0,0.14);
+  z-index: 0; pointer-events: none;
+}
+body.meme67-page::after {
+  content: '7';
+  position: fixed; bottom: -12vw; right: -8vw;
+  font-size: 46vw; font-weight: 900; font-style: italic; line-height: 1;
+  color: rgba(57,255,20,0.12);
+  z-index: 0; pointer-events: none;
+}
+.meme67-page .container { position: relative; z-index: 1; flex: 1 0 auto; max-width: 100%; }
+@media (min-width: 761px) { .meme67-page .container { max-width: 720px; } }
+.meme67-page footer.site { color: rgba(245,245,245,0.55); position: relative; z-index: 1; }
+.meme67-page .avatar { border: 3px solid #000; box-shadow: 0 0 0 3px #FF7A00; }
+.meme67-page .profile-header h1 {
+  color: #39FF14; -webkit-text-stroke: 1.5px #000; font-size: 30px; font-weight: 900;
+  text-transform: uppercase; font-style: italic;
+}
+.meme67-page .profile-header p { color: rgba(245,245,245,0.8); }
+.meme67-page .profile-meta { color: rgba(245,245,245,0.6); }
+.meme67-page .colorful-nav a { background: #000; color: #fff; border: 2px solid #FF7A00; font-weight: 800; text-transform: uppercase; }
+.meme67-page .colorful-nav a:hover { border-color: #39FF14; }
+.meme67-page .social-icon-btn { background: #000; border: 2px solid #FF7A00; color: #fff; }
+.meme67-page .color-link-btn {
+  background: #39FF14 !important; border: 3px solid #000 !important; border-radius: 999px;
+  color: #000 !important; font-weight: 900; text-transform: uppercase;
+  box-shadow: 4px 4px 0 #FF7A00;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.meme67-page .color-link-btn:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 #FF7A00; }
+.meme67-page .card { background: #000; border: 2px solid #FF7A00; border-radius: 14px; color: #f5f5f5; }
+.meme67-page .section-title { color: #FF7A00; text-transform: uppercase; letter-spacing: 1px; }
+.meme67-page .event-item, .meme67-page .blog-item { border-bottom-color: rgba(245,245,245,0.15); }
+.meme67-page a { color: #39FF14; font-weight: 700; }
+.meme67-page form textarea, .meme67-page form input { background: #000; border: 2px solid #FF7A00; color: #f5f5f5; border-radius: 10px; }
+.meme67-page form label { color: rgba(245,245,245,0.65); }
+.meme67-page .help-box { background: #000; border-color: #FF7A00; color: #f5f5f5; }
+.meme67-page .link-divider { color: #FF7A00; font-weight: 700; }
+.meme67-page .link-divider::before, .meme67-page .link-divider::after { background: #FF7A00; }
+.meme67-page .link-divider span::before { content: '6️⃣7️⃣ '; }
+.meme67-page .link-divider span::after { content: ' 6️⃣7️⃣'; }
+
+/* ===== Tema "Forza Napoli": cielo azzurro sul golfo che scende verso un tramonto dorato,
+   silhouette del Vesuvio fissa in fondo alla pagina, coriandoli azzurro/bianco/oro che salgono
+   dal basso (generati da napoli-fx.js, vedi renderNapoliBackground() in functions.php), un sole
+   che ruota lentamente dietro l'avatar e tre stelle (scudetto) che brillano sopra il nome — il
+   tema con più animazioni di tutti, tutte disattivabili da prefers-reduced-motion dove non sono
+   puramente decorative. Colori ispirati alla città (azzurro, sole, mare, oro), non il logo
+   ufficiale del club. ===== */
+body.napoli-page {
+  color: #fff;
+  --text-rgb: 255,255,255;
+  background: linear-gradient(180deg, #063b66 0%, #0f7ac2 45%, #2aa8e0 70%, #f2b552 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.napoli-page .container { position: relative; z-index: 1; flex: 1 0 auto; max-width: 100%; }
+@media (min-width: 761px) { .napoli-page .container { max-width: 720px; } }
+.napoli-page footer.site { color: rgba(255,255,255,0.6); position: relative; z-index: 1; }
+
+/* Sfondo fisso dietro al contenuto: Vesuvio (puro CSS, clip-path) + coriandoli (JS, vedi
+   napoli-fx.js). Stesso trucco z-index già usato per il tema Circuit. */
+#napoli-bg { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+.napoli-vesuvio {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 24vh;
+  background: linear-gradient(180deg, rgba(8,24,45,0.45), rgba(6,18,35,0.85));
+  clip-path: polygon(0% 100%, 0% 68%, 14% 52%, 27% 60%, 37% 26%, 45% 40%, 52% 12%, 59% 36%, 67% 22%, 75% 48%, 86% 42%, 100% 62%, 100% 100%);
+}
+.napoli-confetti {
+  position: absolute;
+  bottom: -20px;
+  animation-name: napoli-rise;
+  animation-timing-function: linear;
+  animation-iteration-count: 1;
+}
+@keyframes napoli-rise {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+  8% { opacity: 1; }
+  92% { opacity: 1; }
+  100% { transform: translateY(-112vh) rotate(360deg); opacity: 0; }
+}
+
+/* Sole che ruota lentamente dietro l'avatar (repeating-conic-gradient, nessuna immagine) —
+   "Napoli, città del sole". Le tre stelle sopra il nome richiamano gli scudetti vinti. */
+.napoli-page .avatar-wrap { position: relative; }
+.napoli-page .avatar-wrap::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 210px; height: 210px;
+  transform: translate(-50%, -50%);
+  background: repeating-conic-gradient(from 0deg, rgba(255,212,71,0.4) 0deg 7deg, transparent 7deg 20deg);
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.9), #4a2a10 70%);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  z-index: 0;
+  animation: napoli-sun-spin 44s linear infinite;
+  pointer-events: none;
 }
-.distortion-page .color-link-btn::before { left: 12px; }
-.distortion-page .color-link-btn::after { right: 12px; }
-.distortion-page .color-link-btn:hover {
-  transform: translateY(-3px);
-  box-shadow:
-    inset 0 3px 8px rgba(0,0,0,0.4),
-    inset 0 -2px 5px rgba(255,255,255,0.16),
-    0 10px 22px rgba(255,94,0,0.45);
+@keyframes napoli-sun-spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+.napoli-page .avatar { position: relative; z-index: 1; border: 4px solid #fff; box-shadow: 0 0 0 3px rgba(255,212,71,0.6), 0 10px 26px rgba(0,0,0,0.35); }
+.napoli-page .profile-header h1::before {
+  content: '⭐ ⭐ ⭐';
+  display: block;
+  font-size: 14px;
+  margin-bottom: 2px;
+  animation: napoli-star-twinkle 2.4s ease-in-out infinite;
 }
-.distortion-page .color-link-btn .btn-cover-icon { border-radius: 8px; box-shadow: 0 0 0 2px rgba(0,0,0,0.35); }
+@keyframes napoli-star-twinkle {
+  0%, 100% { opacity: 0.5; transform: scale(0.92); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+.napoli-page .profile-header h1 { color: #fff; font-size: 29px; font-weight: 900; text-shadow: 0 2px 10px rgba(0,0,0,0.35); }
+.napoli-page .profile-header p { color: rgba(255,255,255,0.85); }
+.napoli-page .profile-meta { color: rgba(255,255,255,0.7); }
+.napoli-page .colorful-nav a {
+  background: rgba(255,255,255,0.14); color: #fff; border: 1.5px solid rgba(255,255,255,0.5);
+  font-weight: 700; backdrop-filter: blur(4px);
+}
+.napoli-page .colorful-nav a:hover { background: rgba(255,255,255,0.24); }
+.napoli-page .social-icon-btn { background: rgba(255,255,255,0.16); border: 1.5px solid rgba(255,255,255,0.5); color: #fff; backdrop-filter: blur(4px); }
 
-.distortion-page .card { background: rgba(255,255,255,0.06); border: 1px solid rgba(160,32,240,0.25); backdrop-filter: blur(6px); color: #fff; }
-.distortion-page .section-title { color: rgba(255,255,255,0.55); }
-.distortion-page .event-item, .distortion-page .blog-item { border-bottom-color: rgba(255,255,255,0.14); }
-.distortion-page a { color: #00ffff; }
-.distortion-page form textarea, .distortion-page form input { background: rgba(255,255,255,0.08); border: 1px solid rgba(160,32,240,0.35); color: #fff; }
-.distortion-page form label { color: rgba(255,255,255,0.65); }
-.distortion-page .help-box { background: rgba(255,255,255,0.06); border-color: rgba(160,32,240,0.25); color: #fff; }
+/* Pulsanti con un riflesso che scorre in loop (animazione shine), stile "voglia di partita". */
+.napoli-page .color-link-btn {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0092d6, #12b4e8) !important;
+  border: 2px solid rgba(255,255,255,0.6) !important;
+  border-radius: 999px;
+  color: #fff !important;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 6px 18px rgba(0,80,140,0.4);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.napoli-page .color-link-btn::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -60%;
+  width: 40%; height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.6), transparent);
+  transform: skewX(-20deg);
+  animation: napoli-btn-shine 3.4s ease-in-out infinite;
+}
+@keyframes napoli-btn-shine {
+  0% { left: -60%; }
+  55% { left: 130%; }
+  100% { left: 130%; }
+}
+.napoli-page .color-link-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 26px rgba(0,80,140,0.55); }
+.napoli-page .card { background: rgba(6,40,70,0.55); border: 1.5px solid rgba(255,255,255,0.35); border-radius: 18px; color: #fff; backdrop-filter: blur(6px); }
+.napoli-page .section-title { color: rgba(255,255,255,0.75); }
+.napoli-page .event-item, .napoli-page .blog-item { border-bottom-color: rgba(255,255,255,0.2); }
+.napoli-page a { color: #FFD447; font-weight: 700; }
+.napoli-page form textarea, .napoli-page form input {
+  background: rgba(255,255,255,0.12); border: 1.5px solid rgba(255,255,255,0.4); color: #fff; border-radius: 12px;
+}
+.napoli-page form label { color: rgba(255,255,255,0.75); }
+.napoli-page .help-box { background: rgba(6,40,70,0.55); border-color: rgba(255,255,255,0.35); color: #fff; backdrop-filter: blur(6px); }
+.napoli-page .link-divider { color: #FFD447; font-weight: 700; }
+.napoli-page .link-divider::before, .napoli-page .link-divider::after { background: rgba(255,255,255,0.5); }
 
-/* Copertine album: stesso bordo "a barile" dei pulsanti amplificatore, con riflesso sotto
-   (effetto palco bagnato). -webkit-box-reflect è supportato da Chrome/Safari/Edge; sui browser
-   che non lo supportano (Firefox) la copertina resta semplicemente senza riflesso, nessun danno. */
-.distortion-page .album-cover {
-  border-radius: 20px / 12px !important;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.45) !important;
-  -webkit-box-reflect: below 3px linear-gradient(to bottom, rgba(0,0,0,0) 45%, rgba(255,255,255,0.16) 100%);
+@media (prefers-reduced-motion: reduce) {
+  .napoli-page .avatar-wrap::before,
+  .napoli-page .profile-header h1::before,
+  .napoli-page .color-link-btn::after { animation: none; }
 }
 
-@media (max-width: 480px) {
-  /* Su schermi molto stretti gli anelli sfumano meno bene ed è più probabile che rallentino
-     lo scroll su hardware modesto: li si mantiene ma più leggeri. */
-  body.distortion-page::before, body.distortion-page::after { opacity: 0.7; }
+/* ===== Tema "Cinema Pop": sala scura con un bagliore arancione da faretto dietro l'avatar,
+   pellicola con fori bianchi su nero in alto e in fondo alla pagina, popcorn dorati bitorzoluti
+   che salgono dal basso in continuo (generati da cinemapop-fx.js, vedi
+   renderCinemaPopBackground() in functions.php), pulsanti a righe come un secchiello di popcorn
+   con un riflesso lucido che scorre in loop. Colori e atmosfera originali, nessun logo di
+   nessuna sala cinematografica reale. ===== */
+body.cinemapop-page {
+  color: #fff8ea;
+  --text-rgb: 255,248,234;
+  background: linear-gradient(180deg, #14100a 0%, #3a2205 45%, #8a4a05 78%, #f5921f 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
 }
-.golden-page .help-box { background: rgba(0,0,0,0.25); border-color: rgba(255,255,255,0.12); color: #fff; }
+.cinemapop-page .container { position: relative; z-index: 1; flex: 1 0 auto; max-width: 100%; }
+@media (min-width: 761px) { .cinemapop-page .container { max-width: 720px; } }
+.cinemapop-page footer.site { color: rgba(255,248,234,0.6); position: relative; z-index: 1; }
+
+/* Sfondo fisso dietro al contenuto: due bande "pellicola" (puro CSS, fori via
+   repeating-radial-gradient) + popcorn (JS, vedi cinemapop-fx.js). Stesso trucco z-index già
+   usato per Circuit/Forza Napoli. */
+#cinemapop-bg { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+.cinemapop-filmstrip {
+  position: absolute; left: 0; right: 0; height: 22px;
+  background-color: #0a0806;
+  background-image: repeating-radial-gradient(circle, rgba(255,248,234,0.75) 0 3px, transparent 3px 22px);
+  background-position: 8px center;
+  box-shadow: 0 0 18px rgba(0,0,0,0.5);
+}
+.cinemapop-filmstrip.top { top: 0; }
+.cinemapop-filmstrip.bottom { bottom: 0; }
+.cinemapop-kernel {
+  position: absolute;
+  bottom: -20px;
+  animation-name: cinemapop-rise;
+  animation-timing-function: linear;
+  animation-iteration-count: 1;
+  box-shadow: 0 0 4px rgba(255,199,56,0.5);
+}
+@keyframes cinemapop-rise {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+  8% { opacity: 1; }
+  92% { opacity: 1; }
+  100% { transform: translateY(-112vh) rotate(200deg); opacity: 0; }
+}
+
+/* Bagliore da faretto dietro l'avatar, che pulsa lentamente come le luci di una sala prima
+   dello spettacolo. Un piccolo 🍿 fa capolino sopra il nome, con un lieve rimbalzo. */
+.cinemapop-page .avatar-wrap { position: relative; }
+.cinemapop-page .avatar-wrap::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 230px; height: 230px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(255,199,56,0.55) 0%, rgba(245,146,31,0.25) 45%, transparent 72%);
+  border-radius: 50%;
+  z-index: 0;
+  animation: cinemapop-spotlight-pulse 3.6s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes cinemapop-spotlight-pulse {
+  0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(0.94); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+}
+.cinemapop-page .avatar { position: relative; z-index: 1; border: 4px solid #fff; box-shadow: 0 0 0 3px rgba(255,199,56,0.7), 0 10px 26px rgba(0,0,0,0.45); }
+.cinemapop-page .profile-header h1::before {
+  content: '🍿';
+  display: block;
+  font-size: 22px;
+  margin-bottom: 2px;
+  animation: cinemapop-popcorn-bounce 2.2s ease-in-out infinite;
+}
+@keyframes cinemapop-popcorn-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+.cinemapop-page .profile-header h1 { color: #fff8ea; font-size: 29px; font-weight: 900; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+.cinemapop-page .profile-header p { color: rgba(255,248,234,0.85); }
+.cinemapop-page .profile-meta { color: rgba(255,248,234,0.7); }
+.cinemapop-page .colorful-nav a {
+  background: rgba(255,199,56,0.16); color: #fff8ea; border: 1.5px solid rgba(255,199,56,0.5);
+  font-weight: 700; backdrop-filter: blur(4px);
+}
+.cinemapop-page .colorful-nav a:hover { background: rgba(255,199,56,0.28); }
+.cinemapop-page .social-icon-btn { background: rgba(255,248,234,0.14); border: 1.5px solid rgba(255,199,56,0.55); color: #fff8ea; backdrop-filter: blur(4px); }
+
+/* Pulsanti come un secchiello di popcorn: righe bianco/arancio, testo scuro e un riflesso che
+   scorre in loop — al passaggio del mouse un piccolo "pop" invece del solito sollevamento. */
+.cinemapop-page .color-link-btn {
+  position: relative;
+  overflow: hidden;
+  background: repeating-linear-gradient(90deg, #fff8ea 0 16px, #ffc738 16px 32px) !important;
+  border: 2px solid rgba(20,16,10,0.75) !important;
+  border-radius: 14px 14px 6px 6px;
+  color: #2b1a04 !important;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+  transition: transform 0.18s cubic-bezier(.34,1.56,.64,1), box-shadow 0.18s ease;
+}
+.cinemapop-page .color-link-btn::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -60%;
+  width: 40%; height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.75), transparent);
+  transform: skewX(-20deg);
+  animation: cinemapop-btn-shine 3.4s ease-in-out infinite;
+}
+@keyframes cinemapop-btn-shine {
+  0% { left: -60%; }
+  55% { left: 130%; }
+  100% { left: 130%; }
+}
+.cinemapop-page .color-link-btn:hover { transform: scale(1.06) translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,0.45); }
+.cinemapop-page .card { background: rgba(40,20,4,0.55); border: 1.5px solid rgba(255,199,56,0.4); border-radius: 18px; color: #fff8ea; backdrop-filter: blur(6px); }
+.cinemapop-page .section-title { color: rgba(255,248,234,0.75); }
+.cinemapop-page .event-item, .cinemapop-page .blog-item { border-bottom-color: rgba(255,199,56,0.25); }
+.cinemapop-page a { color: #ffc738; font-weight: 700; }
+.cinemapop-page form textarea, .cinemapop-page form input {
+  background: rgba(255,248,234,0.1); border: 1.5px solid rgba(255,199,56,0.4); color: #fff8ea; border-radius: 12px;
+}
+.cinemapop-page form label { color: rgba(255,248,234,0.75); }
+.cinemapop-page .help-box { background: rgba(40,20,4,0.55); border-color: rgba(255,199,56,0.4); color: #fff8ea; backdrop-filter: blur(6px); }
+.cinemapop-page .link-divider { color: #ffc738; font-weight: 700; }
+.cinemapop-page .link-divider::before, .cinemapop-page .link-divider::after { background: rgba(255,199,56,0.5); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cinemapop-page .avatar-wrap::before,
+  .cinemapop-page .profile-header h1::before,
+  .cinemapop-page .color-link-btn::after { animation: none; }
+}
+
+/* ===== Tema "Frontiera Stellare" (ispirato a Star Trek): spazio profondo con nebulose viola/blu
+   sfumate, campo stellare che scintilla e strisce di "salto nel warp" generate da
+   startrek-fx.js (stesso z-index-trick dietro al contenuto già usato per Circuit/Napoli).
+   Pulsanti/nav in stile pannello LCARS (angoli asimmetrici, arancione/blu vivaci su nero,
+   tipografia maiuscola bold) — il linguaggio visivo dell'interfaccia della serie, non il logo.
+   Il distintivo sull'avatar è un disegno originale (cerchio + stella + bagliore pulsante), NON
+   il simbolo Starfleet ufficiale: quello è un marchio registrato, non riproducibile qui. ===== */
+body.startrek-page {
+  color: #e8e8ff;
+  --text-rgb: 232,232,255;
+  background-color: #05061a;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 20% 15%, rgba(153,102,204,0.25), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 85% 75%, rgba(60,140,220,0.18), transparent 60%),
+    linear-gradient(180deg, #05061a 0%, #0a0e2e 100%);
+  min-height: 100vh; margin: 0; overflow-x: hidden; display: flex; flex-direction: column;
+}
+.startrek-page .container { position: relative; z-index: 1; flex: 1 0 auto; max-width: 100%; }
+@media (min-width: 761px) { .startrek-page .container { max-width: 720px; } }
+.startrek-page footer.site { color: rgba(232,232,255,0.55); position: relative; z-index: 1; }
+
+/* Sfondo fisso: campo stellare + strisce di warp, entrambi generati da startrek-fx.js. */
+#startrek-bg { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+.startrek-star {
+  position: absolute;
+  background: #fff;
+  border-radius: 50%;
+  animation-name: startrek-twinkle;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+@keyframes startrek-twinkle { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+.startrek-warp {
+  position: absolute;
+  left: -20%;
+  width: 26%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent);
+  transform: rotate(-4deg);
+  animation-name: startrek-warp-fly;
+  animation-timing-function: ease-in;
+  animation-iteration-count: 1;
+}
+@keyframes startrek-warp-fly {
+  0% { left: -20%; opacity: 0; }
+  15% { opacity: 1; }
+  100% { left: 120%; opacity: 0; }
+}
+
+/* Distintivo circolare originale in basso a destra dell'avatar (non il logo Starfleet), con un
+   bagliore che pulsa piano — come un comunicatore che "respira". */
+.startrek-page .avatar-wrap { position: relative; }
+.startrek-page .avatar-wrap::after {
+  content: '✦';
+  position: absolute;
+  bottom: 2px; right: 2px;
+  width: 32px; height: 32px;
+  line-height: 30px;
+  text-align: center;
+  font-size: 15px;
+  color: #FFD98A;
+  border-radius: 50%;
+  background: radial-gradient(circle, #1b2a4a 0%, #0a1128 70%);
+  border: 2px solid #FF9F1C;
+  z-index: 2;
+  animation: startrek-badge-pulse 2.6s ease-in-out infinite;
+}
+@keyframes startrek-badge-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(255,159,28,0.5); }
+  50% { box-shadow: 0 0 18px rgba(255,159,28,0.9); }
+}
+.startrek-page .avatar { position: relative; z-index: 1; border: 3px solid #6B8CFF; box-shadow: 0 0 20px rgba(107,140,255,0.4); }
+.startrek-page .profile-header h1 {
+  color: #fff; font-size: 27px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+}
+.startrek-page .profile-header p { color: rgba(232,232,255,0.8); }
+.startrek-page .profile-meta { color: rgba(232,232,255,0.6); }
+.startrek-page .colorful-nav a {
+  background: #1c2150; color: #CDE7EA; border: 1px solid #6B8CFF;
+  border-radius: 999px 14px 14px 999px;
+  text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; font-size: 12.5px;
+}
+.startrek-page .colorful-nav a:hover { background: #262c66; }
+.startrek-page .social-icon-btn { background: #1c2150; border: 1px solid #6B8CFF; color: #CDE7EA; }
+.startrek-page .color-link-btn {
+  background: #FF9F1C !important;
+  border: none !important;
+  border-radius: 999px 22px 22px 999px;
+  color: #14102a !important;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 14px rgba(255,159,28,0.3);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.startrek-page .color-link-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255,159,28,0.5); }
+.startrek-page .card {
+  background: rgba(10,14,46,0.75); border: none; border-left: 6px solid #FF9F1C;
+  border-radius: 4px 18px 18px 4px; color: #e8e8ff; backdrop-filter: blur(4px);
+}
+.startrek-page .section-title { color: #CC99CC; text-transform: uppercase; letter-spacing: 1px; }
+.startrek-page .event-item, .startrek-page .blog-item { border-bottom-color: rgba(232,232,255,0.15); }
+.startrek-page a { color: #9AD1D6; font-weight: 700; }
+.startrek-page form textarea, .startrek-page form input {
+  background: rgba(255,255,255,0.06); border: 1px solid #6B8CFF; color: #e8e8ff; border-radius: 10px;
+}
+.startrek-page form label { color: rgba(232,232,255,0.65); }
+.startrek-page .help-box { background: rgba(10,14,46,0.75); border-color: #6B8CFF; color: #e8e8ff; }
+.startrek-page .link-divider { color: #9AD1D6; }
+.startrek-page .link-divider::before, .startrek-page .link-divider::after { background: #6B8CFF; opacity: 0.5; }
+
+@media (prefers-reduced-motion: reduce) {
+  .startrek-page .avatar-wrap::after,
+  .startrek-page .startrek-star { animation: none; }
+}
+
+/* ===== Tema "Console Galattica": iperspazio animato su canvas (galactic-fx.js) con un breve
+   "salto" al passaggio del mouse sui pulsanti principali, nebulosa di sfondo che deriva
+   lentamente, avatar "olografico" (tinta ciano, scanline, glitch periodico), pulsanti a console
+   con lucentezza al passaggio del mouse, icone social che si illuminano di un colore diverso
+   ciascuna, quattro varianti di pulsante animate in modo diverso, cursore a lama energetica e
+   suoni sintetizzati (mai campionati) attivabili dall'utente. Elementi tutti originali: nessun
+   logo, personaggio, alfabeto o simbolo di alcun franchise specifico. ===== */
+body.galactic-page {
+  color: #e4f2ff;
+  --text-rgb: 228,242,255;
+  background-color: #05040f;
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(123,60,255,0.35), transparent 45%),
+    radial-gradient(circle at 80% 30%, rgba(41,245,255,0.25), transparent 50%),
+    radial-gradient(circle at 50% 85%, rgba(80,40,180,0.3), transparent 55%),
+    linear-gradient(180deg, #05040f 0%, #0a0820 100%);
+  background-size: 200% 200%, 200% 200%, 200% 200%, 100% 100%;
+  animation: galactic-nebula-drift 40s ease-in-out infinite;
+  min-height: 100vh; margin: 0; overflow-x: hidden; display: flex; flex-direction: column;
+}
+@keyframes galactic-nebula-drift {
+  0%, 100% { background-position: 0% 0%, 100% 0%, 50% 100%, 0 0; }
+  50% { background-position: 30% 40%, 70% 60%, 40% 70%, 0 0; }
+}
+.galactic-page .container { position: relative; z-index: 1; flex: 1 0 auto; max-width: 100%; }
+@media (min-width: 761px) { .galactic-page .container { max-width: 720px; } }
+.galactic-page footer.site { color: rgba(228,242,255,0.55); position: relative; z-index: 1; }
+
+/* Cursore a lama energetica (SVG inline, nessuna immagine esterna) su testo e link/pulsanti. */
+.galactic-page, .galactic-page a, .galactic-page button {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Cline x1='4' y1='26' x2='24' y2='4' stroke='%2329f5ff' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='4' cy='26' r='3' fill='%2329f5ff'/%3E%3C/svg%3E") 4 26, auto;
+}
+
+/* Canvas dell'iperspazio, sempre dietro al contenuto (stesso trucco già usato per Circuit/
+   Napoli/Frontiera Stellare). */
+#galactic-bg { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+.galactic-easter-orb {
+  position: fixed;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, #7bd9ff 40%, transparent 75%);
+  box-shadow: 0 0 14px 4px rgba(123,217,255,0.6);
+  top: 70%; left: -20px;
+  pointer-events: none;
+  animation: galactic-orb-drift 9.2s linear forwards;
+}
+@keyframes galactic-orb-drift {
+  0% { transform: translate(0,0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translate(120vw, -40vh); opacity: 0; }
+}
+
+/* Avatar "olografico": tinta ciano, anello luminoso, scanline sovrapposte (::before) e un
+   glitch molto breve che ricorre ogni pochi secondi. */
+/* Bordo e bagliore stanno sul contenitore (non sull'avatar) apposta: il filter hue-rotate qui
+   sotto ruota il colore di TUTTO ciò su cui è applicato, bordo compreso — se restasse
+   sull'avatar il ciano diventerebbe magenta insieme alla foto. */
+.galactic-page .avatar-wrap {
+  position: relative;
+  /* isolation:isolate crea un proprio contesto di sovrapposizione, così il mix-blend-mode delle
+     scanline qui sotto si confronta SOLO con l'avatar dentro questo contenitore, non con
+     l'anello o con qualunque altra cosa fuori — altrimenti il bordo ciano vira a tratti di
+     colore in modo imprevedibile. */
+  isolation: isolate;
+  border-radius: 50%;
+  border: 3px solid #29f5ff;
+  box-shadow: 0 0 14px 4px rgba(41,245,255,0.85);
+}
+.galactic-page .avatar-wrap::before {
+  content: '';
+  position: absolute; inset: 3px; border-radius: 50%;
+  background: repeating-linear-gradient(0deg, rgba(255,255,255,0.1) 0px, rgba(255,255,255,0.1) 1px, transparent 1px, transparent 3px);
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 2;
+}
+.galactic-page .avatar {
+  position: relative; z-index: 1;
+  /* Sovrascrive il bordo di base dell'avatar (3px solid var(--accent), il colore personale del
+     profilo): qui l'anello è solo quello del contenitore, altrimenti resterebbe visibile anche
+     il vecchio bordo colore-accento, con un fastidioso spicchio di sfondo/nebulosa tra i due. */
+  border: 3px solid transparent;
+  filter: sepia(0.35) hue-rotate(150deg) saturate(2.2) brightness(1.1);
+  animation: galactic-hologram-glitch 6s infinite;
+}
+@keyframes galactic-hologram-glitch {
+  0%, 92%, 100% { transform: none; filter: sepia(0.35) hue-rotate(150deg) saturate(2.2) brightness(1.1); }
+  93% { transform: translate(-2px,0); }
+  94% { transform: translate(2px,0); filter: sepia(0.35) hue-rotate(150deg) saturate(2.4) brightness(1.4); }
+  95% { transform: translate(-1px,0); }
+  96%, 100% { transform: none; }
+}
+
+/* Nome del profilo: al passaggio del mouse un breve "sfarfallio energetico" con lieve aberrazione
+   cromatica — al posto di una traduzione in un alfabeto inventato di un franchise specifico. */
+.galactic-page .profile-header h1 {
+  color: #fff; font-size: 27px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase;
+  text-shadow: 0 0 12px rgba(41,245,255,0.6);
+  transition: text-shadow 0.2s ease, letter-spacing 0.2s ease;
+}
+.galactic-page .profile-header h1:hover {
+  text-shadow: 0 0 4px #29f5ff, 0 0 18px rgba(41,245,255,0.9), 2px 0 0 rgba(255,61,240,0.5), -2px 0 0 rgba(61,255,176,0.5);
+  letter-spacing: 2.5px;
+}
+.galactic-page .profile-header p { color: rgba(228,242,255,0.85); }
+.galactic-page .profile-meta { color: rgba(228,242,255,0.6); letter-spacing: 0.5px; }
+
+/* Pulsanti/nav a "console": pannelli scuri semi-trasparenti con bordo sottile e una lucentezza
+   che scorre al passaggio del mouse. */
+.galactic-page .colorful-nav a {
+  background: rgba(10,10,30,0.55);
+  color: #cdefff;
+  border: 1px solid rgba(41,245,255,0.4);
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 12.5px;
+  font-weight: 700;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(4px);
+}
+.galactic-page .colorful-nav a::after {
+  content: '';
+  position: absolute; top: 0; left: -70%; width: 40%; height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.5), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.5s ease;
+}
+.galactic-page .colorful-nav a:hover::after { left: 130%; }
+.galactic-page .colorful-nav a:hover { border-color: #29f5ff; color: #fff; box-shadow: 0 0 12px rgba(41,245,255,0.4); }
+
+/* Icone social: bagliore intenso, e un colore diverso per ciascuna al passaggio del mouse
+   (selezionate via :has() sull'icona contenuta, nessuna modifica al markup necessaria). */
+.galactic-page .social-icon-btn {
+  background: rgba(10,10,30,0.6);
+  border: 1.5px solid rgba(41,245,255,0.5);
+  color: #eaffff;
+  box-shadow: 0 0 10px rgba(41,245,255,0.25);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+.galactic-page .social-icon-btn:hover { transform: translateY(-3px) scale(1.05); }
+.galactic-page .social-icon-btn:has(.fa-facebook):hover { border-color: #3aa7ff; color: #3aa7ff; box-shadow: 0 0 18px rgba(58,167,255,0.8); }
+.galactic-page .social-icon-btn:has(.fa-instagram):hover { border-color: #3dffb0; color: #3dffb0; box-shadow: 0 0 18px rgba(61,255,176,0.8); }
+.galactic-page .social-icon-btn:has(.fa-tiktok):hover { border-color: #ff9f40; color: #ff9f40; box-shadow: 0 0 18px rgba(255,159,64,0.8); }
+.galactic-page .social-icon-btn:has(.fa-linkedin-in):hover { border-color: #fff; color: #fff; box-shadow: 0 0 18px rgba(255,255,255,0.9); }
+.galactic-page .social-icon-btn:has(.fa-globe):hover { border-color: #c07bff; color: #c07bff; box-shadow: 0 0 18px rgba(192,123,255,0.8); }
+
+/* Quattro varianti di pulsante, in ciclo ogni 4 (i pulsanti sono i link che ciascun profilo
+   aggiunge liberamente dalla dashboard, in numero e ordine variabili — non esiste un modo
+   generico per sapere "questo è il pulsante del blog", quindi le varianti si alternano invece
+   di essere legate al contenuto). Ogni pseudo-elemento decorativo resta a z-index:-1 per non
+   coprire mai il testo del pulsante. */
+.galactic-page .color-link-btn {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+.galactic-page .color-link-btn:hover { transform: translateY(-2px); }
+
+.galactic-page .color-link-btn:nth-of-type(4n+1) {
+  background: linear-gradient(90deg, #062f22, #12b57a) !important;
+  border: 1px solid #3dffb0 !important; color: #eafff5 !important;
+  box-shadow: 0 0 10px rgba(61,255,176,0.25);
+}
+.galactic-page .color-link-btn:nth-of-type(4n+1)::before {
+  content: ''; position: absolute; inset: 0; background: #3dffb0; opacity: 0.35;
+  transform-origin: left; transform: scaleX(0); transition: transform 0.4s ease; z-index: -1;
+}
+.galactic-page .color-link-btn:nth-of-type(4n+1):hover::before { transform: scaleX(1); }
+.galactic-page .color-link-btn:nth-of-type(4n+1):hover { box-shadow: 0 0 22px rgba(61,255,176,0.7); }
+
+.galactic-page .color-link-btn:nth-of-type(4n+2) {
+  background: linear-gradient(90deg, #06203f, #1f7fd6) !important;
+  border: 1px solid #5fc6ff !important; color: #eaf6ff !important;
+  box-shadow: 0 0 10px rgba(95,198,255,0.25);
+}
+.galactic-page .color-link-btn:nth-of-type(4n+2)::after {
+  content: ''; position: absolute; left: 16px; top: 50%; width: 14px; height: 14px;
+  margin-top: -7px; border-radius: 50%; border: 2px solid #bfe8ff;
+  transform: scale(0.4); opacity: 0.9; z-index: -1;
+  animation: galactic-radio-pulse 2.4s ease-out infinite;
+}
+@keyframes galactic-radio-pulse { 0% { transform: scale(0.4); opacity: 0.9; } 100% { transform: scale(2.4); opacity: 0; } }
+.galactic-page .color-link-btn:nth-of-type(4n+2):hover { box-shadow: 0 0 22px rgba(95,198,255,0.7); }
+
+.galactic-page .color-link-btn:nth-of-type(4n+3) {
+  background: linear-gradient(90deg, #2a0a3f, #a13fd6) !important;
+  border: 1px solid #e39bff !important; color: #fbe9ff !important;
+  box-shadow: 0 0 10px rgba(225,155,255,0.25);
+}
+.galactic-page .color-link-btn:nth-of-type(4n+3)::after {
+  content: ''; position: absolute; left: 14px; top: 50%; width: 18px; height: 18px;
+  margin-top: -9px; border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, #fff 0deg 20deg, transparent 20deg 40deg);
+  opacity: 0.85; z-index: -1;
+  animation: galactic-disc-spin 3s linear infinite;
+}
+@keyframes galactic-disc-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.galactic-page .color-link-btn:nth-of-type(4n+3):hover::after { animation-duration: 0.6s; }
+.galactic-page .color-link-btn:nth-of-type(4n+3):hover { box-shadow: 0 0 22px rgba(225,155,255,0.7); }
+
+.galactic-page .color-link-btn:nth-of-type(4n) {
+  color: #fff0f0 !important;
+  border: 2px solid #ff4d4d !important;
+  animation: galactic-priority-pulse 1.4s ease-in-out infinite;
+}
+@keyframes galactic-priority-pulse {
+  0%, 100% { background: linear-gradient(90deg, #3f0a0a, #d6203f); border-color: #ff4d4d; box-shadow: 0 0 10px rgba(255,77,77,0.35); }
+  50% { background: linear-gradient(90deg, #0a2f3f, #20a7d6); border-color: #29f5ff; box-shadow: 0 0 18px rgba(41,245,255,0.6); }
+}
+
+.galactic-page .card {
+  background: rgba(10,10,35,0.55); border: 1px solid rgba(41,245,255,0.3); border-radius: 12px;
+  color: #e4f2ff; backdrop-filter: blur(6px);
+}
+.galactic-page .section-title { color: rgba(41,245,255,0.75); text-transform: uppercase; letter-spacing: 1.5px; }
+.galactic-page .event-item, .galactic-page .blog-item { border-bottom-color: rgba(228,242,255,0.15); }
+.galactic-page a { color: #7bd9ff; font-weight: 700; }
+.galactic-page form textarea, .galactic-page form input {
+  background: rgba(10,10,35,0.5); border: 1px solid rgba(41,245,255,0.4); color: #e4f2ff; border-radius: 8px;
+}
+.galactic-page form label { color: rgba(228,242,255,0.7); }
+.galactic-page .help-box { background: rgba(10,10,35,0.55); border-color: rgba(41,245,255,0.3); color: #e4f2ff; }
+.galactic-page .link-divider { color: #7bd9ff; }
+.galactic-page .link-divider::before, .galactic-page .link-divider::after { background: rgba(41,245,255,0.4); }
+
+/* Widget flottante (torna su / dashboard / audio) restilizzato come un mirino generico —
+   crocicchio circolare, non il simbolo di alcun franchise. */
+.galactic-page .floating-btn {
+  background: rgba(10,10,35,0.7);
+  border: 2px solid #29f5ff;
+  box-shadow: 0 0 14px rgba(41,245,255,0.4);
+  color: #eafeff;
+}
+.galactic-page .floating-btn::before {
+  content: ''; position: absolute; inset: 5px; border-radius: 50%; border: 1px solid rgba(41,245,255,0.5); pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.galactic-page { animation: none; }
+  .galactic-page .avatar { animation: none; }
+  .galactic-page .color-link-btn:nth-of-type(4n+2)::after,
+  .galactic-page .color-link-btn:nth-of-type(4n+3)::after,
+  .galactic-page .color-link-btn:nth-of-type(4n) { animation: none; }
+}
+
+/* ===== Tema "Drop Notturno": vetrina blu notte stile "link in bio" da shop — pulsanti bianchi
+   a pillola con freccina a cerchio sulla destra (l'icona di copertina resta a sinistra, stile
+   già esistente), un pulsante ogni 4 evidenziato in rosso acceso come un pulsante "in evidenza",
+   card scure per le griglie di contenuto (Blog, Eventi, ecc.) ===== */
+body.nightdrop-page {
+  background: linear-gradient(180deg, #0c1526 0%, #131d33 100%);
+  color: #eef2fb;
+  --text-rgb: 238,242,251;
+  min-height: 100vh;
+  margin: 0;
+}
+.nightdrop-page footer.site { color: rgba(238,242,251,0.55); }
+.nightdrop-page .avatar {
+  border: 3px solid #fff;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+}
+.nightdrop-page .profile-header h1 { color: #fff; font-weight: 800; }
+.nightdrop-page .profile-header p { color: rgba(238,242,251,0.7); }
+.nightdrop-page .profile-meta { color: rgba(238,242,251,0.55); }
+.nightdrop-page .colorful-nav a {
+  background: #1b2740; color: #eef2fb; border: 1px solid rgba(255,255,255,0.12); font-weight: 700;
+}
+.nightdrop-page .social-icon-btn {
+  background: #1b2740; color: #eef2fb; border: 1px solid rgba(255,255,255,0.12); box-shadow: none;
+}
+.nightdrop-page .color-link-btn {
+  background: #fff !important;
+  color: #14141a !important;
+  border-radius: 16px;
+  font-weight: 700;
+  padding-right: 46px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+}
+.nightdrop-page .color-link-btn::after {
+  content: '\203A';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #eef1f7;
+  color: #14141a;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 26px;
+  text-align: center;
+}
+.nightdrop-page .color-link-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,0,0,0.35); }
+/* Un pulsante ogni 4 evidenziato, come il singolo bottone rosso "in evidenza" nel riferimento —
+   non esiste un modo generico per sapere quale pulsante evidenziare (sono link liberi scelti
+   dal profilo), quindi si alterna invece di legarsi al contenuto, stesso principio già usato
+   dal tema Console Galattica. */
+.nightdrop-page .color-link-btn:nth-of-type(4n+2) {
+  background: #e63946 !important;
+  color: #fff !important;
+}
+.nightdrop-page .color-link-btn:nth-of-type(4n+2)::after { background: #fff; color: #e63946; }
+.nightdrop-page .card {
+  background: #1b2740;
+  border: 1px solid rgba(255,255,255,0.08);
+  color: #eef2fb;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+.nightdrop-page .section-title { color: rgba(238,242,251,0.55); text-transform: uppercase; letter-spacing: 0.5px; }
+.nightdrop-page .event-item, .nightdrop-page .blog-item { border-bottom-color: rgba(255,255,255,0.1); }
+.nightdrop-page a { color: #eef2fb; }
+.nightdrop-page form textarea, .nightdrop-page form input {
+  background: #1b2740; border: 1px solid rgba(255,255,255,0.15); color: #eef2fb; border-radius: 12px;
+}
+.nightdrop-page form label { color: rgba(238,242,251,0.7); font-weight: 700; }
+.nightdrop-page .help-box { background: #1b2740; border: 1px solid rgba(255,255,255,0.1); color: #eef2fb; }
+.nightdrop-page .link-divider { color: rgba(238,242,251,0.6); }
+.nightdrop-page .link-divider::before, .nightdrop-page .link-divider::after { background: rgba(255,255,255,0.18); }
+
+/* ===== Modulo Menù: elenco piatti per categoria, stile menu di ristorante classico ===== */
+.menu-category { margin-bottom: 28px; }
+.menu-category-title {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  text-align: center;
+  color: var(--accent);
+}
+.menu-item-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 4px 12px;
+  padding: 8px 0;
+  border-bottom: 1px dashed rgba(var(--text-rgb, 34,34,59), 0.2);
+}
+/* min-width:0 è necessario perché un elemento flex, di default, non si restringe mai sotto la
+   larghezza "naturale" del proprio contenuto — con testo più grande (es. accessibilità mobile)
+   questo mandava il prezzo fuori schermo invece di andare a capo. flex-basis dà comunque una
+   larghezza di partenza ragionevole quando c'è spazio. */
+.menu-item-name { font-weight: 700; flex: 1 1 200px; min-width: 0; }
+.menu-item-name sup { color: var(--accent); font-weight: 700; margin-left: 2px; cursor: help; }
+.menu-item-desc { font-weight: 400; font-style: italic; font-size: 13px; color: rgba(var(--text-rgb, 34,34,59), 0.65); margin-top: 2px; }
+.menu-item-price { font-weight: 700; white-space: nowrap; flex: 0 0 auto; }
+.menu-allergen-legend { font-size: 11.5px; color: rgba(var(--text-rgb, 34,34,59), 0.55); margin-top: 20px; line-height: 1.6; }
+
+/* ===== Selezionatore tema a schermo intero (dashboard_theme.php) — griglia animata ispirata
+   a "Sketch 023: Background Picker" di Codrops (tympanus.net/Sketches/023-theme-picker,
+   licenza MIT), adattata da 360 sfumature a card a griglia con i temi reali della pagina
+   pubblica. Animazione via GSAP: le celle crescono da zero con un effetto a cascata casuale,
+   poi le linee bianche disegnano la griglia. ===== */
+.theme-picker-trigger { text-align: center; }
+
+.theme-picker {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  overflow-y: auto;
+  background: #0a0a0f;
+}
+.theme-picker.hidden { opacity: 0; pointer-events: none; }
+
+.theme-picker__item {
+  position: relative;
+  cursor: pointer;
+  min-height: 22vh;
+}
+.theme-picker__item:nth-child(-n+3) i,
+.theme-picker__item:nth-child(3n+4) i {
+  z-index: 10;
+  background: rgba(255,255,255,0.9);
+  position: absolute;
+  will-change: transform;
+}
+.theme-picker__item:nth-child(-n+3):not(:nth-child(1)) i {
+  height: 100vh;
+  width: 2px;
+  top: 0;
+  left: -1px;
+}
+.theme-picker__item:nth-child(3n+4) i {
+  width: 100vw;
+  height: 2px;
+  left: 0;
+  top: -1px;
+}
+
+.theme-picker__item-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  will-change: transform;
+  display: flex;
+  align-items: flex-end;
+  padding: 16px;
+}
+.theme-picker__item-inner::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 3px solid rgba(255,255,255,0.6);
+  opacity: 0;
+  transition: opacity 0.15s linear;
+  pointer-events: none;
+}
+.theme-picker__item:hover .theme-picker__item-inner::after { opacity: 1; }
+
+.theme-picker__item-label {
+  position: relative;
+  z-index: 2;
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+}
+.theme-picker__item-check {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 2;
+  color: #fff;
+  font-size: 18px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+}
+
+.theme-picker__close {
+  position: fixed;
+  top: 16px;
+  right: 18px;
+  z-index: 20;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.4);
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+@media (max-width: 500px) {
+  .theme-picker__item-label { font-size: 13px; }
+}
+
+/* Pulsanti Link in Bio più larghi solo su desktop: sono elementi a blocco che riempiono sempre
+   il .container che li contiene, quindi per allargarli senza toccare il resto del layout
+   servirebbe farli "uscire" dal contenitore con margini negativi — rischioso su finestre
+   desktop più strette (scroll orizzontale). Allarghiamo invece il contenitore stesso, ma solo
+   per le pagine pubbliche a tema (classe body "*-page": ogni tema imposta già 720px qui sopra a
+   partire dagli stessi 761px — questa regola ha specificità più alta e vince ovunque, sia sotto
+   che sopra quel limite) — dashboard e pagine di autenticazione non hanno quella classe e
+   restano invariate. Su mobile (sotto 761px) nessuna di queste regole si applica: il
+   comportamento resta quello di sempre. */
+@media (min-width: 761px) {
+  body[class$="-page"] .container { max-width: 860px !important; }
+}

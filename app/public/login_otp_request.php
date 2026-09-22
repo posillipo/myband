@@ -18,14 +18,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // ma il codice viene generato e inviato solo se l'account esiste davvero.
     if ($u) {
         $code = (string) random_int(100000, 999999);
-        $stmt = getDB()->prepare('UPDATE users SET otp_code = ?, otp_expires_at = DATE_ADD(NOW(), INTERVAL 10 MINUTE) WHERE id = ?');
+        // otp_attempts riparte da zero a ogni nuovo codice: un codice appena richiesto ha sempre
+        // il numero massimo di tentativi a disposizione, vedi login_otp_verify.php.
+        $stmt = getDB()->prepare('UPDATE users SET otp_code = ?, otp_expires_at = DATE_ADD(NOW(), INTERVAL 10 MINUTE), otp_attempts = 0 WHERE id = ?');
         $stmt->execute([$code, $u['id']]);
 
         $cfg = getSmtpConfig();
         if ($cfg['host']) {
             $mailer = new SimpleSmtpMailer($cfg['host'], $cfg['port'], $cfg['user'], $cfg['pass'], $cfg['secure'], $cfg['verifyCert']);
-            $body = "Ciao,\n\nIl tuo codice di accesso a myband.it è: {$code}\n\nScade tra 10 minuti. Se non hai richiesto tu l'accesso, ignora questa email.";
-            $mailer->send($cfg['from'], $cfg['fromName'], $email, $u['display_name'] ?? $email, 'Il tuo codice di accesso a myband.it', $body);
+            $body = "Ciao,\n\nIl tuo codice di accesso a " . siteName() . " è: {$code}\n\nScade tra 10 minuti. Se non hai richiesto tu l'accesso, ignora questa email.";
+            $mailer->send($cfg['from'], $cfg['fromName'], $email, $u['display_name'] ?? $email, 'Il tuo codice di accesso a ' . siteName(), $body);
         }
     }
     $_SESSION['otp_email'] = $email;
@@ -37,14 +39,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Accedi con un codice — myband.it</title>
+<title>Accedi con un codice — <?= e(siteName()) ?></title>
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <?= embedPrivacyScript() ?>
+<?= embedTrackingHead() ?>
+<?= embedGoogleAnalytics() ?>
 </head>
 <body>
 <div class="auth-split">
   <div class="auth-split-brand">
-    <div class="logo">my<span>Band</span>.it</div>
+    <div class="logo"><?= e(siteName()) ?></div>
     <h1>Accedi con un <span class="highlight">codice</span><br>via email.</h1>
   </div>
   <div class="auth-split-form">

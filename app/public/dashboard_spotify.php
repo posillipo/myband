@@ -3,7 +3,7 @@ session_start();
 require_once __DIR__ . '/../src/functions.php';
 require_once __DIR__ . '/../src/spotify.php';
 $user = requireLogin();
-$profile = getActingProfile($user); // il profilo su cui si sta agendo (proprio, o co-gestito)
+$profile = getActingProfile($user); requireFullOwnerAccess($user, $profile);
 requireBandOrLabel($profile);
 $activeTab = 'spotify';
 $pageTitle = 'Spotify';
@@ -37,7 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Ricarichiamo il profilo per avere il collegamento Spotify aggiornato dopo un eventuale salvataggio
+// Ricarichiamo l'utente per avere il collegamento Spotify aggiornato dopo un eventuale salvataggio
+$user = currentUser();
 $profile = getActingProfile($user);
 
 include __DIR__ . '/_dash_header.php';
@@ -57,7 +58,7 @@ include __DIR__ . '/_dash_header.php';
       <br>
       <a href="https://open.spotify.com/artist/<?= e($profile['spotify_artist_id']) ?>" target="_blank">Vedi su Spotify ↗</a>
       <br><br>
-      <a href="/<?= e($profile['slug']) ?>/spotify" target="_blank">Vedi la pagina pubblica Spotify ↗</a>
+      <a href="/<?= e($profile['slug']) ?>/spotify" target="_blank">Vedi la tua pagina pubblica Spotify ↗</a>
       <form method="post" style="margin-top:12px;" onsubmit="return confirm('Scollegare il profilo Spotify? La sezione dedicata sparirà dalla tua pagina pubblica.');">
         <?= csrfField() ?>
         <input type="hidden" name="action" value="unlink">

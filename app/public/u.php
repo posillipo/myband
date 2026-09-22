@@ -1,12 +1,13 @@
 <?php
 session_start();
 require_once __DIR__ . '/../src/functions.php';
+require_once __DIR__ . '/../src/geocoding.php';
 
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 
 $slug = $_GET['slug'] ?? '';
-$stmt = getDB()->prepare('SELECT u.*, p.display_name, p.bio, p.avatar_path, p.theme_color, p.page_theme, p.spotify_artist_id, p.spotify_artist_name, p.spotify_show_id, p.genere, p.youtube_channel_id
+$stmt = getDB()->prepare('SELECT u.*, p.display_name, p.bio, p.avatar_path, p.theme_color, p.page_theme, p.dashboard_theme, p.spotify_artist_id, p.spotify_show_id, p.genere, p.youtube_channel_id, p.privacy_tracking_settings
                           FROM users u JOIN profiles p ON p.user_id = u.id
                           WHERE u.slug = ? AND u.is_active = 1');
 $stmt->execute([$slug]);
@@ -54,28 +55,98 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'rate_
 
 $uid = $artist['id'];
 
+// Tema "AdminLTE": sostituisce l'intera Home pubblica con una propria pagina completa — stesso
+// principio isolato dei precedenti temi "a scena" (Giardino Anomalo, Scorrimento Infinito).
+if (($artist['page_theme'] ?? 'colorful') === 'adminlte-profile') {
+    echo renderAdminLteProfileTheme($artist, $slug);
+    exit;
+}
+
+$hiddenNavKeys = getHiddenNavKeys((int) $uid);
+
 $links = getDB()->prepare('SELECT * FROM links WHERE user_id=? AND is_active=1 ORDER BY sort_order ASC, id ASC');
 $links->execute([$uid]);
 $links = $links->fetchAll();
 
 $pageUrl = siteUrl('/' . $slug);
 $ogImage = $artist['avatar_path'] ? siteUrl($artist['avatar_path']) : null;
-$ogDescription = $artist['bio'] ? textExcerpt($artist['bio']) : ('La pagina di ' . $artist['display_name'] . ' su myband.it');
+$ogDescription = $artist['bio'] ? textExcerpt($artist['bio']) : ('La pagina di ' . $artist['display_name'] . ' su ' . siteName());
 
 // Separiamo i link riconosciuti come social (icona tonda in alto, una sola per piattaforma)
 // dagli altri (pulsante colorato grande) — include eventuali social ripetuti
 [$socialLinks, $actionLinks] = splitSocialAndActionLinks($links);
 
+// I pulsanti dei film (sincronizzati da Dashboard → Cinema) vivono in una loro griglia a
+// mattonelle separata (stesso stile di Attori che amo/Film che amo), mostrata sempre in fondo
+// dopo tutti gli altri link pubblicati — non nell'elenco a pulsanti pieni normale.
+$filmActionLinks = array_values(array_filter($actionLinks, fn ($l) => ($l['link_type'] ?? 'link') === 'film'));
+if ($filmActionLinks) {
+    $actionLinks = array_values(array_filter($actionLinks, fn ($l) => ($l['link_type'] ?? 'link') !== 'film'));
+}
+
 $followerCount = getFollowerCount($uid);
 $followMsg = $_GET['follow_msg'] ?? '';
 $followErr = ($_GET['follow_err'] ?? '0') === '1';
 
-$fanFavorites = [];
-$stmt = getDB()->prepare('SELECT * FROM fan_favorite_bands WHERE user_id=? ORDER BY sort_order ASC');
+// Coordinate dell'ultimo viaggio aggiunto — usate per far mostrare in automatico all'eventuale
+// link "mappa" (es. "Dove sono", impostato a mano in Dashboard → Link) la posizione più recente
+// invece di un punto fisso, indipendentemente da quali voci di menu sono nascoste.
+$stmt = getDB()->prepare('SELECT lat, lng FROM fan_favorite_trips WHERE user_id=? ORDER BY sort_order DESC, id DESC LIMIT 1');
 $stmt->execute([$uid]);
-$fanFavorites = $stmt->fetchAll();
-$fanFavoritesTotal = count($fanFavorites);
-$fanFavoritesPreview = array_slice($fanFavorites, 0, 6);
+$latestTripCoords = $stmt->fetch();
+
+// Vetrina "Che Amo" sulla Home: un tassello per categoria (non un elenco dei suoi elementi), con
+// la primissima cosa mai aggiunta come immagine di copertina — il clic porta all'elenco completo
+// di quella categoria, non al singolo elemento. Sostituisce la vecchia sezione "Band che amo" (un
+// solo modulo): ora ne rappresenta uno per ciascuno, in un carosello scorrevole invece di una
+// griglia, dato che possono essere fino a 8. I tasselli sono ordinati per attività più recente
+// della categoria (l'ultimo elemento aggiunto/pubblicato, non necessariamente quello mostrato
+// come copertina — per Viaggi coincidono, per le altre categorie no, dato che lì la copertina
+// resta il primo elemento mai aggiunto), non dall'ordine fisso dei moduli.
+$cheAmoTableConfig = [
+    'bandcheamo' => ['table' => 'fan_favorite_bands', 'name' => 'spotify_artist_name', 'image' => 'artist_image'],
+    'attorichamo' => ['table' => 'fan_favorite_actors', 'name' => 'actor_name', 'image' => 'actor_image'],
+    'filmcheamo' => ['table' => 'fan_favorite_movies', 'name' => 'movie_title', 'image' => 'movie_image'],
+    'libricheamo' => ['table' => 'fan_favorite_books', 'name' => 'book_title', 'image' => 'book_image'],
+    'viaggi' => ['table' => 'fan_favorite_trips', 'name' => 'place_name', 'image' => 'map_image_path'],
+    'brani' => ['table' => 'favorite_tracks', 'name' => 'track_name', 'image' => 'track_image'],
+    'playlistcheamo' => ['table' => 'fan_favorite_playlists', 'name' => 'playlist_name', 'image' => 'playlist_image'],
+    'albumcheamo' => ['table' => 'fan_favorite_albums', 'name' => 'album_name', 'image' => 'album_image'],
+    'ricettecheamo' => ['table' => 'fan_favorite_recipes', 'name' => 'recipe_title', 'image' => 'recipe_image'],
+    'squadrecheamo' => ['table' => 'fan_favorite_teams', 'name' => 'team_name', 'image' => 'team_badge'],
+    'calciatoricheamo' => ['table' => 'fan_favorite_players', 'name' => 'player_name', 'image' => 'player_photo'],
+    'partitecheamo' => ['table' => 'fan_favorite_matches', 'name' => 'match_title', 'image' => 'match_image'],
+    'pubblicazionicheamo' => ['table' => 'fan_favorite_publications', 'name' => 'publication_title', 'image' => 'publication_image'],
+];
+$cheAmoCarousel = [];
+// "cheamo" tra le chiavi nascoste (es. disattivato per tutta l'installazione da Area Admin →
+// Funzioni del sito) spegne l'intero carosello, non solo i singoli moduli.
+foreach (CHE_AMO_MODULES as $key => $m) {
+    if (in_array('cheamo', $hiddenNavKeys, true) || in_array($key, $hiddenNavKeys, true) || !isset($cheAmoTableConfig[$key])) {
+        continue;
+    }
+    $cfg = $cheAmoTableConfig[$key];
+    // Viaggi fa eccezione: mostra l'ultimo punto aggiunto (dove sei stato più di recente),
+    // non il primo — a differenza delle altre categorie, dove conta cosa hai amato per prima.
+    $order = $key === 'viaggi' ? 'sort_order DESC, id DESC' : 'sort_order ASC, id ASC';
+    $stmt = getDB()->prepare("SELECT * FROM {$cfg['table']} WHERE user_id=? AND is_public = 1 AND (publish_at IS NULL OR publish_at <= NOW()) ORDER BY {$order} LIMIT 1");
+    $stmt->execute([$uid]);
+    $first = $stmt->fetch();
+    if (!$first) {
+        continue;
+    }
+    $stmt = getDB()->prepare("SELECT MAX(COALESCE(publish_at, created_at)) d FROM {$cfg['table']} WHERE user_id=? AND is_public = 1 AND (publish_at IS NULL OR publish_at <= NOW())");
+    $stmt->execute([$uid]);
+    $latestActivity = $stmt->fetch()['d'];
+    $cheAmoCarousel[] = [
+        'label' => $m['label'],
+        'icon' => $m['icon'],
+        'segment' => $m['segment'],
+        'image' => $first['image_path'] ?: ($first[$cfg['image']] ?? null),
+        'latest_activity' => $latestActivity,
+    ];
+}
+usort($cheAmoCarousel, fn ($a, $b) => strtotime($b['latest_activity']) <=> strtotime($a['latest_activity']));
 
 $bandRatingStats = getBandRatingStats((int) $uid);
 $viewerId = $_SESSION['user_id'] ?? null;
@@ -95,7 +166,7 @@ $bandReviewers = $bandReviewers->fetchAll();
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title><?= e($artist['display_name']) ?> — myband.it</title>
+<title><?= e($artist['display_name']) ?> — <?= e(siteName()) ?></title>
 <meta name="description" content="<?= e($ogDescription) ?>">
 
 <!-- Open Graph / condivisione social -->
@@ -103,7 +174,7 @@ $bandReviewers = $bandReviewers->fetchAll();
 <meta property="og:title" content="<?= e($artist['display_name']) ?>">
 <meta property="og:description" content="<?= e($ogDescription) ?>">
 <meta property="og:url" content="<?= e($pageUrl) ?>">
-<meta property="og:site_name" content="myband.it">
+<meta property="og:site_name" content="<?= e(siteName()) ?>">
 <?php if ($ogImage): ?><meta property="og:image" content="<?= e($ogImage) ?>"><?php endif; ?>
 
 <meta name="twitter:card" content="summary">
@@ -111,7 +182,7 @@ $bandReviewers = $bandReviewers->fetchAll();
 <meta name="twitter:description" content="<?= e($ogDescription) ?>">
 
 <link rel="canonical" href="<?= e($pageUrl) ?>">
-<link rel="alternate" type="application/rss+xml" title="<?= e($artist['display_name']) ?> — myband.it" href="<?= e(siteUrl('/' . $slug . '/feed')) ?>">
+<link rel="alternate" type="application/rss+xml" title="<?= e($artist['display_name']) ?> — <?= e(siteName()) ?>" href="<?= e(siteUrl('/' . $slug . '/feed')) ?>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <style>
@@ -120,13 +191,18 @@ $bandReviewers = $bandReviewers->fetchAll();
     --cf-1: #FFD6A5; --cf-2: #A0C4FF; --cf-3: #BDB2FF;
   }
 </style>
-<?= embedPrivacyScript() ?>
-<?= embedTrackingHead() ?>
-<?= embedGoogleAnalytics() ?>
+<?= embedPrivacyScript($artist) ?>
+<?= embedTrackingHead($artist) ?>
+<?= embedGoogleAnalytics($artist) ?>
 </head>
 <body class="<?= e(getPageThemeClass($artist['page_theme'] ?? 'colorful')) ?>">
 <?php if (str_starts_with($artist['page_theme'] ?? 'colorful', 'wave')): ?><?= renderWaveBackground($artist['theme_color'] ?? '#6C5CE7', $artist['page_theme']) ?><?php endif; ?>
-<?= embedTrackingBodyStart() ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'circuit'): ?><?= renderCircuitBackground($artist['theme_color'] ?? '#6C5CE7') ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'napoli'): ?><?= renderNapoliBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'cinemapop'): ?><?= renderCinemaPopBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'startrek'): ?><?= renderStarTrekBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'galactic'): ?><?= renderGalacticBackground() ?><?php endif; ?>
+<?= embedTrackingBodyStart($artist) ?>
 <div class="container">
   <?= publicProfileHeader($artist, 'home', true) ?>
 
@@ -134,6 +210,7 @@ $bandReviewers = $bandReviewers->fetchAll();
     <div class="alert <?= $followErr ? 'error' : 'success' ?>"><?= e($followMsg) ?></div>
   <?php endif; ?>
 
+  <?php if (!in_array('segui', $hiddenNavKeys, true)): ?>
   <div id="segui-widget" style="text-align:center;margin-bottom:18px;scroll-margin-top:20px;">
     <?php if (!empty($_SESSION['user_id']) && (int)$_SESSION['user_id'] !== (int)$uid): ?>
       <?php $alreadyFollowing = isFollowingAccount((int)$_SESSION['user_id'], (int)$uid); ?>
@@ -147,15 +224,26 @@ $bandReviewers = $bandReviewers->fetchAll();
         </button>
       </form>
       <div style="color:rgba(var(--text-rgb),0.6);font-size:12px;margin-top:4px;">
-        <?= getAccountFollowerCount((int)$uid) ?> ti seguono su myBand
+        <?= getAccountFollowerCount((int)$uid) ?> ti seguono su <?= e(siteName()) ?>
       </div>
     <?php else: ?>
-      <details class="segui-pill-details">
+      <?php $followTermsContent = trim(getSiteSetting('follow_terms_content') ?: ''); ?>
+      <details class="segui-pill-details" id="segui-follow-details">
         <summary class="segui-pill">✨ Segui</summary>
-        <form method="post" action="/follow.php" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;margin-top:8px;">
+        <p style="font-size:12.5px;color:rgba(var(--text-rgb),0.7);max-width:280px;margin:8px auto 6px;">
+          Ti mandiamo un link di conferma via email: dopo averlo aperto ricevi un avviso ogni volta che <?= e($artist['display_name']) ?> pubblica qualcosa di nuovo.
+        </p>
+        <form method="post" action="/follow.php" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;margin-top:4px;max-width:280px;margin-left:auto;margin-right:auto;">
           <?= csrfField() ?>
           <input type="hidden" name="slug" value="<?= e($slug) ?>">
           <input type="email" name="email" placeholder="La tua email" required style="flex:1;min-width:160px;max-width:240px;margin-bottom:0;font-size:13px;padding:8px 12px;">
+          <?php if ($followTermsContent !== ''): ?>
+            <label style="display:flex;align-items:flex-start;gap:6px;font-weight:normal;font-size:12px;text-align:left;width:100%;margin:2px 0 0;">
+              <input type="checkbox" name="accept_terms" value="1" required style="width:auto;margin-top:2px;">
+              <span>Accetto i <a href="/termini_segui.php" target="_blank" rel="noopener">Termini di Utilizzo</a></span>
+            </label>
+          <?php endif; ?>
+          <?= renderTurnstileWidget() ?>
           <button type="submit" class="btn small" style="background:rgb(108,92,231);">Conferma</button>
         </form>
       </details>
@@ -164,7 +252,30 @@ $bandReviewers = $bandReviewers->fetchAll();
       </div>
     <?php endif; ?>
   </div>
+  <script>
+  (function () {
+    // Sia il "+" accanto al nome utente sia la voce "Segui" del menu puntano qui
+    // (/slug#segui-widget): prima si limitavano a far scorrere la pagina fino al pulsante,
+    // lasciando comunque un secondo click per aprire il campo email — ora, se il modulo email
+    // esiste (visitatore non loggato), lo apre subito e ci mette anche il focus.
+    function openFollowWidget() {
+      if (window.location.hash !== '#segui-widget') return;
+      var details = document.getElementById('segui-follow-details');
+      if (details && !details.open) {
+        details.open = true;
+        var emailInput = details.querySelector('input[name="email"]');
+        if (emailInput) { setTimeout(function () { emailInput.focus(); }, 50); }
+      }
+      var widget = document.getElementById('segui-widget');
+      if (widget) { widget.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    }
+    document.addEventListener('DOMContentLoaded', openFollowWidget);
+    window.addEventListener('hashchange', openFollowWidget);
+  })();
+  </script>
+  <?php endif; ?>
 
+  <?php if (!in_array('link', $hiddenNavKeys, true)): ?>
   <?php if ($socialLinks): ?>
     <div class="social-icons-row">
       <?php foreach ($socialLinks as $l): ?>
@@ -175,31 +286,57 @@ $bandReviewers = $bandReviewers->fetchAll();
   <?php endif; ?>
 
   <?php if ($actionLinks): ?>
-    <?php foreach ($actionLinks as $i => $l): ?>
-      <a class="color-link-btn" style="background:<?= e(COLORFUL_PALETTE[$i % count(COLORFUL_PALETTE)]) ?>;"
-         target="_blank" rel="noopener"
-         href="/link.php?id=<?= (int)$l['id'] ?>">
-        <?php if ($l['cover_path']): ?>
-          <img src="/<?= e($l['cover_path']) ?>" class="btn-cover-icon">
-        <?php endif; ?>
-        <?= e($l['label']) ?>
-      </a>
+    <?php $colorIdx = 0; ?>
+    <?php foreach ($actionLinks as $l): ?>
+      <?php if (($l['link_type'] ?? 'link') === 'divider'): ?>
+        <div class="link-divider"><span><?= e($l['label']) ?></span></div>
+      <?php elseif (($l['link_type'] ?? 'link') === 'map'): ?>
+        <?php if ($l['label']): ?><div class="link-map-label"><?= e($l['label']) ?></div><?php endif; ?>
+        <?php
+          // Se c'è almeno un viaggio, la mappa segue sempre l'ultimo punto aggiunto lì invece
+          // del punto fisso impostato a mano su questo link — così "Dove sono" resta aggiornata
+          // da sola.
+          $mapLat = $latestTripCoords ? (float) $latestTripCoords['lat'] : (float) $l['map_lat'];
+          $mapLng = $latestTripCoords ? (float) $latestTripCoords['lng'] : (float) $l['map_lng'];
+        ?>
+        <?= renderOsmEmbed($mapLat, $mapLng) ?>
+      <?php else: ?>
+        <a class="color-link-btn" style="background:<?= e(COLORFUL_PALETTE[$colorIdx % count(COLORFUL_PALETTE)]) ?>;"
+           target="_blank" rel="noopener"
+           href="/link.php?id=<?= (int)$l['id'] ?>">
+          <?php if ($l['cover_path']): ?>
+            <img src="/<?= e($l['cover_path']) ?>" class="btn-cover-icon">
+          <?php endif; ?>
+          <?= e($l['label']) ?>
+        </a>
+        <?php $colorIdx++; ?>
+      <?php endif; ?>
     <?php endforeach; ?>
   <?php endif; ?>
 
-  <?php if ($spotifyPreview): ?>
-    <div class="section-title" style="text-align:center;color:rgba(var(--text-rgb),0.6);margin:18px 0 10px;">
-      Spotify:
-      <a href="https://open.spotify.com/artist/<?= e($artist['spotify_artist_id']) ?>" target="_blank" rel="noopener"
-         style="color:inherit;text-decoration:underline;">
-        <?= e($artist['spotify_artist_name'] ?: 'profilo collegato') ?> <i class="fa-brands fa-spotify" style="color:#1DB954;"></i>
-      </a>
+  <?php if ($filmActionLinks): ?>
+    <div class="section-title" style="text-align:center;color:rgba(var(--text-rgb),0.6);margin:18px 0 10px;">Film in programmazione</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;">
+      <?php foreach ($filmActionLinks as $l): ?>
+        <a href="/link.php?id=<?= (int)$l['id'] ?>" target="_blank" rel="noopener"
+           class="card" style="text-align:center;text-decoration:none;color:inherit;padding:14px 8px;">
+          <?php if ($l['cover_path']): ?>
+            <img src="/<?= e($l['cover_path']) ?>" style="width:64px;height:64px;border-radius:50%;object-fit:cover;margin-bottom:8px;">
+          <?php endif; ?>
+          <div style="font-weight:700;font-size:13px;"><?= e($l['label']) ?></div>
+        </a>
+      <?php endforeach; ?>
     </div>
+  <?php endif; ?>
+  <?php endif; ?>
+
+  <?php if ($spotifyPreview && !in_array('spotify', $hiddenNavKeys, true)): ?>
+    <div class="section-title" style="text-align:center;color:rgba(var(--text-rgb),0.6);margin:18px 0 10px;">Spotify</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px;margin-bottom:10px;">
       <?php foreach ($spotifyPreview as $a): ?>
         <a href="<?= e($a['spotify_url']) ?>" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">
           <?php if ($a['image']): ?>
-            <img src="<?= e($a['image']) ?>" alt="" class="album-cover" style="width:100%;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,0.12);">
+            <img src="<?= e($a['image']) ?>" alt="" style="width:100%;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,0.12);">
           <?php endif; ?>
           <div style="margin-top:6px;font-size:13px;font-weight:700;"><?= e($a['name']) ?></div>
         </a>
@@ -210,24 +347,56 @@ $bandReviewers = $bandReviewers->fetchAll();
         <a href="/<?= e($slug) ?>/spotify">Vedi tutto su Spotify →</a>
       </p>
     <?php endif; ?>
-  <?php elseif ($fanFavorites): ?>
-    <div class="section-title" style="text-align:center;color:rgba(var(--text-rgb),0.6);margin:18px 0 10px;">Band che amo</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:10px;">
-      <?php foreach ($fanFavoritesPreview as $f): ?>
-        <a href="https://open.spotify.com/artist/<?= e($f['spotify_artist_id']) ?>" target="_blank" rel="noopener"
-           class="card" style="text-align:center;text-decoration:none;color:inherit;padding:14px 8px;">
-          <?php if ($f['artist_image']): ?>
-            <img src="<?= e($f['artist_image']) ?>" style="width:64px;height:64px;border-radius:50%;object-fit:cover;margin-bottom:8px;">
-          <?php endif; ?>
-          <div style="font-weight:700;font-size:13px;"><?= e($f['spotify_artist_name']) ?></div>
-        </a>
-      <?php endforeach; ?>
+  <?php elseif ($cheAmoCarousel): ?>
+    <div class="section-title" style="text-align:center;color:rgba(var(--text-rgb),0.6);margin:18px 0 10px;"><strong>Cose</strong> che amo</div>
+    <div class="che-amo-home-carousel-wrap" style="position:relative;margin-bottom:18px;">
+      <button type="button" class="che-amo-home-arrow che-amo-home-arrow-prev" aria-label="Indietro"><i class="fa-solid fa-chevron-left"></i></button>
+      <div class="che-amo-home-carousel" style="display:flex;gap:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px;">
+        <?php foreach ($cheAmoCarousel as $c): ?>
+          <a href="/<?= e($slug) ?>/<?= e($c['segment']) ?>"
+             class="card" style="flex:0 0 140px;text-align:center;text-decoration:none;color:inherit;padding:14px 8px;">
+            <?php if ($c['image']): ?>
+              <img src="<?= e(str_starts_with($c['image'], 'http') ? $c['image'] : '/' . $c['image']) ?>"
+                   style="width:100%;aspect-ratio:1;border-radius:10px;object-fit:cover;margin-bottom:8px;">
+            <?php else: ?>
+              <div style="width:100%;aspect-ratio:1;border-radius:10px;background:rgba(108,92,231,0.12);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:8px;">
+                <i class="<?= e($c['icon']) ?>"></i>
+              </div>
+            <?php endif; ?>
+            <div style="font-weight:700;font-size:13px;"><?= e($c['label']) ?></div>
+          </a>
+        <?php endforeach; ?>
+      </div>
+      <button type="button" class="che-amo-home-arrow che-amo-home-arrow-next" aria-label="Avanti"><i class="fa-solid fa-chevron-right"></i></button>
     </div>
-    <?php if ($fanFavoritesTotal > 6): ?>
-      <p style="text-align:center;margin-bottom:18px;">
-        <a href="/<?= e($slug) ?>/band-che-amo">Vedi tutte (<?= $fanFavoritesTotal ?>) →</a>
-      </p>
-    <?php endif; ?>
+    <style>
+      .che-amo-home-carousel::-webkit-scrollbar { display: none; }
+      /* Frecce solo per chi ha un mouse vero (niente swipe col dito) — su touch restano nascoste,
+         lì basta scorrere con il dito come già accade, stesso criterio del carosello foto post. */
+      .che-amo-home-arrow { display: none; }
+      @media (hover: hover) and (pointer: fine) {
+        .che-amo-home-arrow {
+          display: flex; align-items: center; justify-content: center;
+          position: absolute; top: 50%; transform: translateY(-50%);
+          width: 34px; height: 34px; border-radius: 50%; border: none;
+          background: rgba(0,0,0,0.45); color: #fff; font-size: 15px;
+          cursor: pointer; z-index: 5; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .che-amo-home-arrow:hover { background: rgba(0,0,0,0.65); }
+        .che-amo-home-arrow-prev { left: -14px; }
+        .che-amo-home-arrow-next { right: -14px; }
+      }
+    </style>
+    <script>
+    (function () {
+      var track = document.querySelector('.che-amo-home-carousel');
+      var prev = document.querySelector('.che-amo-home-arrow-prev');
+      var next = document.querySelector('.che-amo-home-arrow-next');
+      if (!track || !prev || !next) return;
+      prev.addEventListener('click', function () { track.scrollBy({ left: -300, behavior: 'smooth' }); });
+      next.addEventListener('click', function () { track.scrollBy({ left: 300, behavior: 'smooth' }); });
+    })();
+    </script>
   <?php endif; ?>
 
   <div id="recensioni" class="card" style="scroll-margin-top:20px;">
@@ -251,6 +420,6 @@ $bandReviewers = $bandReviewers->fetchAll();
   </div>
 </div>
 <?= renderFloatingButtons() ?>
-<?= renderSiteFooterBar($slug) ?>
+<?= renderSiteFooterBar($artist) ?>
 </body>
 </html>

@@ -29,6 +29,15 @@ class SimpleSmtpMailer {
      */
     public function send(string $fromEmail, string $fromName, string $toEmail, string $toName, string $subject, string $body): bool {
         try {
+            // $fromEmail/$toEmail finiscono grezzi negli envelope SMTP MAIL FROM/RCPT TO (righe
+            // sotto): a differenza degli header (From/To/Subject, già protetti perché codificati
+            // in base64), un CR/LF in uno di questi due permetterebbe di iniettare comandi SMTP
+            // arbitrari. Qui si blocca a monte, una volta sola, invece di fidarsi che ogni
+            // chiamante presente e futuro li validi già con FILTER_VALIDATE_EMAIL.
+            if (preg_match('/[\r\n]/', $fromEmail) || preg_match('/[\r\n]/', $toEmail)) {
+                throw new Exception('Indirizzo email non valido (contiene un ritorno a capo).');
+            }
+
             $remote = ($this->secure === 'ssl' ? 'ssl://' : '') . $this->host;
 
             // Contesto SSL: molti hosting (es. Aruba) usano un hostname "vetrina" personalizzato
@@ -51,14 +60,14 @@ class SimpleSmtpMailer {
             stream_set_timeout($socket, $this->timeout);
 
             $this->expect($socket, 220);
-            $this->command($socket, "EHLO " . ($_SERVER['HTTP_HOST'] ?? 'myband.it'), 250);
+            $this->command($socket, "EHLO " . ($_SERVER['HTTP_HOST'] ?? 'localhost'), 250);
 
             if ($this->secure === 'tls') {
                 $this->command($socket, "STARTTLS", 220);
                 if (!@stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
                     throw new Exception("Attivazione TLS fallita (verifica certificato: " . ($this->verifyCert ? 'attiva' : 'disattivata') . ")");
                 }
-                $this->command($socket, "EHLO " . ($_SERVER['HTTP_HOST'] ?? 'myband.it'), 250);
+                $this->command($socket, "EHLO " . ($_SERVER['HTTP_HOST'] ?? 'localhost'), 250);
             }
 
             if ($this->user !== '') {

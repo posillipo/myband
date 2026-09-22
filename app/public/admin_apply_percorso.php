@@ -83,7 +83,7 @@ include __DIR__ . '/_admin_header.php';
       Sostituisce lo slug (URL pubblica) di ogni account importato dal vecchio sistema con il
       valore originale del campo <code>percorso</code> del vecchio database — così la nuova
       piattaforma userà esattamente lo stesso URL/nome cartella del vecchio sito
-      (<code>my-band.it/percorso</code> → <code>myband.it/percorso</code>), utile per far
+      (<code>my-band.it/percorso</code> → <code><?= e(siteName()) ?>/percorso</code>), utile per far
       coincidere gli URL con la struttura multimediale che stai ricostruendo tu manualmente.
     </p>
     <p style="color:var(--text-muted)">

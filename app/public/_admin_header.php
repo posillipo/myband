@@ -2,6 +2,8 @@
 // Incluso da tutte le pagine admin_*. Richiede $admin già caricato e $activeAdminTab impostato.
 $navItems = [
     'dashboard' => ['url' => '/admin_dashboard.php', 'icon' => 'fas fa-gauge-high', 'label' => 'Dashboard'],
+    'general'   => ['url' => '/admin_general.php',   'icon' => 'fas fa-sliders',    'label' => 'Impostazioni generali'],
+    'features'  => ['url' => '/admin_features.php',  'icon' => 'fas fa-toggle-on',  'label' => 'Funzioni del sito'],
     'users'     => ['url' => '/admin_users.php',     'icon' => 'fas fa-users',       'label' => 'Utenti iscritti'],
     'contacts'  => ['url' => '/admin_contacts.php',  'icon' => 'fas fa-envelope',    'label' => 'Contatti ricevuti'],
     'privacy'   => ['url' => '/admin_privacy.php',   'icon' => 'fas fa-shield-halved','label' => 'Privacy / Cookie'],
@@ -9,9 +11,19 @@ $navItems = [
     'smtp'      => ['url' => '/admin_smtp.php',      'icon' => 'fas fa-paper-plane', 'label' => 'Email / SMTP'],
     'spotify'   => ['url' => '/admin_spotify.php',   'icon' => 'fa-brands fa-spotify', 'label' => 'Spotify'],
     'youtube'   => ['url' => '/admin_youtube.php',   'icon' => 'fa-brands fa-youtube', 'label' => 'YouTube'],
+    'gemini'    => ['url' => '/admin_gemini.php',    'icon' => 'fas fa-wand-magic-sparkles', 'label' => 'Assistente AI'],
+    'tmdb'      => ['url' => '/admin_tmdb.php',      'icon' => 'fas fa-clapperboard', 'label' => 'TMDb (Attori)'],
+    'googlebooks' => ['url' => '/admin_googlebooks.php', 'icon' => 'fas fa-book', 'label' => 'Google Books (Libri)'],
+    'spoonacular' => ['url' => '/admin_spoonacular.php', 'icon' => 'fas fa-bowl-food', 'label' => 'Spoonacular (Ricette)'],
+    'thesportsdb' => ['url' => '/admin_thesportsdb.php', 'icon' => 'fas fa-futbol', 'label' => 'TheSportsDB (Squadre)'],
+    'crossref' => ['url' => '/admin_crossref.php', 'icon' => 'fas fa-microscope', 'label' => 'CrossRef (Pubblicazioni)'],
+    'geoapify' => ['url' => '/admin_geoapify.php', 'icon' => 'fas fa-map-location-dot', 'label' => 'Geoapify (Viaggi)'],
+    'google_login' => ['url' => '/admin_google_login.php', 'icon' => 'fa-brands fa-google', 'label' => 'Accedi con Google'],
     'import_legacy' => ['url' => '/admin_import_legacy.php', 'icon' => 'fas fa-file-import', 'label' => 'Import legacy'],
     'reviews' => ['url' => '/admin_reviews.php', 'icon' => 'fas fa-star', 'label' => 'Recensioni'],
     'access_requests' => ['url' => '/admin_access_requests.php', 'icon' => 'fas fa-user-check', 'label' => 'Richieste di accesso'],
+    'turnstile' => ['url' => '/admin_turnstile.php', 'icon' => 'fas fa-shield-halved', 'label' => 'Antispam'],
+    'mcp' => ['url' => '/admin_mcp.php', 'icon' => 'fas fa-robot', 'label' => 'Server MCP'],
 ];
 ?>
 <!doctype html>
@@ -19,7 +31,7 @@ $navItems = [
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title><?= e($pageTitle ?? 'Admin') ?> — myband.it</title>
+<title><?= e($pageTitle ?? 'Admin') ?> — CHI FA COSA</title>
 
 <!-- AdminLTE 3 (Bootstrap 4) via CDN — open source, MIT license -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
@@ -83,7 +95,7 @@ $navItems = [
   <!-- Sidebar -->
   <aside class="main-sidebar sidebar-dark-primary elevation-4">
     <a href="/admin_dashboard.php" class="brand-link">
-      <span class="brand-text font-weight-light" style="margin-left:10px;">myband<b>admin</b></span>
+      <span class="brand-text font-weight-light" style="margin-left:10px;">CHI FA COSA<b>admin</b></span>
     </a>
     <div class="sidebar">
       <nav class="mt-2">

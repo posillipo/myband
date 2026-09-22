@@ -6,7 +6,7 @@ header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 
 $userSlug = $_GET['slug'] ?? '';
-$stmt = getDB()->prepare('SELECT u.id, u.slug, u.account_type, p.display_name, p.avatar_path, p.theme_color, p.page_theme, p.spotify_artist_id, p.spotify_show_id, p.youtube_channel_id, p.genere
+$stmt = getDB()->prepare('SELECT u.id, u.slug, u.account_type, p.display_name, p.avatar_path, p.theme_color, p.page_theme, p.dashboard_theme, p.spotify_artist_id, p.spotify_show_id, p.youtube_channel_id, p.privacy_tracking_settings, p.genere
                           FROM users u JOIN profiles p ON p.user_id = u.id
                           WHERE u.slug = ? AND u.is_active = 1');
 $stmt->execute([$userSlug]);
@@ -17,32 +17,54 @@ if (!$artist) {
     exit('Pagina non trovata.');
 }
 
-$stmt = getDB()->prepare('SELECT * FROM blog_posts WHERE user_id=? ORDER BY published_at DESC');
+$isAdminLte = ($artist['page_theme'] ?? 'colorful') === 'adminlte-profile';
+$stmt = getDB()->prepare('SELECT * FROM blog_posts WHERE user_id=? AND published_at <= NOW() ORDER BY published_at DESC' . ($isAdminLte ? ' LIMIT 20' : ''));
 $stmt->execute([$artist['id']]);
 $posts = $stmt->fetchAll();
 
+// Tema "AdminLTE": stesso principio "a scena" della Home (vedi u.php) — con scroll infinito
+// (vedi adminlte_list_more.php), non solo la prima pagina.
+if ($isAdminLte) {
+    echo renderAdminLteBlogIndexPage($artist, $userSlug, $posts);
+    exit;
+}
+
 $pageUrl = siteUrl('/' . $userSlug . '/blog');
+// Descrizione SEO: cita gli articoli più recenti quando ce ne sono, altrimenti resta generica —
+// sempre meglio del "Blog di X" ripetuto identico su ogni profilo, che Google tratterebbe come
+// contenuto duplicato tra loro.
+$blogDescription = $posts
+    ? 'Blog di ' . $artist['display_name'] . ': ' . textExcerpt(implode(', ', array_column(array_slice($posts, 0, 5), 'title')), 155)
+    : 'Il blog di ' . $artist['display_name'] . ' su ' . siteName() . '.';
 ?>
 <!doctype html>
 <html lang="it">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Blog di <?= e($artist['display_name']) ?> — myband.it</title>
+<title>Blog di <?= e($artist['display_name']) ?> — <?= e(siteName()) ?></title>
+<meta name="description" content="<?= e($blogDescription) ?>">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Blog di <?= e($artist['display_name']) ?>">
+<meta property="og:description" content="<?= e($blogDescription) ?>">
 <meta property="og:url" content="<?= e($pageUrl) ?>">
 <link rel="canonical" href="<?= e($pageUrl) ?>">
+<?= blogListJsonLd($pageUrl, 'Blog di ' . $artist['display_name'], $blogDescription, $posts, $userSlug) ?>
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
 <style>:root { --accent: <?= e($artist['theme_color'] ?: '#6C5CE7') ?>; --accent-text: <?= e(getContrastTextColor($artist['theme_color'])) ?>; }</style>
-<?= embedPrivacyScript() ?>
-<?= embedTrackingHead() ?>
-<?= embedGoogleAnalytics() ?>
+<?= embedPrivacyScript($artist) ?>
+<?= embedTrackingHead($artist) ?>
+<?= embedGoogleAnalytics($artist) ?>
 </head>
 <body class="<?= e(getPageThemeClass($artist['page_theme'] ?? 'colorful')) ?>">
 <?php if (str_starts_with($artist['page_theme'] ?? 'colorful', 'wave')): ?><?= renderWaveBackground($artist['theme_color'] ?? '#6C5CE7', $artist['page_theme']) ?><?php endif; ?>
-<?= embedTrackingBodyStart() ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'circuit'): ?><?= renderCircuitBackground($artist['theme_color'] ?? '#6C5CE7') ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'napoli'): ?><?= renderNapoliBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'cinemapop'): ?><?= renderCinemaPopBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'startrek'): ?><?= renderStarTrekBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'galactic'): ?><?= renderGalacticBackground() ?><?php endif; ?>
+<?= embedTrackingBodyStart($artist) ?>
 <div class="container">
   <?= publicProfileHeader($artist, 'blog') ?>
 
@@ -64,12 +86,12 @@ $pageUrl = siteUrl('/' . $userSlug . '/blog');
       <?php endif; ?>
       <span style="flex:1;min-width:0;">
         <strong style="display:block;"><?= e($p['title']) ?></strong>
-        <small style="opacity:.75;"><?= date('d/m/Y', strtotime($p['published_at'])) ?></small>
+        <small style="opacity:.75;"><?= e(formatLocalDateTime($p['published_at'], $artist)) ?></small>
       </span>
     </a>
   <?php endforeach; ?>
 </div>
 <?= renderFloatingButtons() ?>
-<?= renderSiteFooterBar($userSlug) ?>
+<?= renderSiteFooterBar($artist) ?>
 </body>
 </html>

@@ -80,7 +80,7 @@ include __DIR__ . '/_admin_header.php';
     <h2 style="margin-top:0;"><?= e($u['display_name']) ?></h2>
     <p style="color:var(--text-muted)">
       Email: <?= e($u['email']) ?><br>
-      Pagina pubblica: <a href="/<?= e($u['slug']) ?>" target="_blank">myband.it/<?= e($u['slug']) ?></a><br>
+      Pagina pubblica: <a href="/<?= e($u['slug']) ?>" target="_blank"><?= e(siteName()) ?>/<?= e($u['slug']) ?></a><br>
       Iscritto il: <?= date('d/m/Y H:i', strtotime($u['created_at'])) ?><br>
       Stato: <?= $u['is_active'] ? 'Attivo' : 'Disattivato' ?><?= $u['is_admin'] ? ' · Amministratore' : '' ?>
       <?= !$u['email_verified'] ? ' · Email da verificare' : '' ?>

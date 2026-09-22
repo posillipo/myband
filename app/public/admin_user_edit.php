@@ -58,13 +58,13 @@ include __DIR__ . '/_admin_header.php';
     <?= csrfField() ?>
     <input type="hidden" name="id" value="<?= (int)$u['id'] ?>">
 
-    <label>Nome d'arte / Band</label>
+    <label>Nome / Nome d'arte</label>
     <input type="text" name="display_name" value="<?= e($u['display_name']) ?>" required>
 
     <label>Email</label>
     <input type="email" name="email" value="<?= e($u['email']) ?>" required>
 
-    <label>Nome pagina (myband.it/slug)</label>
+    <label>Nome pagina (<?= e(siteName()) ?>/slug)</label>
     <input type="text" name="slug" value="<?= e($u['slug']) ?>" required>
 
     <button type="submit" class="btn">Salva modifiche</button>

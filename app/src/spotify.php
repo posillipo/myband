@@ -76,12 +76,17 @@ function getSpotifyAppToken(): ?string {
 }
 
 // Cerca artisti per nome. Restituisce un array di ['id','name','image','spotify_url','followers'].
+// market=US obbligatorio: senza un market esplicito (o senza utente loggato, come qui via Client
+// Credentials) Spotify considera il catalogo "non disponibile" e restituisce una lista vuota —
+// per le app create più di recente questa regola viene applicata in modo rigido, a differenza
+// delle app più vecchie che restano compatibili anche senza (da qui il bug: stesso identico
+// codice, ma funzionava sull'app Spotify di myband — più vecchia — non su quella di chifacosa).
 function spotifySearchArtist(string $query): array {
     $token = getSpotifyAppToken();
     if (!$token || trim($query) === '') {
         return [];
     }
-    $url = 'https://api.spotify.com/v1/search?type=artist&limit=10&q=' . urlencode($query);
+    $url = 'https://api.spotify.com/v1/search?type=artist&market=US&limit=10&q=' . urlencode($query);
     $response = httpRequest('GET', $url, ['Authorization: Bearer ' . $token]);
     if (!$response) {
         return [];
@@ -121,16 +126,46 @@ function spotifyGetArtist(string $artistId): ?array {
         'name' => $a['name'] ?? '',
         'image' => $a['images'][0]['url'] ?? ($a['images'][1]['url'] ?? null),
         'spotify_url' => $a['external_urls']['spotify'] ?? null,
+        'genres' => $a['genres'] ?? [],
+        'followers' => $a['followers']['total'] ?? null,
+        'popularity' => $a['popularity'] ?? null,
     ];
+}
+
+// Cache in site_settings (stesso meccanismo già usato per il token app-to-app: valore + scadenza
+// come coppia di righe) dei risultati per artista più costosi/richiesti spesso — album e top
+// tracks, richiamati ad ogni visita della pagina pubblica Spotify di un profilo. Le app create di
+// recente (come questa) hanno un limite di richieste molto più basso delle app più vecchie e
+// vanno facilmente in "429 QUOTA_EXCEEDED" con poche visite ravvicinate: ogni chiamata risparmiata
+// conta. La cache viene riusata anche quando la chiamata fallisce (rate limit/errore momentaneo),
+// così non si martella l'API finché la finestra di limite non si libera da sola.
+function spotifyCacheGet(string $cacheKey): ?array {
+    $cached = getSiteSetting("spotify_cache_{$cacheKey}") ?: '';
+    $expires = getSiteSetting("spotify_cache_{$cacheKey}_expires") ?: '';
+    if ($cached === '' || $expires === '' || strtotime($expires) <= time()) {
+        return null;
+    }
+    $data = json_decode($cached, true);
+    return is_array($data) ? $data : null;
+}
+
+function spotifyCacheSet(string $cacheKey, array $data, int $ttlSeconds = 21600): void {
+    setSiteSetting("spotify_cache_{$cacheKey}", json_encode($data));
+    setSiteSetting("spotify_cache_{$cacheKey}_expires", date('Y-m-d H:i:s', time() + $ttlSeconds));
 }
 
 // Album e singoli pubblicati dall'artista (esclude le compilation di altri).
 function spotifyGetArtistAlbums(string $artistId): array {
+    $cacheKey = "albums_{$artistId}";
+    $cached = spotifyCacheGet($cacheKey);
+    if ($cached !== null) {
+        return $cached;
+    }
     $token = getSpotifyAppToken();
     if (!$token) {
         return [];
     }
-    $url = 'https://api.spotify.com/v1/artists/' . urlencode($artistId) . '/albums?include_groups=album,single&limit=20';
+    $url = 'https://api.spotify.com/v1/artists/' . urlencode($artistId) . '/albums?include_groups=album,single&market=US&limit=20';
     $response = httpRequest('GET', $url, ['Authorization: Bearer ' . $token]);
     if (!$response) {
         return [];
@@ -152,11 +187,22 @@ function spotifyGetArtistAlbums(string $artistId): array {
             'type' => $a['album_type'] ?? 'album',
         ];
     }
+    // Una risposta di errore (429/403 inclusi: httpRequest la restituisce comunque, non solo in
+    // caso di successo) non ha la chiave "items": l'elenco risulta vuoto per lo stesso motivo di
+    // un artista senza album pubblicati. Si tiene comunque in cache, ma per poco: evita di
+    // martellare l'API finché la finestra di limite non si libera, senza aspettare ore intere.
+    $ttl = isset($data['error']) ? 900 : 21600;
+    spotifyCacheSet($cacheKey, $albums, $ttl);
     return $albums;
 }
 
 // I brani più popolari dell'artista (top tracks).
 function spotifyGetArtistTopTracks(string $artistId): array {
+    $cacheKey = "toptracks_{$artistId}";
+    $cached = spotifyCacheGet($cacheKey);
+    if ($cached !== null) {
+        return $cached;
+    }
     $token = getSpotifyAppToken();
     if (!$token) {
         return [];
@@ -178,6 +224,8 @@ function spotifyGetArtistTopTracks(string $artistId): array {
             'preview_url' => $t['preview_url'] ?? null,
         ];
     }
+    $ttl = isset($data['error']) ? 900 : 21600;
+    spotifyCacheSet($cacheKey, $tracks, $ttl);
     return $tracks;
 }
 
@@ -204,6 +252,122 @@ function spotifySearchTrack(string $query): array {
         ];
     }
     return $results;
+}
+
+// Cerca playlist pubbliche per nome. Stessa logica di spotifySearchArtist, ma su type=playlist.
+function spotifySearchPlaylist(string $query): array {
+    $token = getSpotifyAppToken();
+    if (!$token || trim($query) === '') {
+        return [];
+    }
+    $url = 'https://api.spotify.com/v1/search?type=playlist&market=US&limit=10&q=' . urlencode($query);
+    $response = httpRequest('GET', $url, ['Authorization: Bearer ' . $token]);
+    if (!$response) {
+        return [];
+    }
+    $data = json_decode($response, true);
+    $results = [];
+    foreach (($data['playlists']['items'] ?? []) as $p) {
+        // Con l'account Client Credentials può capitare qualche voce nulla nei risultati (playlist
+        // rimosse/private nel frattempo): si scarta invece di far fallire tutto il ciclo.
+        if (!$p || empty($p['id'])) {
+            continue;
+        }
+        $owner = $p['owner']['display_name'] ?? '';
+        $results[] = [
+            'id' => $p['id'],
+            'title' => $p['name'],
+            'name' => $p['name'] . ($owner !== '' ? ' — di ' . $owner : ''),
+            'owner' => $owner,
+            'image' => $p['images'][0]['url'] ?? null,
+            'spotify_url' => $p['external_urls']['spotify'] ?? null,
+            'tracks_total' => $p['tracks']['total'] ?? 0,
+        ];
+    }
+    return $results;
+}
+
+// Dettagli di una singola playlist (usata per la sua copertina reale, la descrizione e il
+// numero di brani — es. per i meta tag og:image e la pagina di dettaglio).
+function spotifyGetPlaylist(string $playlistId): ?array {
+    $token = getSpotifyAppToken();
+    if (!$token || trim($playlistId) === '') {
+        return null;
+    }
+    $url = 'https://api.spotify.com/v1/playlists/' . urlencode($playlistId) . '?market=US&fields=id,name,description,images,owner,tracks.total,external_urls';
+    $response = httpRequest('GET', $url, ['Authorization: Bearer ' . $token]);
+    if (!$response) {
+        return null;
+    }
+    $p = json_decode($response, true);
+    if (!$p || empty($p['id'])) {
+        return null;
+    }
+    return [
+        'id' => $p['id'],
+        'name' => $p['name'] ?? '',
+        'description' => $p['description'] ?? '',
+        'owner' => $p['owner']['display_name'] ?? '',
+        'image' => $p['images'][0]['url'] ?? null,
+        'spotify_url' => $p['external_urls']['spotify'] ?? null,
+        'tracks_total' => $p['tracks']['total'] ?? 0,
+    ];
+}
+
+// Cerca album per nome/artista. Stessa logica di spotifySearchArtist, ma su type=album.
+function spotifySearchAlbum(string $query): array {
+    $token = getSpotifyAppToken();
+    if (!$token || trim($query) === '') {
+        return [];
+    }
+    $url = 'https://api.spotify.com/v1/search?type=album&market=US&limit=10&q=' . urlencode($query);
+    $response = httpRequest('GET', $url, ['Authorization: Bearer ' . $token]);
+    if (!$response) {
+        return [];
+    }
+    $data = json_decode($response, true);
+    $results = [];
+    foreach (($data['albums']['items'] ?? []) as $a) {
+        $artistName = implode(', ', array_map(fn($ar) => $ar['name'], $a['artists'] ?? []));
+        $results[] = [
+            'id' => $a['id'],
+            'title' => $a['name'],
+            'name' => $a['name'] . ($artistName !== '' ? ' — ' . $artistName : ''),
+            'artist_name' => $artistName,
+            'image' => $a['images'][1]['url'] ?? ($a['images'][0]['url'] ?? null),
+            'spotify_url' => $a['external_urls']['spotify'] ?? null,
+            'release_date' => $a['release_date'] ?? null,
+        ];
+    }
+    return $results;
+}
+
+// Dettagli di un singolo album (copertina ad alta risoluzione, generi dell'artista principale,
+// numero di brani — usata per i meta tag og:image e la pagina di dettaglio).
+function spotifyGetAlbum(string $albumId): ?array {
+    $token = getSpotifyAppToken();
+    if (!$token || trim($albumId) === '') {
+        return null;
+    }
+    $url = 'https://api.spotify.com/v1/albums/' . urlencode($albumId) . '?market=US';
+    $response = httpRequest('GET', $url, ['Authorization: Bearer ' . $token]);
+    if (!$response) {
+        return null;
+    }
+    $a = json_decode($response, true);
+    if (!$a || empty($a['id'])) {
+        return null;
+    }
+    return [
+        'id' => $a['id'],
+        'name' => $a['name'] ?? '',
+        'artist_name' => implode(', ', array_map(fn($ar) => $ar['name'], $a['artists'] ?? [])),
+        'image' => $a['images'][0]['url'] ?? ($a['images'][1]['url'] ?? null),
+        'spotify_url' => $a['external_urls']['spotify'] ?? null,
+        'release_date' => $a['release_date'] ?? null,
+        'genres' => $a['genres'] ?? [],
+        'tracks_total' => $a['tracks']['total'] ?? ($a['total_tracks'] ?? 0),
+    ];
 }
 
 // Cerca podcast (show) per nome. Stessa logica di spotifySearchArtist, ma su type=show.

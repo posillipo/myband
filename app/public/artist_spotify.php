@@ -7,7 +7,7 @@ header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 
 $slug = $_GET['slug'] ?? '';
-$stmt = getDB()->prepare('SELECT u.id, u.slug, u.account_type, p.display_name, p.avatar_path, p.theme_color, p.page_theme, p.spotify_artist_id, p.spotify_show_id, p.genere, p.youtube_channel_id, p.spotify_artist_name
+$stmt = getDB()->prepare('SELECT u.id, u.slug, u.account_type, p.display_name, p.avatar_path, p.theme_color, p.page_theme, p.spotify_artist_id, p.spotify_show_id, p.genere, p.youtube_channel_id, p.privacy_tracking_settings, p.spotify_artist_name
                           FROM users u JOIN profiles p ON p.user_id = u.id
                           WHERE u.slug = ? AND u.is_active = 1');
 $stmt->execute([$slug]);
@@ -22,6 +22,11 @@ $albums = spotifyGetArtistAlbums($artist['spotify_artist_id']);
 $topTracks = spotifyGetArtistTopTracks($artist['spotify_artist_id']);
 $artistDetails = spotifyGetArtist($artist['spotify_artist_id']);
 
+if (($artist['page_theme'] ?? 'colorful') === 'adminlte-profile') {
+    echo renderAdminLteSpotifyPage($artist, $slug, $albums, $topTracks, $artistDetails);
+    exit;
+}
+
 $pageUrl = siteUrl('/' . $slug . '/spotify');
 ?>
 <!doctype html>
@@ -29,7 +34,7 @@ $pageUrl = siteUrl('/' . $slug . '/spotify');
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title><?= e($artist['display_name']) ?> su Spotify — myband.it</title>
+<title><?= e($artist['display_name']) ?> su Spotify — <?= e(siteName()) ?></title>
 <meta property="og:type" content="website">
 <meta property="og:title" content="<?= e($artist['display_name']) ?> su Spotify">
 <meta property="og:url" content="<?= e($pageUrl) ?>">
@@ -38,21 +43,28 @@ $pageUrl = siteUrl('/' . $slug . '/spotify');
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
 <style>:root { --accent: <?= e($artist['theme_color'] ?: '#6C5CE7') ?>; --accent-text: <?= e(getContrastTextColor($artist['theme_color'])) ?>; }</style>
-<?= embedPrivacyScript() ?>
-<?= embedTrackingHead() ?>
+<?= embedPrivacyScript($artist) ?>
+<?= embedTrackingHead($artist) ?>
+<?= embedGoogleAnalytics($artist) ?>
 </head>
 <body class="<?= e(getPageThemeClass($artist['page_theme'] ?? 'colorful')) ?>">
 <?php if (str_starts_with($artist['page_theme'] ?? 'colorful', 'wave')): ?><?= renderWaveBackground($artist['theme_color'] ?? '#6C5CE7', $artist['page_theme']) ?><?php endif; ?>
-<?= embedTrackingBodyStart() ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'circuit'): ?><?= renderCircuitBackground($artist['theme_color'] ?? '#6C5CE7') ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'napoli'): ?><?= renderNapoliBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'cinemapop'): ?><?= renderCinemaPopBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'startrek'): ?><?= renderStarTrekBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'galactic'): ?><?= renderGalacticBackground() ?><?php endif; ?>
+<?= embedTrackingBodyStart($artist) ?>
 <div class="container">
   <?= publicProfileHeader($artist, 'spotify') ?>
 
-  <p style="text-align:center;color:rgba(var(--text-rgb),0.6);margin:-6px 0 20px;font-size:13.5px;">
-    Discografia Spotify di
-    <a href="https://open.spotify.com/artist/<?= e($artist['spotify_artist_id']) ?>" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;font-weight:700;">
-      <?= e($artist['spotify_artist_name'] ?: 'profilo collegato') ?> <i class="fa-brands fa-spotify" style="color:#1DB954;"></i>
-    </a>
-  </p>
+  <?php if (!empty($artistDetails['genres'])): ?>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:0 0 20px;">
+      <?php foreach ($artistDetails['genres'] as $genre): ?>
+        <span style="background:rgba(var(--text-rgb),0.08);color:rgba(var(--text-rgb),0.85);font-size:12.5px;font-weight:700;padding:5px 12px;border-radius:999px;text-transform:capitalize;"><?= e($genre) ?></span>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
 
   <?php if ($topTracks): ?>
     <div class="section-title">Brani più ascoltati</div>
@@ -78,7 +90,7 @@ $pageUrl = siteUrl('/' . $slug . '/spotify');
         <a href="<?= e($a['spotify_url']) ?>" target="_blank" rel="noopener"
            style="text-decoration:none;color:inherit;">
           <?php if ($a['image']): ?>
-            <img src="<?= e($a['image']) ?>" alt="" class="album-cover" style="width:100%;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,0.12);">
+            <img src="<?= e($a['image']) ?>" alt="" style="width:100%;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,0.12);">
           <?php endif; ?>
           <div style="margin-top:6px;font-size:13px;font-weight:700;"><?= e($a['name']) ?></div>
           <div style="font-size:12px;color:rgba(var(--text-rgb),0.7);">
@@ -101,6 +113,6 @@ $pageUrl = siteUrl('/' . $slug . '/spotify');
   </div>
 </div>
 <?= renderFloatingButtons() ?>
-<?= renderSiteFooterBar($slug) ?>
+<?= renderSiteFooterBar($artist) ?>
 </body>
 </html>

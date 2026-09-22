@@ -15,19 +15,39 @@ if (!$artist) {
     exit;
 }
 
-// Stesso feed della Timeline, ma senza i Brani (link a Spotify, non a un contenuto editoriale
-// con la propria immagine di anteprima — vedi analisi di fattibilità).
-$feed = getTimelineFeedForUsers([$artist['id']], 30);
-$feed = array_values(array_filter($feed, fn($item) => $item['tipo'] !== 'brano'));
+// Il link personalizzato impostato in Dashboard → Timeline NON viene messo qui nel <link> XML: se
+// puntasse già al sito esterno, uno strumento che legge solo <link>/og:image (invece che
+// l'allegato RSS) prenderebbe l'immagine sbagliata (o nessuna). <link> e <guid> restano quindi
+// sempre il permalink interno chifacosa.it, che ha gli og:image/og:title corretti; è la pagina di
+// destinazione stessa (timeline_post.php, blog_post.php, evento.php) a reindirizzare i visitatori
+// reali all'URL esterno via JS — vedi emitCustomFeedLinkRedirect() in functions.php.
+// Nota sull'immagine usata da automazioni come Metricool: non è garantito se leggano l'allegato
+// RSS (enclosure/media) o l'og:image della pagina di destinazione — per sicurezza sono allineati
+// entrambi (per i post con più foto, entrambi puntano alla versione con la scritta "Link Album in
+// Descrizione": vedi getFeedShareImage() qui sotto e in timeline_post.php/viaggio_item.php).
+
+// I Brani che amo ora hanno una loro pagina di dettaglio con og:image propria (come gli altri
+// tipi "che amo"), quindi da qui in poi restano nel feed invece di essere esclusi.
+//
+// A differenza della Timeline pubblica del sito (che mostra tutto ciò che è Pubblico), questo RSS
+// — letto da automazioni come Metricool per pubblicare sui social — mostra solo gli elementi con
+// "Includi nel Feed" spuntato (in_feed): un contenuto può restare Pubblico e visibile sul sito
+// senza per questo finire anche sui social. Si prende un pool più ampio di quanto serve (100
+// invece di 30) prima di filtrare, altrimenti il taglio ai primi 30 elementi avvenuto dentro
+// getTimelineFeedForUsers() potrebbe escludere elementi "in feed" arrivati dopo qualche elemento
+// pubblico-ma-non-in-feed, restituendo meno di 30 voci anche quando ce ne sarebbero abbastanza.
+$feed = getTimelineFeedForUsers([$artist['id']], 100);
+$feed = array_values(array_filter($feed, fn ($item) => ($item['in_feed'] ?? 1) == 1));
+$feed = array_slice($feed, 0, 30);
 
 $channelUrl = siteUrl('/' . $slug);
 $feedUrl = siteUrl('/' . $slug . '/feed');
-$channelTitle = htmlspecialchars($artist['display_name'] . ' — myband.it', ENT_XML1, 'UTF-8');
+$channelTitle = htmlspecialchars($artist['display_name'] . ' — ' . siteName(), ENT_XML1, 'UTF-8');
 $channelDesc = htmlspecialchars($artist['bio'] ? textExcerpt($artist['bio'], 200) : ('Ultimi aggiornamenti di ' . $artist['display_name']), ENT_XML1, 'UTF-8');
 
 echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
 ?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
 <channel>
 <title><?= $channelTitle ?></title>
 <link><?= e($channelUrl) ?></link>
@@ -36,15 +56,32 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
 <language>it-it</language>
 <lastBuildDate><?= date(DATE_RSS) ?></lastBuildDate>
 <?php foreach ($feed as $item): ?>
+<?php $itemUrl = siteUrl($item['url']); ?>
 <item>
 <title><?= htmlspecialchars($item['titolo'], ENT_XML1, 'UTF-8') ?></title>
-<link><?= e(siteUrl($item['url'])) ?></link>
-<guid isPermaLink="true"><?= e(siteUrl($item['url'])) ?></guid>
+<link><?= e($itemUrl) ?></link>
+<guid isPermaLink="true"><?= e($itemUrl) ?></guid>
 <pubDate><?= date(DATE_RSS, strtotime($item['data'])) ?></pubDate>
 <description><?= htmlspecialchars($item['titolo'], ENT_XML1, 'UTF-8') ?></description>
-<?php if ($item['cover']): ?>
-<?php $coverUrl = str_starts_with($item['cover'], 'http') ? $item['cover'] : siteUrl($item['cover']); ?>
-<enclosure url="<?= e($coverUrl) ?>" type="image/jpeg" />
+<?php
+    // Con più di una foto (post Timeline/Viaggi con carosello), l'immagine esposta qui è la
+    // versione con "Link Album in Descrizione" scritta in basso — vedi getFeedShareImage() in
+    // functions.php e il commento più sopra sul perché serve anche qui, non solo su og:image:
+    // per come effettivamente si comporta Metricool con questo feed, legge questa immagine (e
+    // non solo l'og:image della pagina di destinazione, come si presumeva in origine).
+    $feedCover = (!empty($item['has_multi_photo']) && !empty($item['raw_image_path']))
+        ? getFeedShareImage($item['raw_image_path'])
+        : $item['cover'];
+?>
+<?php if ($feedCover): ?>
+<?php
+    $coverUrl = str_starts_with($feedCover, 'http') ? $feedCover : siteUrl($feedCover);
+    $coverExt = strtolower(pathinfo(parse_url($coverUrl, PHP_URL_PATH) ?: '', PATHINFO_EXTENSION));
+    $coverMime = ['png' => 'image/png', 'gif' => 'image/gif', 'webp' => 'image/webp'][$coverExt] ?? 'image/jpeg';
+?>
+<enclosure url="<?= e($coverUrl) ?>" type="<?= e($coverMime) ?>" />
+<media:content url="<?= e($coverUrl) ?>" type="<?= e($coverMime) ?>" medium="image" />
+<media:thumbnail url="<?= e($coverUrl) ?>" />
 <?php endif; ?>
 </item>
 <?php endforeach; ?>

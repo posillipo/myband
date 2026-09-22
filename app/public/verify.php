@@ -30,7 +30,7 @@ if ($token === '') {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Verifica account — myband.it</title>
+<title>Verifica account — <?= e(siteName()) ?></title>
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <?= embedPrivacyScript() ?>
 <?= embedTrackingHead() ?>
@@ -39,7 +39,7 @@ if ($token === '') {
 <body>
 <?= embedTrackingBodyStart() ?>
 <div class="navbar">
-  <div class="brand"><a href="/">myband<span>.it</span></a></div>
+  <div class="brand"><a href="/"><?= e(siteName()) ?></a></div>
 </div>
 <div class="container">
   <h2>Verifica account</h2>

@@ -27,13 +27,15 @@ if ($token !== '') {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Disiscrizione — myband.it</title>
+<title>Disiscrizione — <?= e(siteName()) ?></title>
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <?= embedPrivacyScript() ?>
+<?= embedTrackingHead() ?>
+<?= embedGoogleAnalytics() ?>
 </head>
 <body>
 <div class="navbar">
-  <div class="brand"><a href="/">myband<span>.it</span></a></div>
+  <div class="brand"><a href="/"><?= e(siteName()) ?></a></div>
 </div>
 <div class="container">
   <h2>Disiscrizione</h2>
