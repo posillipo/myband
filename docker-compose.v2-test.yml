@@ -30,6 +30,7 @@ services:
       - SMTP_FROM_NAME=myband.it (TEST)
     volumes:
       - /data/compose/26/app/public/uploads:/var/www/html/uploads:ro
+      - ./docker-test-overrides/session-security-test.ini:/usr/local/etc/php/conf.d/session-security.ini:ro
     # Salta lo script di avvio standard (docker-entrypoint-wrapper.sh): tenta un chown -R sulla
     # cartella uploads, che qui è in sola lettura apposta (protegge i file veri) — con quel
     # mount lo script fallisce sempre (set -e) e il container resta in crash loop. Il resto
