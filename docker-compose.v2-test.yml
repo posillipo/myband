@@ -29,7 +29,7 @@ services:
       - SMTP_FROM=
       - SMTP_FROM_NAME=myband.it (TEST)
     volumes:
-      - /data/myband-v2-test-uploads:/var/www/html/uploads:rw
+      - /mnt/storagebox/myband-v2-test-uploads:/var/www/html/uploads:rw
       - ./docker-test-overrides/session-security-test.ini:/usr/local/etc/php/conf.d/session-security.ini:ro
     networks:
       - myband2_myband_net
