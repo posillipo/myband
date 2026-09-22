@@ -88,7 +88,8 @@ ALTER TABLE profiles
 -- ============================================================
 -- 30. Privacy/Cookie e Tracking personalizzabili per profilo
 -- ============================================================
-ALTER TABLE profiles ADD COLUMN privacy_tracking_settings TEXT DEFAULT NULL;
+-- GIA' PRESENTE IN PRODUZIONE (drift non documentato, verificato identico: text NULL DEFAULT NULL) — riga omessa volutamente
+-- ALTER TABLE profiles ADD COLUMN privacy_tracking_settings TEXT DEFAULT NULL;
 
 -- ============================================================
 -- 31. Assistente AI (Google Gemini) per generare i testi della Timeline
@@ -98,7 +99,8 @@ ALTER TABLE profiles ADD COLUMN privacy_tracking_settings TEXT DEFAULT NULL;
 -- ============================================================
 -- 32. Miniatura leggera per le foto della Timeline (`timeline_posts.image_thumb_path`)
 -- ============================================================
-ALTER TABLE timeline_posts ADD COLUMN image_thumb_path VARCHAR(255) DEFAULT NULL;
+-- GIA' PRESENTE IN PRODUZIONE (drift non documentato, verificato identico: varchar(255) NULL DEFAULT NULL) — riga omessa volutamente
+-- ALTER TABLE timeline_posts ADD COLUMN image_thumb_path VARCHAR(255) DEFAULT NULL;
 
 -- ============================================================
 -- 33. Nuovo modulo "Attori che amo" (`fan_favorite_actors`)
@@ -133,9 +135,10 @@ CREATE TABLE IF NOT EXISTS fan_favorite_movies (
 -- ============================================================
 -- 35. Nota personale + pagina di dettaglio condivisibile per Band/Attori/Film che amo
 -- ============================================================
-ALTER TABLE fan_favorite_bands ADD COLUMN note TEXT DEFAULT NULL;
-ALTER TABLE fan_favorite_actors ADD COLUMN note TEXT DEFAULT NULL;
-ALTER TABLE fan_favorite_movies ADD COLUMN note TEXT DEFAULT NULL;
+-- GIA' PRESENTI IN PRODUZIONE su tutte e 3 le tabelle (drift non documentato, verificato identico: text NULL DEFAULT NULL) — righe omesse volutamente
+-- ALTER TABLE fan_favorite_bands ADD COLUMN note TEXT DEFAULT NULL;
+-- ALTER TABLE fan_favorite_actors ADD COLUMN note TEXT DEFAULT NULL;
+-- ALTER TABLE fan_favorite_movies ADD COLUMN note TEXT DEFAULT NULL;
 
 -- ============================================================
 -- 36. Controllo visibilità nel Feed per Band/Attori/Film che amo
