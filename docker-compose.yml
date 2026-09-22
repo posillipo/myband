@@ -21,7 +21,7 @@ services:
       - SMTP_FROM=${SMTP_FROM:-}
       - SMTP_FROM_NAME=${SMTP_FROM_NAME:-myband.it}
     volumes:
-      - ./app/public/uploads:/var/www/html/uploads
+      - ${UPLOADS_PATH:-./app/public/uploads}:/var/www/html/uploads
     depends_on:
       - db
     networks:
