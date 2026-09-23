@@ -130,13 +130,13 @@ if (getDbCredentials() === null) {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>CHI FA COSA - Configurazione Database</title>
+        <title>myband - Configurazione Database</title>
         <style><?= $installerCss ?></style>
     </head>
     <body>
         <div class="container">
             <div class="header">
-                <h1>CHI FA COSA</h1>
+                <h1>myband</h1>
                 <p>Configurazione Database</p>
             </div>
 
@@ -159,7 +159,7 @@ if (getDbCredentials() === null) {
                 </div>
                 <div class="form-group">
                     <label for="db_name">Nome database</label>
-                    <input type="text" id="db_name" name="db_name" placeholder="es. chifacosa" value="<?= htmlspecialchars($_POST['db_name'] ?? '') ?>" required>
+                    <input type="text" id="db_name" name="db_name" placeholder="es. myband" value="<?= htmlspecialchars($_POST['db_name'] ?? '') ?>" required>
                 </div>
                 <div class="form-group">
                     <label for="db_user">Utente database</label>
@@ -214,9 +214,9 @@ try {
         // Installazione già completata
         die('
             <html>
-            <head><title>CHI FA COSA - Già Configurato</title></head>
+            <head><title>myband - Già Configurato</title></head>
             <body style="font-family: sans-serif; text-align: center; padding: 50px; background: #f5f5f5;">
-                <h1>✓ CHI FA COSA</h1>
+                <h1>✓ myband</h1>
                 <p style="font-size: 18px; color: #666;">La configurazione è già stata completata.</p>
                 <p><a href="login.php" style="color: #0066cc; text-decoration: none;">Vai al Login →</a></p>
             </body>
@@ -235,7 +235,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $password = trim($_POST['password'] ?? '');
     $password_confirm = trim($_POST['password_confirm'] ?? '');
-    $site_name = trim($_POST['site_name'] ?? 'CHI FA COSA');
+    $site_name = trim($_POST['site_name'] ?? 'myband');
 
     // Validazione
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -296,13 +296,13 @@ if ($success) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CHI FA COSA - Configurazione Iniziale</title>
+    <title>myband - Configurazione Iniziale</title>
     <style><?= $installerCss ?></style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>CHI FA COSA</h1>
+            <h1>myband</h1>
             <p>Configurazione Iniziale</p>
         </div>
 
@@ -326,7 +326,7 @@ if ($success) {
         <form method="POST">
             <div class="form-group">
                 <label for="site_name">Nome del Sito</label>
-                <input type="text" id="site_name" name="site_name" placeholder="es: Pizzeria La Caraffa" required>
+                <input type="text" id="site_name" name="site_name" placeholder="es: myband" required>
             </div>
 
             <div class="form-group">
@@ -344,7 +344,7 @@ if ($success) {
                 <input type="password" id="password_confirm" name="password_confirm" placeholder="Ripeti la password" required>
             </div>
 
-            <button type="submit">Configura CHI FA COSA</button>
+            <button type="submit">Configura myband</button>
         </form>
     </div>
 </body>

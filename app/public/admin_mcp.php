@@ -161,7 +161,7 @@ include __DIR__ . '/_admin_header.php';
         <input type="hidden" name="action" value="save_config">
         <div class="form-group">
           <label>URL del server MCP</label>
-          <input type="text" name="mcp_server_url" class="form-control" value="<?= e($configuredUrl) ?>" placeholder="https://mcp.chifacosa.it">
+          <input type="text" name="mcp_server_url" class="form-control" value="<?= e($configuredUrl) ?>" placeholder="https://mcp.myband.it">
         </div>
         <div class="form-group">
           <label>Token di accesso al server MCP (MCP_ACCESS_TOKEN)</label>

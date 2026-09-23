@@ -52,7 +52,7 @@ include __DIR__ . '/_admin_header.php';
     <?= csrfField() ?>
     <input type="hidden" name="action" value="save">
     <label>Email di contatto (facoltativa)</label>
-    <input type="text" name="crossref_contact_email" value="<?= e($contactEmail) ?>" placeholder="es. admin@chifacosa.it">
+    <input type="text" name="crossref_contact_email" value="<?= e($contactEmail) ?>" placeholder="es. admin@myband.it">
     <p style="color:var(--text-muted);font-size:12.5px;margin-top:-8px;">
       CrossRef la chiama "polite pool": non serve per autenticarsi, ma segnalare un contatto dà
       priorità e limiti di frequenza migliori rispetto alle richieste anonime. Consigliata ma non

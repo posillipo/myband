@@ -37,7 +37,7 @@ include __DIR__ . '/_admin_header.php';
     <p style="color:var(--text-muted)">
       Per ottenere le chiavi: vai su <a href="https://dash.cloudflare.com/?to=/:account/turnstile" target="_blank">dash.cloudflare.com</a>
       (basta un account gratuito, non serve spostare il dominio), crea un nuovo widget di tipo
-      "Managed", imposta come dominio <code><?= e($_SERVER['HTTP_HOST'] ?? 'chifacosa.it') ?></code>
+      "Managed", imposta come dominio <code><?= e($_SERVER['HTTP_HOST'] ?? 'myband.it') ?></code>
       e copia qui sotto la <strong>Site Key</strong> e la <strong>Secret Key</strong> generate.
     </p>
   </div>

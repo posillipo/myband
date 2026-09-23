@@ -7,7 +7,7 @@ require_once __DIR__ . '/../src/functions.php';
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Crediti — CHI FA COSA</title>
+<title>Crediti — myband</title>
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <?= embedPrivacyScript() ?>
 <?= embedTrackingHead() ?>
@@ -17,7 +17,7 @@ require_once __DIR__ . '/../src/functions.php';
 <div class="container" style="max-width:680px;">
   <h1>Crediti</h1>
   <p style="color:var(--text-muted)">
-    CHI FA COSA utilizza alcune librerie e progetti open source. Qui trovi le attribuzioni dovute.
+    myband utilizza alcune librerie e progetti open source. Qui trovi le attribuzioni dovute.
   </p>
 
   <div class="card">
