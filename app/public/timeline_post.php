@@ -8,7 +8,7 @@ header('Pragma: no-cache');
 $slug = $_GET['slug'] ?? '';
 $postId = (int) ($_GET['id'] ?? 0);
 
-$stmt = getDB()->prepare('SELECT u.slug, u.account_type, p.display_name, p.avatar_path, p.theme_color, p.page_theme, p.spotify_artist_id, p.spotify_show_id, p.youtube_channel_id, p.genere, tp.*
+$stmt = getDB()->prepare('SELECT u.slug, u.account_type, p.display_name, p.avatar_path, p.theme_color, p.page_theme, p.spotify_artist_id, p.spotify_show_id, p.youtube_channel_id, p.privacy_tracking_settings, p.genere, p.custom_feed_guid, p.custom_feed_guid_since, p.dashboard_theme, tp.*
                           FROM timeline_posts tp
                           JOIN users u ON u.id = tp.user_id
                           JOIN profiles p ON p.user_id = u.id
@@ -23,7 +23,8 @@ if (!$post) {
 
 $isOwner = !empty($_SESSION['user_id']) && (int) $_SESSION['user_id'] === (int) $post['user_id'];
 $isScheduledFuture = $post['publish_at'] && strtotime($post['publish_at']) > time();
-if (!$isOwner && ($post['visibility'] === 'private' || $isScheduledFuture)) {
+$isPreview = !$isOwner && previewTokenValid('pensiero', (int) $post['id'], $_GET['preview'] ?? null);
+if (!$isOwner && !$isPreview && ($post['visibility'] === 'private' || $isScheduledFuture)) {
     http_response_code(404);
     exit('Contenuto non trovato.');
 }
@@ -36,56 +37,134 @@ $artist = [
     'spotify_artist_id' => $post['spotify_artist_id'],
     'spotify_show_id' => $post['spotify_show_id'],
     'youtube_channel_id' => $post['youtube_channel_id'],
+    'privacy_tracking_settings' => $post['privacy_tracking_settings'] ?? null,
     'genere' => $post['genere'],
     'account_type' => $post['account_type'],
     'page_theme' => $post['page_theme'] ?? 'colorful',
+    'dashboard_theme' => $post['dashboard_theme'] ?? null,
 ];
 
+// Foto in ordine di caricamento: la prima è sempre quella su image_path (l'unica che compare
+// anche nel Feed/Timeline), le altre — se presenti — arrivano da timeline_post_photos e formano
+// insieme a questa un carosello scorrevole stile Instagram sulla pagina di dettaglio.
+$photos = array_values(array_filter(array_merge([$post['image_path']], getTimelinePostPhotos($postId))));
+
+// Altri aggiornamenti pubblicati la stessa giornata di questo — chi apre un post specifico li
+// vede subito sotto, come se fossero una sequenza di post della Timeline, senza dover andare a
+// sfogliarla per conto proprio.
+$sameDayPosts = getSameDayTimelinePosts((int) $post['user_id'], $post['publish_at'], $post['created_at'], $postId);
+
+// Tema "AdminLTE": stesso principio "a scena" della Home (vedi u.php).
+if (($artist['page_theme'] ?? 'colorful') === 'adminlte-profile') {
+    echo renderAdminLteTimelinePostPage($post, $artist, $slug, $photos, $sameDayPosts, $isOwner, $isScheduledFuture, $isPreview);
+    exit;
+}
+
 $pageUrl = siteUrl('/' . $slug . '/timeline/' . $postId);
-$ogImage = $post['image_path'] ? siteUrl($post['image_path']) : ($post['avatar_path'] ? siteUrl($post['avatar_path']) : null);
-$anteprima = $post['testo'] ? textExcerpt($post['testo'], 150) : 'Nuovo aggiornamento su myband.it';
+// Se il contenuto non è ancora pubblico, l'og:url deve portare anche lui il token di anteprima:
+// altrimenti il crawler di Meta, dopo aver letto la pagina con successo, ri-verifica proprio
+// l'URL dichiarato in og:url — che senza token darebbe di nuovo 404, facendo fallire l'intera
+// anteprima social anche se la pagina originale era stata letta correttamente.
+if ($post['visibility'] === 'private' || $isScheduledFuture) {
+    $pageUrl = withPreviewToken($pageUrl, 'pensiero', $postId);
+}
+// Con più di una foto, l'immagine esposta a og:image/Twitter (quella che finisce sui social
+// tramite Metricool & co. — vedi commento in feed.php) è una copia con "Link Album in Descrizione"
+// scritto in basso, non l'originale: sui social arriva sempre una sola immagine, mai il
+// carosello, quindi la scritta segnala che ce ne sono altre. Il carosello sul sito (sopra)
+// continua a mostrare le foto originali intatte, invariato.
+$ogImagePath = (count($photos) > 1 && $post['image_path']) ? getFeedShareImage($post['image_path']) : $post['image_path'];
+$ogImage = $ogImagePath ? siteUrl($ogImagePath) : ($post['avatar_path'] ? siteUrl($post['avatar_path']) : null);
+$anteprima = $post['testo'] ? textExcerpt($post['testo'], 150) : (!empty($post['title']) ? $post['title'] : ('Nuovo aggiornamento su ' . siteName()));
 ?>
 <!doctype html>
 <html lang="it">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title><?= e($post['display_name']) ?> — myband.it</title>
+<?php if (!empty($post['redirect_link'])) {
+    emitPostRedirectLink($post['redirect_link']);
+} else {
+    emitCustomFeedLinkRedirect($post['custom_feed_guid'], $post['custom_feed_guid_since'], $post['created_at']);
+} ?>
+<title><?= e($post['display_name']) ?> — <?= e(siteName()) ?></title>
 <meta name="description" content="<?= e($anteprima) ?>">
 <meta property="og:type" content="website">
-<meta property="og:title" content="<?= e($post['display_name']) ?> su myband.it">
+<meta property="og:title" content="<?= e($post['display_name']) ?> su <?= e(siteName()) ?>">
 <meta property="og:description" content="<?= e($anteprima) ?>">
 <meta property="og:url" content="<?= e($pageUrl) ?>">
+<meta property="og:site_name" content="<?= e(siteName()) ?>">
 <?php if ($ogImage): ?><meta property="og:image" content="<?= e($ogImage) ?>"><?php endif; ?>
+
 <meta name="twitter:card" content="<?= $ogImage ? 'summary_large_image' : 'summary' ?>">
+<meta name="twitter:title" content="<?= e($post['display_name']) ?> su <?= e(siteName()) ?>">
+<meta name="twitter:description" content="<?= e($anteprima) ?>">
+<?php if ($ogImage): ?><meta name="twitter:image" content="<?= e($ogImage) ?>"><?php endif; ?>
+
 <link rel="canonical" href="<?= e($pageUrl) ?>">
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
 <style>:root { --accent: <?= e($post['theme_color'] ?: '#6C5CE7') ?>; --accent-text: <?= e(getContrastTextColor($post['theme_color'])) ?>; }</style>
-<?= embedPrivacyScript() ?>
-<?= embedTrackingHead() ?>
-<?= embedGoogleAnalytics() ?>
+<?= embedPrivacyScript($artist) ?>
+<?= embedTrackingHead($artist) ?>
+<?= embedGoogleAnalytics($artist) ?>
 </head>
 <body class="<?= e(getPageThemeClass($artist['page_theme'] ?? 'colorful')) ?>">
 <?php if (str_starts_with($artist['page_theme'] ?? 'colorful', 'wave')): ?><?= renderWaveBackground($artist['theme_color'] ?? '#6C5CE7', $artist['page_theme']) ?><?php endif; ?>
-<?= embedTrackingBodyStart() ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'circuit'): ?><?= renderCircuitBackground($artist['theme_color'] ?? '#6C5CE7') ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'napoli'): ?><?= renderNapoliBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'cinemapop'): ?><?= renderCinemaPopBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'startrek'): ?><?= renderStarTrekBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'galactic'): ?><?= renderGalacticBackground() ?><?php endif; ?>
+<?= embedTrackingBodyStart($artist) ?>
 <div class="container">
   <?= publicProfileHeader($artist, 'timeline') ?>
 
+  <?php if (($isOwner || $isPreview) && ($post['visibility'] === 'private' || $isScheduledFuture)): ?>
+    <div class="card" style="border:1px solid #dc3545;color:#dc3545;">Questo aggiornamento non è visibile al pubblico al momento (Solo io, o programmato per il futuro) — <?= e(previewNoticeSuffix($isOwner)) ?></div>
+  <?php endif; ?>
+
   <div class="card">
-    <?php if ($post['image_path']): ?>
-      <img src="/<?= e($post['image_path']) ?>" alt=""
-           style="width:100%;max-width:400px;display:block;margin:0 auto 16px;border-radius:14px;object-fit:cover;box-shadow:0 8px 24px rgba(0,0,0,0.15);">
+    <?= renderPhotoCarousel($photos, $postId) ?>
+    <small style="color:rgba(var(--text-rgb),0.6);"><?= e(formatLocalDateTime($post['created_at'], $artist)) ?></small>
+    <?php if (!empty($post['title'])): ?>
+      <p style="margin:8px 0 0;font-size:18px;font-weight:700;"><?= e($post['title']) ?></p>
     <?php endif; ?>
-    <small style="color:rgba(var(--text-rgb),0.6);"><?= date('d/m/Y H:i', strtotime($post['created_at'])) ?></small>
     <?php if ($post['testo']): ?>
       <p style="margin-top:8px;font-size:16px;"><?= nl2br(e($post['testo'])) ?></p>
     <?php endif; ?>
+    <?php if (!empty($post['hashtags'])): ?>
+      <p style="margin-top:8px;font-size:14px;color:var(--accent);"><?= e($post['hashtags']) ?></p>
+    <?php endif; ?>
+    <?php if (!empty($post['call_to_action'])): ?>
+      <p style="margin-top:8px;font-size:15px;font-style:italic;"><?= e($post['call_to_action']) ?></p>
+    <?php endif; ?>
   </div>
+
+  <?php if ($sameDayPosts): ?>
+    <div class="section-title" style="text-align:center;color:rgba(var(--text-rgb),0.6);margin:22px 0 10px;">
+      Altri di questa giornata (<?= count($sameDayPosts) ?>)
+    </div>
+    <?php foreach ($sameDayPosts as $sp): ?>
+      <?php $spPhotos = array_values(array_filter(array_merge([$sp['image_path']], getTimelinePostPhotos((int) $sp['id'])))); ?>
+      <div class="card">
+        <?= renderPhotoCarousel($spPhotos, (int) $sp['id']) ?>
+        <small style="color:rgba(var(--text-rgb),0.6);"><?= e(formatLocalDateTime($sp['created_at'], $artist)) ?></small>
+        <?php if ($sp['testo']): ?>
+          <p style="margin-top:8px;font-size:16px;"><?= nl2br(e($sp['testo'])) ?></p>
+        <?php endif; ?>
+      </div>
+    <?php endforeach; ?>
+  <?php endif; ?>
 
   <p><a href="/<?= e($slug) ?>/timeline">← Tutta la Timeline di <?= e($post['display_name']) ?></a></p>
 </div>
 <?= renderFloatingButtons() ?>
-<?= renderSiteFooterBar() ?>
+<?= renderSiteFooterBar($artist) ?>
+
+<?php if ($photos || $sameDayPosts): ?>
+<link rel="stylesheet" href="<?= assetUrl('/assets/css/ig-carousel.css') ?>">
+<script src="<?= assetUrl('/assets/js/ig-carousel.js') ?>"></script>
+<?php endif; ?>
 </body>
 </html>

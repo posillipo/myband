@@ -1,46 +1,45 @@
 FROM php:8.2-apache
 
-# Estensioni PHP necessarie (PDO/MySQL) + mod_rewrite per gli URL puliti /nomeartista
+# Estensioni PHP necessarie
 RUN docker-php-ext-install pdo pdo_mysql mysqli \
     && a2enmod rewrite \
     && a2enmod headers
+
+# GD: usata da compressImageToJpeg() (functions.php) per ricomprimere in JPEG sotto i 250KB ogni
+# foto caricata (moduli "che amo", link, blog, eventi, timeline, avatar) — libjpeg/libpng/libwebp
+# servono sia in fase di build (per compilare l'estensione) sia a runtime (l'estensione compilata
+# ci si collega dinamicamente ogni volta che PHP parte): niente "apt-get purge" dei pacchetti dopo
+# la build, altrimenti l'estensione risulta installata ma non caricabile ("cannot open shared
+# object file libpng16.so.16" — errore reale riscontrato in produzione con la prima versione di
+# questo Dockerfile). La manciata di MB in più rispetto a poterle rimuovere è un compromesso
+# accettabile per l'affidabilità.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libpng-dev libjpeg62-turbo-dev libwebp-dev libfreetype6-dev \
+    && docker-php-ext-configure gd --with-jpeg --with-webp --with-freetype \
+    && docker-php-ext-install -j"$(nproc)" gd \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copia applicazione
 COPY public/ /var/www/html/
 COPY src/ /var/www/src/
 COPY import/ /var/www/import/
 
-# Entrypoint personalizzato: sistema i permessi della cartella uploads ad ogni avvio,
-# indipendentemente da come il bind mount è stato inizializzato sull'host (evita l'errore
-# "move_uploaded_file(): Unable to move" quando il volume su un nuovo server non ha ancora
-# i permessi corretti per www-data)
+# Entrypoint
 COPY docker-entrypoint-wrapper.sh /usr/local/bin/docker-entrypoint-wrapper.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint-wrapper.sh
 ENTRYPOINT ["docker-entrypoint-wrapper.sh"]
 CMD ["apache2-foreground"]
 
-# Permessi e cartelle upload (impostati anche a build-time; l'entrypoint li rinforza a runtime)
+# Permessi
 RUN mkdir -p /var/www/html/uploads/audio /var/www/html/uploads/images \
     && chown -R www-data:www-data /var/www/html
 
-# Consente override .htaccess (AllowOverride All)
-RUN { \
-      echo '<Directory /var/www/html>'; \
-      echo '    AllowOverride All'; \
-      echo '    Require all granted'; \
-      echo '</Directory>'; \
-    } > /etc/apache2/conf-available/myband.conf \
-    && a2enconf myband
-
-# Limite upload per i brani audio
 RUN { \
       echo 'upload_max_filesize = 20M'; \
-      echo 'post_max_size = 25M'; \
+      echo 'post_max_size = 500M'; \
+      echo 'max_file_uploads = 60'; \
     } > /usr/local/etc/php/conf.d/uploads.ini
 
-# Configurazione errori da produzione: mai stampare warning/notice/errori nella pagina HTML
-# (rompono l'impaginazione e sono visibili ai visitatori), ma registrarli sempre nei log del
-# container così restano diagnosticabili da Portainer → Containers → myband_app → Logs
 RUN { \
       echo 'display_errors = Off'; \
       echo 'display_startup_errors = Off'; \
@@ -48,5 +47,25 @@ RUN { \
       echo 'error_log = /dev/stderr'; \
       echo 'error_reporting = E_ALL'; \
     } > /usr/local/etc/php/conf.d/error-handling.ini
+
+# Cookie di sessione PHP rinforzati: nessuna pagina imposta questi attributi a mano (session_start()
+# è sempre la prima riga di ogni file pubblico, prima ancora di caricare functions.php, quindi non
+# c'è un punto comodo dove farlo in PHP) — vanno impostati qui, una volta per tutto il container.
+# cookie_secure=1 è sicuro anche se qui in container si parla sempre in chiaro col reverse proxy
+# (Nginx Proxy Manager): è il browser dell'utente finale a decidere se mandare il cookie, e lui
+# vede sempre e solo https://www.chifacosa.it — mai un accesso diretto in HTTP.
+RUN { \
+      echo 'session.cookie_httponly = 1'; \
+      echo 'session.cookie_samesite = Lax'; \
+      echo 'session.cookie_secure = 1'; \
+    } > /usr/local/etc/php/conf.d/session-security.ini
+
+RUN { \
+      echo '<Directory /var/www/html>'; \
+      echo '    AllowOverride All'; \
+      echo '    Require all granted'; \
+      echo '</Directory>'; \
+    } > /etc/apache2/conf-available/chifacosa.conf \
+    && a2enconf chifacosa
 
 WORKDIR /var/www/html

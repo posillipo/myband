@@ -5,8 +5,38 @@ RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
+# /sitemap.xml -> sitemap dinamica per Google Search Console
+RewriteRule ^sitemap\.xml$ sitemap.php [L]
+
+# /robots.txt -> generato dinamicamente (usa siteUrl() per la riga Sitemap, invece di un dominio fisso)
+RewriteRule ^robots\.txt$ robots.php [L]
+
+# API pubblica /api/v1/social-posts/* (token Bearer, vedi app/src/api_helpers.php) — le rotte
+# fisse (create/list) devono stare PRIMA di quella generica /{id}, altrimenti quest'ultima le
+# intercetterebbe per prima interpretandole come un ID non numerico.
+RewriteRule ^api/v1/social-posts/create/?$ api_social_posts_create.php [L,QSA]
+RewriteRule ^api/v1/social-posts/list/?$ api_social_posts_list.php [L,QSA]
+RewriteRule ^api/v1/social-posts/([0-9]+)/?$ api_social_posts_item.php?id=$1 [L,QSA]
+
+# API pubblica /api/v1/blog-posts/* — stesso token Bearer e stessa autenticazione di
+# social-posts (vedi app/src/api_helpers.php), endpoint separati per gestire gli articoli del Blog.
+RewriteRule ^api/v1/blog-posts/create/?$ api_blog_posts_create.php [L,QSA]
+RewriteRule ^api/v1/blog-posts/list/?$ api_blog_posts_list.php [L,QSA]
+RewriteRule ^api/v1/blog-posts/([0-9]+)/?$ api_blog_posts_item.php?id=$1 [L,QSA]
+
+# API pubblica di sola lettura /api/v1/cinema-films/list — stesso token Bearer, elenco dei film
+# sincronizzati dal JSON Cinema del profilo (vedi syncCinemaFilms()), per creare post quando
+# escono nuovi film.
+RewriteRule ^api/v1/cinema-films/list/?$ api_cinema_films_list.php [L,QSA]
+
+# /nomeartista/che-amo -> vetrina di tutti i moduli "che amo" (Band/Attori/Film/Libri, Viaggi, Brani)
+RewriteRule ^([a-zA-Z0-9_-]+)/che-amo/?$ che_amo.php?slug=$1 [L,QSA]
+
 # /nomeartista/blog/anno.mese.giorno.slug-articolo -> singolo articolo (permalink SEO)
 RewriteRule ^([a-zA-Z0-9_-]+)/blog/([0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[a-zA-Z0-9-]+)/?$ blog_post.php?slug=$1&post=$2 [L,QSA]
+
+# /nomeartista/blog/categoria/nome-categoria -> elenco articoli filtrato per categoria
+RewriteRule ^([a-zA-Z0-9_-]+)/blog/categoria/([a-zA-Z0-9-]+)/?$ blog_category.php?slug=$1&category=$2 [L,QSA]
 
 # /nomeartista/blog -> elenco articoli
 RewriteRule ^([a-zA-Z0-9_-]+)/blog/?$ blog_index.php?slug=$1 [L,QSA]
@@ -23,11 +53,20 @@ RewriteRule ^([a-zA-Z0-9_-]+)/eventi/([0-9]+)/?$ evento.php?slug=$1&id=$2 [L,QSA
 # /nomeartista/feed -> feed RSS/XML (per Metricool e altri strumenti di pianificazione social)
 RewriteRule ^([a-zA-Z0-9_-]+)/feed/?$ feed.php?slug=$1 [L,QSA]
 
+# /nomeartista/cinema-feed.xml -> feed prodotti (film in programmazione) per Google Merchant
+# Center e Meta Commerce Manager, generato dal JSON già configurato in Dashboard -> Cinema
+RewriteRule ^([a-zA-Z0-9_-]+)/cinema-feed\.xml$ cinema_merchant_feed.php?slug=$1 [L,QSA]
+
 # /nomeartista/brani/ID/votazioni -> pagina dedicata al voto del brano
 RewriteRule ^([a-zA-Z0-9_-]+)/brani/([0-9]+)/votazioni/?$ track_review.php?slug=$1&id=$2 [L,QSA]
 
 # /nomeartista/brani/ID/testo -> pagina dedicata al testo/ascolto del brano
 RewriteRule ^([a-zA-Z0-9_-]+)/brani/([0-9]+)/testo/?$ track_lyrics.php?slug=$1&id=$2 [L,QSA]
+
+# /nomeartista/brani/ID/scheda -> pagina di dettaglio del singolo "Brano che amo" (condivisibile
+# sui social) — non può stare su /brani/ID "nudo" perché quella route è già di track.php (tabella
+# audio_tracks, funzione diversa e precedente: brani caricati come file, non brani Spotify).
+RewriteRule ^([a-zA-Z0-9_-]+)/brani/([0-9]+)/scheda/?$ favorite_track_item.php?slug=$1&id=$2 [L,QSA]
 
 # /nomeartista/timeline/ID -> pagina dedicata al singolo aggiornamento (condivisibile sui social)
 RewriteRule ^([a-zA-Z0-9_-]+)/timeline/([0-9]+)/?$ timeline_post.php?slug=$1&id=$2 [L,QSA]
@@ -38,14 +77,104 @@ RewriteRule ^([a-zA-Z0-9_-]+)/timeline/?$ timeline.php?slug=$1 [L,QSA]
 # /nomeartista/eventi -> pagina concerti
 RewriteRule ^([a-zA-Z0-9_-]+)/eventi/?$ eventi.php?slug=$1 [L,QSA]
 
+# /nomeartista/band-che-amo/ID -> pagina dedicata alla singola band preferita (condivisibile sui social)
+RewriteRule ^([a-zA-Z0-9_-]+)/band-che-amo/([0-9]+)/?$ fan_favorite_item.php?slug=$1&kind=band&id=$2 [L,QSA]
+
 # /nomeartista/band-che-amo -> elenco completo band preferite
 RewriteRule ^([a-zA-Z0-9_-]+)/band-che-amo/?$ band_che_amo.php?slug=$1 [L,QSA]
+
+# /nomeartista/attori-che-amo/ID -> pagina dedicata al singolo attore preferito (condivisibile sui social)
+RewriteRule ^([a-zA-Z0-9_-]+)/attori-che-amo/([0-9]+)/?$ fan_favorite_item.php?slug=$1&kind=actor&id=$2 [L,QSA]
+
+# /nomeartista/attori-che-amo -> elenco completo attori preferiti
+RewriteRule ^([a-zA-Z0-9_-]+)/attori-che-amo/?$ attori_che_amo.php?slug=$1 [L,QSA]
+
+# /nomeartista/film-che-amo/ID -> pagina dedicata al singolo film preferito (condivisibile sui social)
+RewriteRule ^([a-zA-Z0-9_-]+)/film-che-amo/([0-9]+)/?$ fan_favorite_item.php?slug=$1&kind=movie&id=$2 [L,QSA]
+
+# /nomeartista/film-che-amo -> elenco completo film preferiti
+RewriteRule ^([a-zA-Z0-9_-]+)/film-che-amo/?$ film_che_amo.php?slug=$1 [L,QSA]
+
+# /nomeartista/libri-che-amo/ID -> pagina dedicata al singolo libro preferito (condivisibile sui social)
+RewriteRule ^([a-zA-Z0-9_-]+)/libri-che-amo/([0-9]+)/?$ fan_favorite_item.php?slug=$1&kind=book&id=$2 [L,QSA]
+
+# /nomeartista/libri-che-amo -> elenco completo libri preferiti
+RewriteRule ^([a-zA-Z0-9_-]+)/libri-che-amo/?$ libri_che_amo.php?slug=$1 [L,QSA]
+
+# /nomeartista/viaggi/ID -> pagina dedicata al singolo viaggio (condivisibile sui social)
+RewriteRule ^([a-zA-Z0-9_-]+)/viaggi/([0-9]+)/?$ viaggio_item.php?slug=$1&id=$2 [L,QSA]
+
+# /nomeartista/viaggi -> elenco completo viaggi
+RewriteRule ^([a-zA-Z0-9_-]+)/viaggi/?$ viaggi.php?slug=$1 [L,QSA]
+
+# /nomeartista/playlist-che-amo/ID -> pagina dedicata alla singola playlist preferita (condivisibile sui social)
+RewriteRule ^([a-zA-Z0-9_-]+)/playlist-che-amo/([0-9]+)/?$ fan_favorite_item.php?slug=$1&kind=playlist&id=$2 [L,QSA]
+
+# /nomeartista/playlist-che-amo -> elenco completo playlist preferite
+RewriteRule ^([a-zA-Z0-9_-]+)/playlist-che-amo/?$ playlist_che_amo.php?slug=$1 [L,QSA]
+
+# /nomeartista/album-che-amo/ID -> pagina dedicata al singolo album preferito (condivisibile sui social)
+RewriteRule ^([a-zA-Z0-9_-]+)/album-che-amo/([0-9]+)/?$ fan_favorite_item.php?slug=$1&kind=album&id=$2 [L,QSA]
+
+# /nomeartista/album-che-amo -> elenco completo album preferiti
+RewriteRule ^([a-zA-Z0-9_-]+)/album-che-amo/?$ album_che_amo.php?slug=$1 [L,QSA]
+
+# /nomeartista/ricette-che-amo/ID -> pagina dedicata alla singola ricetta preferita (condivisibile sui social)
+RewriteRule ^([a-zA-Z0-9_-]+)/ricette-che-amo/([0-9]+)/?$ fan_favorite_item.php?slug=$1&kind=recipe&id=$2 [L,QSA]
+
+# /nomeartista/ricette-che-amo -> elenco completo ricette preferite
+RewriteRule ^([a-zA-Z0-9_-]+)/ricette-che-amo/?$ ricette_che_amo.php?slug=$1 [L,QSA]
+
+# /nomeartista/squadre-che-amo/ID -> pagina dedicata alla singola squadra preferita (condivisibile sui social)
+RewriteRule ^([a-zA-Z0-9_-]+)/squadre-che-amo/([0-9]+)/?$ fan_favorite_item.php?slug=$1&kind=team&id=$2 [L,QSA]
+
+# /nomeartista/squadre-che-amo -> elenco completo squadre preferite
+RewriteRule ^([a-zA-Z0-9_-]+)/squadre-che-amo/?$ squadre_che_amo.php?slug=$1 [L,QSA]
+
+# /nomeartista/calciatori-che-amo/ID -> pagina dedicata al singolo calciatore preferito (condivisibile sui social)
+RewriteRule ^([a-zA-Z0-9_-]+)/calciatori-che-amo/([0-9]+)/?$ fan_favorite_item.php?slug=$1&kind=footballer&id=$2 [L,QSA]
+
+# /nomeartista/calciatori-che-amo -> elenco completo calciatori preferiti
+RewriteRule ^([a-zA-Z0-9_-]+)/calciatori-che-amo/?$ calciatori_che_amo.php?slug=$1 [L,QSA]
+
+# /nomeartista/partite-che-amo/ID -> pagina dedicata alla singola partita preferita (condivisibile sui social)
+RewriteRule ^([a-zA-Z0-9_-]+)/partite-che-amo/([0-9]+)/?$ fan_favorite_item.php?slug=$1&kind=match&id=$2 [L,QSA]
+
+# /nomeartista/partite-che-amo -> elenco completo partite preferite
+RewriteRule ^([a-zA-Z0-9_-]+)/partite-che-amo/?$ partite_che_amo.php?slug=$1 [L,QSA]
+
+# /nomeartista/pubblicazioni-che-amo/ID -> pagina dedicata alla singola pubblicazione preferita (condivisibile sui social)
+RewriteRule ^([a-zA-Z0-9_-]+)/pubblicazioni-che-amo/([0-9]+)/?$ fan_favorite_item.php?slug=$1&kind=publication&id=$2 [L,QSA]
+
+# /nomeartista/pubblicazioni-che-amo -> elenco completo pubblicazioni preferite
+RewriteRule ^([a-zA-Z0-9_-]+)/pubblicazioni-che-amo/?$ pubblicazioni_che_amo.php?slug=$1 [L,QSA]
 
 # /nomeartista/contatti -> form di contatto
 RewriteRule ^([a-zA-Z0-9_-]+)/contatti/?$ contatti.php?slug=$1 [L,QSA]
 
 # /nomeartista/spotify -> pagina discografia Spotify
 RewriteRule ^([a-zA-Z0-9_-]+)/spotify/?$ artist_spotify.php?slug=$1 [L,QSA]
+
+# /nomeartista/menu -> pagina menù (ristoranti e simili)
+RewriteRule ^([a-zA-Z0-9_-]+)/menu/?$ menu.php?slug=$1 [L,QSA]
+
+# /nomeartista/offerte/ID -> pagina dedicata alla singola offerta (condivisibile sui social)
+RewriteRule ^([a-zA-Z0-9_-]+)/offerte/([0-9]+)/?$ offerta.php?slug=$1&id=$2 [L,QSA]
+
+# /nomeartista/offerte -> elenco offerte speciali attive
+RewriteRule ^([a-zA-Z0-9_-]+)/offerte/?$ offerte.php?slug=$1 [L,QSA]
+
+# /nomeartista/album/ID -> pagina dedicata al singolo album fotografico (condivisibile sui social)
+RewriteRule ^([a-zA-Z0-9_-]+)/album/([0-9]+)/?$ album_item.php?slug=$1&id=$2 [L,QSA]
+
+# /nomeartista/foto -> vetrina foto (post Timeline con foto + album)
+RewriteRule ^([a-zA-Z0-9_-]+)/foto/?$ foto.php?slug=$1 [L,QSA]
+
+# /nomeartista/servizi/ID -> pagina dedicata al singolo servizio (condivisibile sui social)
+RewriteRule ^([a-zA-Z0-9_-]+)/servizi/([0-9]+)/?$ servizio_item.php?slug=$1&id=$2 [L,QSA]
+
+# /nomeartista/servizi -> elenco servizi pubblicati
+RewriteRule ^([a-zA-Z0-9_-]+)/servizi/?$ servizi.php?slug=$1 [L,QSA]
 
 # /nomeartista/video -> pagina video YouTube
 RewriteRule ^([a-zA-Z0-9_-]+)/video/?$ video.php?slug=$1 [L,QSA]

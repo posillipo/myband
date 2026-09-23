@@ -28,6 +28,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $hash = password_hash($password, PASSWORD_BCRYPT);
             $upd = getDB()->prepare('UPDATE users SET password_hash = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?');
             $upd->execute([$hash, $validUser['id']]);
+            // Un eventuale cookie "ricordami" rubato prima di questo reset non deve sopravvivere
+            // al cambio password — vedi revokeAllRememberTokensForUser().
+            revokeAllRememberTokensForUser((int) $validUser['id']);
             $success = true;
         }
     }
@@ -38,13 +41,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Reimposta password — myband.it</title>
+<title>Reimposta password — <?= e(siteName()) ?></title>
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <?= embedPrivacyScript() ?>
+<?= embedTrackingHead() ?>
+<?= embedGoogleAnalytics() ?>
 </head>
 <body>
 <div class="navbar">
-  <div class="brand"><a href="/">myband<span>.it</span></a></div>
+  <div class="brand"><a href="/"><?= e(siteName()) ?></a></div>
 </div>
 <div class="container">
   <h2>Reimposta password</h2>

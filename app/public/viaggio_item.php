@@ -1,0 +1,186 @@
+<?php
+session_start();
+require_once __DIR__ . '/../src/functions.php';
+require_once __DIR__ . '/../src/geocoding.php';
+
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+
+// Pagina di dettaglio pubblica per un singolo "Viaggio" (fan_favorite_trips) — stesso pattern di
+// fan_favorite_item.php (Band/Attori/Film/Libri che amo), ma su un file a parte perché qui non
+// c'è un'API esterna con un ID/dettagli canonici da recuperare: al suo posto c'è una mappa
+// interattiva sulla posizione salvata (stesso embed OpenStreetMap già usato nel modulo Link).
+
+$slug = $_GET['slug'] ?? '';
+$tripId = (int) ($_GET['id'] ?? 0);
+
+$stmt = getDB()->prepare('SELECT u.id, u.slug, u.account_type, p.display_name, p.avatar_path, p.theme_color, p.page_theme, p.dashboard_theme, p.spotify_artist_id, p.spotify_show_id, p.youtube_channel_id, p.privacy_tracking_settings, p.genere, p.custom_feed_guid, p.custom_feed_guid_since
+                          FROM users u JOIN profiles p ON p.user_id = u.id
+                          WHERE u.slug = ? AND u.is_active = 1');
+$stmt->execute([$slug]);
+$artist = $stmt->fetch();
+
+if (!$artist) {
+    http_response_code(404);
+    exit('Pagina non trovata.');
+}
+
+$stmt = getDB()->prepare('SELECT * FROM fan_favorite_trips WHERE id = ? AND user_id = ?');
+$stmt->execute([$tripId, $artist['id']]);
+$trip = $stmt->fetch();
+
+if (!$trip) {
+    http_response_code(404);
+    exit('Viaggio non trovato.');
+}
+
+// Stessa regola di fan_favorite_item.php/album_item.php/servizio_item.php: un viaggio "Solo io" o
+// ancora programmato non è raggiungibile da nessun altro, nemmeno con il link diretto.
+$isOwner = !empty($_SESSION['user_id']) && (int) $_SESSION['user_id'] === (int) $trip['user_id'];
+$isScheduledFuture = $trip['publish_at'] && strtotime($trip['publish_at']) > time();
+$isPreview = !$isOwner && previewTokenValid('viaggio_favorito', (int) $trip['id'], $_GET['preview'] ?? null);
+if (!$isOwner && !$isPreview && (!(int) $trip['is_public'] || $isScheduledFuture)) {
+    http_response_code(404);
+    exit('Viaggio non trovato.');
+}
+
+$note = trim($trip['note'] ?? '');
+// La foto caricata dal proprietario ha sempre la precedenza; senza di essa si usa la miniatura
+// mappa generata automaticamente (Geoapify) — così ogni viaggio ha sempre un'immagine da
+// mostrare nell'anteprima social, anche senza una foto propria. Il fallback alla mappa vale
+// solo per l'og:image social: qui sotto, sulla pagina, la foto (singola o carosello fino a 10)
+// compare solo se il proprietario ne ha caricata almeno una — la mappa interattiva è già
+// mostrata per intero più sotto, mostrarne anche la miniatura sarebbe ridondante.
+$photos = $trip['image_path'] ? array_values(array_filter(array_merge([$trip['image_path']], getTripPhotos($tripId)))) : [];
+// Con più di una foto propria, l'immagine esposta a og:image/Twitter (quella che finisce sui
+// social tramite Metricool & co.) è una copia con "Link Album in Descrizione" scritta in basso —
+// stesso meccanismo dei post Timeline, vedi getFeedShareImage() in functions.php. La mappa
+// (fallback quando non c'è nessuna foto propria) non viene mai marcata: non è "un album".
+$image = (count($photos) > 1) ? getFeedShareImage($trip['image_path']) : ($trip['image_path'] ?: $trip['map_image_path']);
+$imageUrl = $image ? siteUrl($image) : null;
+
+// Altri viaggi pubblicati lo stesso giorno di questo — così chi arriva da un link personale a
+// un solo viaggio (es. una foto condivisa) vede subito anche gli altri della stessa giornata,
+// senza dover andare a sfogliare la Timeline.
+$sameDayItems = getSameDayFavorites('fan_favorite_trips', $artist['id'], $trip['publish_at'], $trip['created_at'], $tripId);
+
+if (($artist['page_theme'] ?? 'colorful') === 'adminlte-profile') {
+    echo renderAdminLteViaggioDetailPage($artist, $slug, $trip, $photos, $sameDayItems, $isOwner, $isScheduledFuture, $isPreview);
+    exit;
+}
+
+$pageUrl = siteUrl('/' . $slug . '/viaggi/' . $tripId);
+if (!(int) $trip['is_public'] || $isScheduledFuture) {
+    $pageUrl = withPreviewToken($pageUrl, 'viaggio_favorito', $tripId);
+}
+$ogDescription = $note !== '' ? $note : ($artist['display_name'] . ' è stato a ' . $trip['place_name'] . ' — scoprilo su ' . siteName());
+?>
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><?= e($trip['place_name']) ?> — Viaggi di <?= e($artist['display_name']) ?> — <?= e(siteName()) ?></title>
+<meta name="description" content="<?= e(textExcerpt($ogDescription, 200)) ?>">
+
+<!-- Open Graph / condivisione social -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="<?= e($trip['place_name']) ?> — Viaggi di <?= e($artist['display_name']) ?>">
+<meta property="og:description" content="<?= e(textExcerpt($ogDescription, 200)) ?>">
+<meta property="og:url" content="<?= e($pageUrl) ?>">
+<meta property="og:site_name" content="<?= e(siteName()) ?>">
+<?php if ($imageUrl): ?>
+<meta property="og:image" content="<?= e($imageUrl) ?>">
+<?php endif; ?>
+
+<meta name="twitter:card" content="<?= $imageUrl ? 'summary_large_image' : 'summary' ?>">
+<meta name="twitter:title" content="<?= e($trip['place_name']) ?> — Viaggi di <?= e($artist['display_name']) ?>">
+<meta name="twitter:description" content="<?= e(textExcerpt($ogDescription, 200)) ?>">
+<?php if ($imageUrl): ?><meta name="twitter:image" content="<?= e($imageUrl) ?>"><?php endif; ?>
+
+<link rel="canonical" href="<?= e($pageUrl) ?>">
+<link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
+<style>:root { --accent: <?= e($artist['theme_color'] ?: '#6C5CE7') ?>; --accent-text: <?= e(getContrastTextColor($artist['theme_color'])) ?>; }</style>
+<?= embedPrivacyScript($artist) ?>
+<?= embedTrackingHead($artist) ?>
+<?= embedGoogleAnalytics($artist) ?>
+</head>
+<body class="<?= e(getPageThemeClass($artist['page_theme'] ?? 'colorful')) ?>">
+<?php if (str_starts_with($artist['page_theme'] ?? 'colorful', 'wave')): ?><?= renderWaveBackground($artist['theme_color'] ?? '#6C5CE7', $artist['page_theme']) ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'circuit'): ?><?= renderCircuitBackground($artist['theme_color'] ?? '#6C5CE7') ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'napoli'): ?><?= renderNapoliBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'cinemapop'): ?><?= renderCinemaPopBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'startrek'): ?><?= renderStarTrekBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'galactic'): ?><?= renderGalacticBackground() ?><?php endif; ?>
+<?= embedTrackingBodyStart($artist) ?>
+<div class="container">
+  <?= publicProfileHeader($artist, 'viaggi') ?>
+
+  <?php if (($isOwner || $isPreview) && (!(int) $trip['is_public'] || $isScheduledFuture)): ?>
+    <div class="card" style="border:1px solid #dc3545;color:#dc3545;">Questo viaggio non è visibile al pubblico al momento (Solo io, o programmato per il futuro) — <?= e(previewNoticeSuffix($isOwner)) ?></div>
+  <?php endif; ?>
+
+  <div class="card" style="text-align:center;">
+    <?= renderPhotoCarousel($photos, $tripId) ?>
+    <h1 style="font-size:22px;margin:0 0 4px;"><?= e($trip['place_name']) ?></h1>
+    <p style="opacity:0.75;margin-top:0;">
+      Viaggio di <?= e($artist['display_name']) ?>
+      <?php if (!empty($trip['address']) && $trip['address'] !== $trip['place_name']): ?> · <?= e($trip['address']) ?><?php endif; ?>
+    </p>
+    <small style="color:rgba(var(--text-rgb),0.6);"><?= e(publishedAtLabel($trip['publish_at'], $trip['created_at'], $artist)) ?></small>
+
+    <?php if ($note !== ''): ?>
+      <div class="card" style="text-align:left;margin-top:14px;">
+        <strong>Il racconto di <?= e($artist['display_name']) ?></strong>
+        <p style="margin:6px 0 0;"><?= nl2br(e($note)) ?></p>
+      </div>
+    <?php endif; ?>
+
+    <div style="margin-top:16px;"><?= renderOsmEmbed((float) $trip['lat'], (float) $trip['lng']) ?></div>
+  </div>
+
+  <?php $anyMultiPhoto = (bool) $photos; ?>
+  <?php if ($sameDayItems): ?>
+    <div class="section-title" style="text-align:center;color:rgba(var(--text-rgb),0.6);margin:22px 0 10px;">
+      Altri di questa giornata (<?= count($sameDayItems) ?>)
+    </div>
+    <?php foreach ($sameDayItems as $s): ?>
+      <?php
+        // Stessa grafica del post principale sopra (foto/carosello, titolo, racconto, mappa).
+        $sNote = trim($s['note'] ?? '');
+        $sPhotos = $s['image_path'] ? array_values(array_filter(array_merge([$s['image_path']], getTripPhotos((int) $s['id'])))) : [];
+        if ($sPhotos) { $anyMultiPhoto = true; }
+      ?>
+      <div class="card" style="text-align:center;">
+        <?= renderPhotoCarousel($sPhotos, (int) $s['id']) ?>
+        <a href="/<?= e($slug) ?>/viaggi/<?= (int) $s['id'] ?>" style="text-decoration:none;color:inherit;">
+          <h2 style="font-size:20px;margin:0 0 4px;"><?= e($s['place_name']) ?></h2>
+          <p style="opacity:0.75;margin-top:0;">
+            Viaggio di <?= e($artist['display_name']) ?>
+            <?php if (!empty($s['address']) && $s['address'] !== $s['place_name']): ?> · <?= e($s['address']) ?><?php endif; ?>
+          </p>
+          <small style="color:rgba(var(--text-rgb),0.6);"><?= e(publishedAtLabel($s['publish_at'], $s['created_at'], $artist)) ?></small>
+        </a>
+        <?php if ($sNote !== ''): ?>
+          <div class="card" style="text-align:left;margin-top:14px;">
+            <strong>Il racconto di <?= e($artist['display_name']) ?></strong>
+            <p style="margin:6px 0 0;"><?= nl2br(e($sNote)) ?></p>
+          </div>
+        <?php endif; ?>
+        <div style="margin-top:16px;"><?= renderOsmEmbed((float) $s['lat'], (float) $s['lng']) ?></div>
+      </div>
+    <?php endforeach; ?>
+  <?php endif; ?>
+
+  <p><a href="/<?= e($slug) ?>/viaggi">← Tutti i viaggi di <?= e($artist['display_name']) ?></a></p>
+</div>
+<?= renderFloatingButtons() ?>
+<?= renderSiteFooterBar($artist) ?>
+
+<?php if ($anyMultiPhoto): ?>
+<link rel="stylesheet" href="<?= assetUrl('/assets/css/ig-carousel.css') ?>">
+<script src="<?= assetUrl('/assets/js/ig-carousel.js') ?>"></script>
+<?php endif; ?>
+</body>
+</html>

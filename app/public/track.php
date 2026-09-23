@@ -8,7 +8,7 @@ header('Pragma: no-cache');
 $slug = $_GET['slug'] ?? '';
 $trackId = (int) ($_GET['id'] ?? 0);
 
-$stmt = getDB()->prepare('SELECT u.slug, u.account_type, p.display_name, p.avatar_path, p.theme_color, p.page_theme, p.spotify_artist_id, p.spotify_show_id, p.genere, p.youtube_channel_id, t.*
+$stmt = getDB()->prepare('SELECT u.slug, u.account_type, p.display_name, p.avatar_path, p.theme_color, p.page_theme, p.spotify_artist_id, p.spotify_show_id, p.genere, p.youtube_channel_id, p.privacy_tracking_settings, t.*
                           FROM audio_tracks t
                           JOIN users u ON u.id = t.user_id
                           JOIN profiles p ON p.user_id = u.id
@@ -33,18 +33,19 @@ $artist = [
     'page_theme' => $track['page_theme'] ?? 'colorful',
     'genere' => $track['genere'],
     'youtube_channel_id' => $track['youtube_channel_id'],
+    'privacy_tracking_settings' => $track['privacy_tracking_settings'] ?? null,
 ];
 
 $pageUrl = siteUrl('/' . $slug . '/brani/' . $trackId);
 $coverImage = $track['cover_path'] ? siteUrl($track['cover_path']) : ($track['avatar_path'] ? siteUrl($track['avatar_path']) : null);
-$ogDescription = $track['display_name'] . ' — ascolta "' . $track['title'] . '" su myband.it';
+$ogDescription = $track['display_name'] . ' — ascolta "' . $track['title'] . '" su ' . siteName();
 ?>
 <!doctype html>
 <html lang="it">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title><?= e($track['title']) ?> — <?= e($track['display_name']) ?> — myband.it</title>
+<title><?= e($track['title']) ?> — <?= e($track['display_name']) ?> — <?= e(siteName()) ?></title>
 <meta name="description" content="<?= e($ogDescription) ?>">
 
 <!-- Open Graph / condivisione social -->
@@ -52,7 +53,7 @@ $ogDescription = $track['display_name'] . ' — ascolta "' . $track['title'] . '
 <meta property="og:title" content="<?= e($track['title']) ?> — <?= e($track['display_name']) ?>">
 <meta property="og:description" content="<?= e($ogDescription) ?>">
 <meta property="og:url" content="<?= e($pageUrl) ?>">
-<meta property="og:site_name" content="myband.it">
+<meta property="og:site_name" content="<?= e(siteName()) ?>">
 <?php if ($coverImage): ?>
 <meta property="og:image" content="<?= e($coverImage) ?>">
 <meta property="og:image:width" content="500">
@@ -69,12 +70,18 @@ $ogDescription = $track['display_name'] . ' — ascolta "' . $track['title'] . '
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
 <style>:root { --accent: <?= e($track['theme_color'] ?: '#6C5CE7') ?>; --accent-text: <?= e(getContrastTextColor($track['theme_color'])) ?>; }</style>
-<?= embedPrivacyScript() ?>
-<?= embedTrackingHead() ?>
+<?= embedPrivacyScript($artist) ?>
+<?= embedTrackingHead($artist) ?>
+<?= embedGoogleAnalytics($artist) ?>
 </head>
 <body class="<?= e(getPageThemeClass($artist['page_theme'] ?? 'colorful')) ?>">
 <?php if (str_starts_with($artist['page_theme'] ?? 'colorful', 'wave')): ?><?= renderWaveBackground($artist['theme_color'] ?? '#6C5CE7', $artist['page_theme']) ?><?php endif; ?>
-<?= embedTrackingBodyStart() ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'circuit'): ?><?= renderCircuitBackground($artist['theme_color'] ?? '#6C5CE7') ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'napoli'): ?><?= renderNapoliBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'cinemapop'): ?><?= renderCinemaPopBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'startrek'): ?><?= renderStarTrekBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'galactic'): ?><?= renderGalacticBackground() ?><?php endif; ?>
+<?= embedTrackingBodyStart($artist) ?>
 <div class="container">
   <?= publicProfileHeader($artist, 'brani') ?>
 
@@ -91,6 +98,6 @@ $ogDescription = $track['display_name'] . ' — ascolta "' . $track['title'] . '
   <p><a href="/<?= e($slug) ?>/brani">← Tutti i brani di <?= e($track['display_name']) ?></a></p>
 </div>
 <?= renderFloatingButtons() ?>
-<?= renderSiteFooterBar($slug) ?>
+<?= renderSiteFooterBar($artist) ?>
 </body>
 </html>

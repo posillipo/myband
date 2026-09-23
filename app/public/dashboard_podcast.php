@@ -3,7 +3,7 @@ session_start();
 require_once __DIR__ . '/../src/functions.php';
 require_once __DIR__ . '/../src/spotify.php';
 $user = requireLogin();
-$profile = getActingProfile($user); // il profilo su cui si sta agendo (proprio, o co-gestito)
+$profile = getActingProfile($user); requireFullOwnerAccess($user, $profile);
 requireBandOrLabel($profile);
 $activeTab = 'podcast';
 $pageTitle = 'Podcast';
@@ -37,6 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+$user = currentUser();
 $profile = getActingProfile($user);
 
 include __DIR__ . '/_dash_header.php';
@@ -56,7 +57,7 @@ include __DIR__ . '/_dash_header.php';
       <br>
       <a href="https://open.spotify.com/show/<?= e($profile['spotify_show_id']) ?>" target="_blank">Vedi su Spotify ↗</a>
       <br><br>
-      <a href="/<?= e($profile['slug']) ?>/podcast" target="_blank">Vedi la pagina pubblica Podcast ↗</a>
+      <a href="/<?= e($profile['slug']) ?>/podcast" target="_blank">Vedi la tua pagina pubblica Podcast ↗</a>
       <form method="post" style="margin-top:12px;" onsubmit="return confirm('Scollegare il podcast? La sezione dedicata sparirà dalla tua pagina pubblica.');">
         <?= csrfField() ?>
         <input type="hidden" name="action" value="unlink">

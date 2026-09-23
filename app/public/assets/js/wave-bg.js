@@ -1,5 +1,5 @@
 /*!
- * Sfondo "Wave Grid" per i temi myBand (Wave / Wave Chiaro / Wave Neon) — ispirato/adattato da:
+ * Sfondo "Wave Grid" per i temi CHI FA COSA (Wave / Wave Chiaro / Wave Neon) — ispirato/adattato da:
  * "3D Wave Grid" di franky-adl (https://github.com/franky-adl/3d-wave-grid)
  * Rilasciato con licenza MIT — Copyright (c) 2026 franky-adl
  * Versione semplificata e parametrizzabile per l'uso diretto via CDN (senza build tool).

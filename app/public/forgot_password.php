@@ -35,13 +35,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Recupera password — myband.it</title>
+<title>Recupera password — <?= e(siteName()) ?></title>
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <?= embedPrivacyScript() ?>
+<?= embedTrackingHead() ?>
+<?= embedGoogleAnalytics() ?>
 </head>
 <body>
 <div class="navbar">
-  <div class="brand"><a href="/">myband<span>.it</span></a></div>
+  <div class="brand"><a href="/"><?= e(siteName()) ?></a></div>
   <nav><a href="/login.php">Accedi</a></nav>
 </div>
 <div class="container">

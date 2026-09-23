@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         setSiteSetting('smtp_secure', $_POST['smtp_secure'] ?? 'tls');
         setSiteSetting('smtp_from', trim($_POST['smtp_from'] ?? ''));
-        setSiteSetting('smtp_from_name', trim($_POST['smtp_from_name'] ?? 'myband.it'));
+        setSiteSetting('smtp_from_name', trim($_POST['smtp_from_name'] ?? '') ?: siteName());
         setSiteSetting('smtp_verify_cert', isset($_POST['smtp_verify_cert']) ? '1' : '0');
         $success = 'Configurazione SMTP salvata.';
     } elseif ($action === 'test') {
@@ -39,12 +39,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $mailer = new SimpleSmtpMailer($cfg['host'], $cfg['port'], $cfg['user'], $cfg['pass'], $cfg['secure'], $cfg['verifyCert']);
                 $sent = $mailer->send(
                     $cfg['from'], $cfg['fromName'], $testEmail, $testEmail,
-                    'Email di prova da myband.it',
-                    "Questa è un'email di prova per verificare la configurazione SMTP di myband.it.\n\nSe la ricevi, la configurazione funziona correttamente."
+                    'Email di prova da ' . siteName(),
+                    "Questa è un'email di prova per verificare la configurazione SMTP di " . siteName() . ".\n\nSe la ricevi, la configurazione funziona correttamente."
                 );
                 $testResult = $sent
                     ? ['ok' => true, 'msg' => "Email di prova inviata a {$testEmail}. Controlla la casella (anche lo spam)."]
-                    : ['ok' => false, 'msg' => 'Invio fallito. Controlla i log del container myband_app per il dettaglio tecnico (cerca [SimpleSmtpMailer]).'];
+                    : ['ok' => false, 'msg' => 'Invio fallito. Controlla i log del container chifacosa_app per il dettaglio tecnico (cerca [SimpleSmtpMailer]).'];
             }
         }
     }
@@ -92,10 +92,10 @@ include __DIR__ . '/_admin_header.php';
     <input type="password" name="smtp_pass" placeholder="<?= $cfg['pass'] !== '' ? '••••••••  (lascia vuoto per non modificarla)' : 'inserisci la password' ?>">
 
     <label>Email mittente (From)</label>
-    <input type="text" name="smtp_from" value="<?= e($cfg['from']) ?>" placeholder="es. noreply@myband.it">
+    <input type="text" name="smtp_from" value="<?= e($cfg['from']) ?>" placeholder="es. noreply@tuodominio.it">
 
     <label>Nome mittente</label>
-    <input type="text" name="smtp_from_name" value="<?= e($cfg['fromName']) ?>" placeholder="myband.it">
+    <input type="text" name="smtp_from_name" value="<?= e($cfg['fromName']) ?>" placeholder="<?= e(siteName()) ?>">
 
     <label style="display:flex;align-items:center;gap:8px;">
       <input type="checkbox" name="smtp_verify_cert" value="1" style="width:auto;" <?= $cfg['verifyCert'] ? 'checked' : '' ?>>

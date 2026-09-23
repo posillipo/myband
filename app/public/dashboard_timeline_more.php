@@ -2,7 +2,7 @@
 session_start();
 require_once __DIR__ . '/../src/functions.php';
 $user = requireLogin();
-$profile = getActingProfile($user); // il profilo su cui si sta agendo (proprio, o co-gestito)
+$profile = getActingProfile($user);
 
 header('Content-Type: application/json; charset=UTF-8');
 

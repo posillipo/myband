@@ -6,7 +6,7 @@ header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 
 $slug = $_GET['slug'] ?? '';
-$stmt = getDB()->prepare('SELECT u.id, u.slug, u.account_type, p.display_name, p.avatar_path, p.theme_color, p.page_theme, p.spotify_artist_id, p.spotify_show_id, p.genere, p.youtube_channel_id
+$stmt = getDB()->prepare('SELECT u.id, u.slug, u.account_type, p.display_name, p.avatar_path, p.theme_color, p.page_theme, p.dashboard_theme, p.spotify_artist_id, p.spotify_show_id, p.genere, p.youtube_channel_id, p.privacy_tracking_settings
                           FROM users u JOIN profiles p ON p.user_id = u.id
                           WHERE u.slug = ? AND u.is_active = 1');
 $stmt->execute([$slug]);
@@ -17,9 +17,17 @@ if (!$artist) {
     exit('Pagina non trovata.');
 }
 
-$events = getDB()->prepare('SELECT * FROM events WHERE user_id=? AND event_date >= NOW() ORDER BY event_date ASC');
+// Un evento "perpetuo" (nessuna data di fine, es. ricorrente ogni settimana) resta sempre tra i
+// prossimi eventi, indipendentemente da event_date — vedi eventScheduleLabel() in functions.php.
+$isAdminLte = ($artist['page_theme'] ?? 'colorful') === 'adminlte-profile';
+$events = getDB()->prepare('SELECT * FROM events WHERE user_id=? AND (event_date >= NOW() OR is_perpetual = 1) ORDER BY is_perpetual DESC, event_date ASC' . ($isAdminLte ? ' LIMIT 20' : ''));
 $events->execute([$artist['id']]);
 $events = $events->fetchAll();
+
+if ($isAdminLte) {
+    echo renderAdminLteEventiListPage($artist, $slug, $events);
+    exit;
+}
 
 $pageUrl = siteUrl('/' . $slug . '/eventi');
 ?>
@@ -28,7 +36,7 @@ $pageUrl = siteUrl('/' . $slug . '/eventi');
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Eventi di <?= e($artist['display_name']) ?> — myband.it</title>
+<title>Eventi di <?= e($artist['display_name']) ?> — <?= e(siteName()) ?></title>
 <meta property="og:type" content="website">
 <meta property="og:title" content="Eventi di <?= e($artist['display_name']) ?>">
 <meta property="og:url" content="<?= e($pageUrl) ?>">
@@ -36,13 +44,18 @@ $pageUrl = siteUrl('/' . $slug . '/eventi');
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
 <style>:root { --accent: <?= e($artist['theme_color'] ?: '#6C5CE7') ?>; --accent-text: <?= e(getContrastTextColor($artist['theme_color'])) ?>; }</style>
-<?= embedPrivacyScript() ?>
-<?= embedTrackingHead() ?>
-<?= embedGoogleAnalytics() ?>
+<?= embedPrivacyScript($artist) ?>
+<?= embedTrackingHead($artist) ?>
+<?= embedGoogleAnalytics($artist) ?>
 </head>
 <body class="<?= e(getPageThemeClass($artist['page_theme'] ?? 'colorful')) ?>">
 <?php if (str_starts_with($artist['page_theme'] ?? 'colorful', 'wave')): ?><?= renderWaveBackground($artist['theme_color'] ?? '#6C5CE7', $artist['page_theme']) ?><?php endif; ?>
-<?= embedTrackingBodyStart() ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'circuit'): ?><?= renderCircuitBackground($artist['theme_color'] ?? '#6C5CE7') ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'napoli'): ?><?= renderNapoliBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'cinemapop'): ?><?= renderCinemaPopBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'startrek'): ?><?= renderStarTrekBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'galactic'): ?><?= renderGalacticBackground() ?><?php endif; ?>
+<?= embedTrackingBodyStart($artist) ?>
 <div class="container">
   <?= publicProfileHeader($artist, 'eventi') ?>
 
@@ -56,15 +69,19 @@ $pageUrl = siteUrl('/' . $slug . '/eventi');
       <?php if ($ev['cover_path']): ?>
         <img src="/<?= e($ev['cover_path']) ?>" class="btn-cover-icon">
       <?php endif; ?>
-      <small style="display:block;opacity:.75;"><?= date('d/m/Y H:i', strtotime($ev['event_date'])) ?></small>
+      <small style="display:block;opacity:.75;"><?= e(formatLocalDateTime($ev['event_date'], $artist)) ?></small>
       <strong style="display:block;"><?= e($ev['title']) ?></strong>
       <?php if ($ev['venue'] || $ev['city']): ?>
         <small style="opacity:.75;"><?= e($ev['venue']) ?><?= $ev['venue'] && $ev['city'] ? ', ' : '' ?><?= e($ev['city']) ?></small>
+      <?php endif; ?>
+      <?php $scheduleLabel = eventScheduleLabel($ev['recurrence'] ?? 'none', (bool) ($ev['is_perpetual'] ?? false)); ?>
+      <?php if ($scheduleLabel): ?>
+        <small style="display:block;font-weight:700;"><i class="fa-solid fa-repeat"></i> <?= e($scheduleLabel) ?></small>
       <?php endif; ?>
     </a>
   <?php endforeach; ?>
 </div>
 <?= renderFloatingButtons() ?>
-<?= renderSiteFooterBar($slug) ?>
+<?= renderSiteFooterBar($artist) ?>
 </body>
 </html>

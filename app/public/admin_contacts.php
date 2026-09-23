@@ -36,7 +36,7 @@ include __DIR__ . '/_admin_header.php';
     <div class="card" style="<?= $c['is_read'] ? 'opacity:0.7' : '' ?>">
       <small style="color:var(--text-muted)">Ricevuto dal profilo:</small>
       <a href="/admin_user_detail.php?id=<?= (int)$c['user_id'] ?>"><strong><?= e($c['display_name']) ?></strong></a>
-      <span style="color:var(--text-muted)"> (myband.it/<?= e($c['slug']) ?>)</span>
+      <span style="color:var(--text-muted)"> (<?= e(siteName()) ?>/<?= e($c['slug']) ?>)</span>
       <br><br>
       <strong><?= e($c['sender_name']) ?></strong>
       <small style="color:var(--text-muted)"> &lt;<?= e($c['sender_email']) ?>&gt; · <?= date('d/m/Y H:i', strtotime($c['created_at'])) ?></small>

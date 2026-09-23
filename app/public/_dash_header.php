@@ -4,56 +4,152 @@
 // resta nel database per un'eventuale reintroduzione futura della scelta, ma non viene più
 // letta qui.
 $dashTheme = 'light-theme';
+// Usa il profilo su cui si sta agendo quando la pagina lo espone già ($profile), altrimenti
+// ricade sul proprio account — non tutte le pagine dashboard_*.php calcolano $profile (solo
+// quelle di gestione contenuti), quindi non possiamo darlo per scontato qui.
+$isBandOrLabel = in_array(($profile ?? $user)['account_type'] ?? 'band', ['band', 'label'], true);
 
 // Profili che questo utente co-gestisce (oltre al proprio) — se ce ne sono, mostriamo un
-// selettore per scegliere su quale si sta agendo in questo momento. getActingProfile() sincronizza
-// da sé l'eventuale ?acting_as= e risolve il profilo su cui si sta effettivamente agendo (il
-// proprio, o quello co-gestito) — va usato ovunque nella dashboard occorra sapere "di chi" sono i
-// dati mostrati (avatar in barra, link alla pagina pubblica, tab Eventi/integrazioni, ecc.).
+// selettore per scegliere su quale si sta agendo in questo momento.
+syncActingProfileFromRequest((int) $user['id']);
 $managedProfiles = getManagedProfiles((int) $user['id']);
-$actingProfile = getActingProfile($user);
 $actingAsId = $_SESSION['acting_as_user_id'] ?? null;
 
-// Due varianti distinte, non un solo flag: Eventi/Spotify/Podcast/YouTube riguardano il profilo
-// che si sta gestendo ORA (può essere co-gestito); Team/Log restano invece riservati sempre e solo
-// al vero titolare del profilo (mai delegabili, vedi il testo in dashboard_team.php) — per questo
-// vanno mostrati solo quando NON si sta agendo su un profilo altrui.
-$isActingBandOrLabel = in_array($actingProfile['account_type'] ?? 'band', ['band', 'label'], true);
-$isOwnBandOrLabel = !$actingAsId && in_array($user['account_type'] ?? 'band', ['band', 'label'], true);
+// Come $isBandOrLabel sopra: usa il profilo attivo quando la pagina lo espone già, altrimenti
+// ricade sul proprio account — altrimenti il badge mostrerebbe sempre i conteggi del tuo
+// account reale anche mentre agisci su un altro profilo.
+$countsForId = (int) ($profile ?? $user)['id'];
 
 $stmt = getDB()->prepare('SELECT COUNT(*) c FROM contact_requests WHERE user_id = ? AND is_read = 0');
-$stmt->execute([$actingProfile['id']]);
+$stmt->execute([$countsForId]);
 $unreadMessages = (int) $stmt->fetch()['c'];
 
 $stmt = getDB()->prepare('SELECT COUNT(*) c FROM direct_messages WHERE recipient_id = ? AND read_at IS NULL');
-$stmt->execute([$user['id']]);
+$stmt->execute([$countsForId]);
 $unreadDirectMessages = (int) $stmt->fetch()['c'];
+
+// Voci del Menu di Navigazione (dashboard_nav_menu.php) per questo profilo, indicizzate per
+// nome: usate per nascondere dalla barra della dashboard le schede corrispondenti a sezioni che
+// l'utente ha disattivato dal menu pubblico (es. "Blog" disattivato → scheda "Blog" nascosta
+// anche qui), così i due posti restano sempre coerenti tra loro.
+$navVisibility = array_column(
+    getAllProfileNavigationMenu((int) ($profile ?? $user)['id'], ($profile ?? $user)['slug']),
+    'is_visible',
+    'name'
+);
+// Anche le sezioni disattivate dall'amministratore per tutta l'installazione (Area Admin →
+// Funzioni del sito) spariscono dalla barra della dashboard, non solo dal menu pubblico —
+// altrimenti resterebbe gestibile un modulo che nessun visitatore potrà mai vedere.
+$siteDisabledKeys = getSiteDisabledNavKeys();
+if ($siteDisabledKeys) {
+    foreach (PUBLIC_NAV_ITEM_KEYS as $navName => $navKey) {
+        if (in_array($navKey, $siteDisabledKeys, true)) {
+            $navVisibility[$navName] = 0;
+        }
+    }
+}
+
+// Ordine delle schede in dashboard: lo stesso scelto in "Menu di Navigazione" (Dashboard →
+// menù hamburger, trascinando le voci o con "Ripristina l'ordine predefinito"), così le due
+// barre restano coerenti anche nell'ordine, non solo in quali schede mostrare. "Feed" non ha un
+// equivalente lì (è un'aggregazione, non una sezione della pagina pubblica) e resta sempre la
+// prima scheda, fissa.
+// Un solo tab "Che Amo" al posto di uno a modulo (Band/Attori/Film/Libri che amo, Viaggi, Brani
+// che amo, e i futuri Playlist/Album che amo): porta a dashboard_che_amo.php, una vetrina con
+// una card per modulo — visibile se almeno uno dei moduli non è stato nascosto da "Menu di
+// Navigazione". Ogni modulo resta gestito nella sua pagina di sempre, invariata.
+// "Che Amo" già forzato a nascosto sopra se disattivato da Area Admin → Funzioni del sito:
+// se così, non serve nemmeno guardare i singoli moduli.
+$hasVisibleCheAmoModule = false;
+if ($navVisibility['Che Amo'] ?? 1) {
+    foreach (CHE_AMO_MODULES as $m) {
+        if ($navVisibility[$m['label']] ?? 1) {
+            $hasVisibleCheAmoModule = true;
+            break;
+        }
+    }
+}
+// Elenco "piatto" (niente più sotto-voci annidate come "Richieste"/"Prenotazioni"): ogni tasto
+// mostrato nella barra è una voce a sé, riordinabile indipendentemente dalle altre — vedi
+// DASHBOARD_TAB_KEYS/getDashboardTabOrder() in functions.php, e la sezione di riordino in
+// dashboard_nav_menu.php.
+$dashTabs = [];
+$dashTabs['feed'] = ['label' => 'Feed', 'url' => '/dashboard_timeline.php', 'active' => 'timeline', 'visible' => true];
+$dashTabs['timeline'] = ['label' => 'Timeline', 'url' => '/dashboard_post.php', 'active' => 'post', 'visible' => $navVisibility['Timeline'] ?? 1];
+$dashTabs['link'] = ['label' => 'Link', 'url' => '/dashboard_links.php', 'active' => 'links', 'visible' => $navVisibility['Link'] ?? 1];
+// Non corrisponde a nessuna voce del "Menu di Navigazione" pubblico (non è una sezione del sito,
+// è uno strumento di gestione): sempre visibile, non gated su $navVisibility come le altre.
+$dashTabs['featured'] = ['label' => 'Primo Piano', 'url' => '/dashboard_featured.php', 'active' => 'featured', 'visible' => true];
+$dashTabs['cheamo'] = ['label' => 'Che Amo', 'url' => '/dashboard_che_amo.php', 'active' => 'che_amo', 'visible' => $hasVisibleCheAmoModule];
+$dashTabs['blog'] = ['label' => 'Blog', 'url' => '/dashboard_blog.php', 'active' => 'blog', 'visible' => $navVisibility['Blog'] ?? 1];
+$dashTabs['menu'] = ['label' => 'Menù', 'url' => '/dashboard_menu.php', 'active' => 'menu', 'visible' => $navVisibility['Menù'] ?? 1];
+$dashTabs['offerte'] = ['label' => 'Offerte', 'url' => '/dashboard_offers.php', 'active' => 'offers', 'visible' => $navVisibility['Offerte'] ?? 1];
+$dashTabs['foto'] = ['label' => 'Album', 'url' => '/dashboard_albums.php', 'active' => 'albums', 'visible' => $navVisibility['Foto'] ?? 1];
+$dashTabs['servizi'] = ['label' => 'Servizi', 'url' => '/dashboard_services.php', 'active' => 'services', 'visible' => $navVisibility['Servizi'] ?? 1];
+$dashTabs['service_inquiries'] = ['label' => 'Richieste', 'url' => '/dashboard_service_inquiries.php', 'active' => 'service_inquiries', 'visible' => $navVisibility['Servizi'] ?? 1];
+$dashTabs['eventi'] = ['label' => 'Eventi', 'url' => '/dashboard_events.php', 'active' => 'events', 'visible' => $isBandOrLabel && ($navVisibility['Eventi'] ?? 1)];
+$dashTabs['reservations'] = ['label' => 'Prenotazioni', 'url' => '/dashboard_reservations.php', 'active' => 'reservations', 'visible' => $isBandOrLabel && ($navVisibility['Eventi'] ?? 1)];
+$dashTabs['segui'] = ['label' => 'Follower', 'url' => '/dashboard_followers.php', 'active' => 'followers', 'visible' => $navVisibility['Segui'] ?? 1];
+$dashTabs['contatti'] = ['label' => 'Contatti', 'url' => '/dashboard_contacts.php', 'active' => 'contacts', 'visible' => $navVisibility['Contatti'] ?? 1];
+// Gestione token per l'API pubblica /api/v1/social-posts/*: strumento di gestione, non una
+// sezione del sito pubblico — sempre visibile, non legato al "Menu di Navigazione" come "Primo Piano".
+$dashTabs['api'] = ['label' => 'API', 'url' => '/dashboard_api_tokens.php', 'active' => 'api_tokens', 'visible' => true];
+// Come "Primo Piano"/"API": strumento di gestione trasversale a tutti i moduli, non una sezione
+// del sito pubblico — sempre visibile, non legato al "Menu di Navigazione".
+$dashTabs['schedule'] = ['label' => 'Programmati', 'url' => '/dashboard_schedule.php', 'active' => 'schedule', 'visible' => true];
+
+$dashTabs = array_filter($dashTabs, fn ($t) => $t['visible']);
+
+$dashTabOrder = getDashboardTabOrder($countsForId);
+$dashKeysInOrder = array_keys($dashTabs);
+uksort($dashTabs, function ($a, $b) use ($dashTabOrder, $dashKeysInOrder) {
+    $posA = $dashTabOrder[$a] ?? (1000 + array_search($a, $dashKeysInOrder, true));
+    $posB = $dashTabOrder[$b] ?? (1000 + array_search($b, $dashKeysInOrder, true));
+    return $posA <=> $posB;
+});
 
 // Avatar mostrato nella barra in alto: il proprio, a meno che non si stia gestendo un altro
 // profilo — in quel caso mostriamo l'avatar DI QUEL profilo, così è sempre chiaro a colpo
 // d'occhio su chi si sta agendo, senza dover aprire il menu.
-$barAvatarPath = $actingProfile['avatar_path'] ?? null;
-$barAvatarName = $actingProfile['display_name'] ?? '?';
+$barAvatarPath = $user['avatar_path'] ?? null;
+$barAvatarName = $user['display_name'] ?? '?';
+$barSlug = $user['slug'];
+if ($actingAsId) {
+    foreach ($managedProfiles as $mp) {
+        if ($mp['id'] == $actingAsId) {
+            $barAvatarPath = $mp['avatar_path'];
+            $barAvatarName = $mp['display_name'];
+            $barSlug = $mp['slug'];
+            break;
+        }
+    }
+}
 ?>
 <!doctype html>
 <html lang="it">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title><?= e($pageTitle ?? 'Dashboard') ?> — myband.it</title>
+<title><?= e($pageTitle ?? 'Dashboard') ?> — <?= e(siteName()) ?></title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#6C5CE7">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
+<script>if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js'); }); }</script>
 </head>
 <body class="<?= e($dashTheme) ?>">
-<div class="navbar">
+<div class="navbar navbar-dash-sticky">
   <div style="display:flex;align-items:center;gap:14px;">
     <button type="button" id="account-menu-toggle" title="Account e impostazioni"
             style="background:none;border:none;cursor:pointer;font-size:20px;color:inherit;padding:4px;">
       <i class="fa-solid fa-bars"></i>
     </button>
-    <div class="brand"><a href="/">myband<span>.it</span></a></div>
+    <div class="brand brand-dash"><a href="/">CHI<strong>FA</strong>COSA</a></div>
   </div>
-  <nav style="display:flex;align-items:center;gap:18px;">
+  <nav class="dash-icons-nav">
     <?php if (!empty($user['is_admin'])): ?>
       <a href="/admin_dashboard.php" title="Area Admin" style="font-size:17px;"><i class="fa-solid fa-shield-halved"></i></a>
     <?php endif; ?>
@@ -108,12 +204,19 @@ $barAvatarName = $actingProfile['display_name'] ?? '?';
             </a>
           <?php endforeach; ?>
           <div class="profile-switcher-divider"></div>
-          <a href="/<?= e($actingProfile['slug']) ?>" target="_blank" class="profile-switcher-item">
+          <a href="/dashboard_profiles.php" class="profile-switcher-item">
+            <i class="fa-solid fa-plus" style="width:26px;text-align:center;color:var(--text-muted);"></i>
+            <span>Crea nuovo profilo</span>
+          </a>
+          <a href="/<?= e($barSlug) ?>" target="_blank" class="profile-switcher-item">
             <i class="fa-solid fa-arrow-up-right-from-square" style="width:26px;text-align:center;color:var(--text-muted);"></i>
-            <span><?= $actingAsId ? 'Vedi la pagina pubblica di ' . e($actingProfile['display_name']) : 'Vedi la tua pagina pubblica' ?></span>
+            <span>Vedi la tua pagina pubblica</span>
           </a>
         </div>
       </details>
+      <a href="/<?= e($barSlug) ?>" target="_blank" title="Vedi la pagina pubblica del profilo attivo" style="font-size:17px;">
+        <i class="fa-solid fa-eye"></i>
+      </a>
     <?php else: ?>
       <a href="/<?= e($user['slug']) ?>" target="_blank" title="Vedi pagina pubblica" style="display:inline-flex;">
         <?php if (!empty($user['avatar_path'])): ?>
@@ -128,6 +231,23 @@ $barAvatarName = $actingProfile['display_name'] ?? '?';
     <a href="/logout.php">Esci</a>
   </nav>
 </div>
+<script>
+// La barra è "fixed" (vedi CSS .navbar-dash-sticky), quindi esce dal flusso normale della
+// pagina: senza compensare, il contenuto sotto salterebbe su e ci finirebbe parzialmente
+// nascosto. Riserviamo lo spazio giusto con un padding-top sul body, ricalcolato ogni volta
+// che l'altezza della barra può cambiare (es. va su due righe ruotando lo schermo, o si
+// ridimensiona la finestra) — non un valore fisso, perché su schermi stretti la barra può
+// occupare una o due righe a seconda di quante icone/notifiche mostra.
+(function () {
+  var nav = document.querySelector('.navbar-dash-sticky');
+  if (!nav) return;
+  function applyOffset() {
+    document.body.style.paddingTop = nav.offsetHeight + 'px';
+  }
+  applyOffset();
+  window.addEventListener('resize', applyOffset);
+})();
+</script>
 <?php if ($managedProfiles): ?>
 <script>
 document.addEventListener('click', function (e) {
@@ -135,6 +255,20 @@ document.addEventListener('click', function (e) {
     if (!el.contains(e.target)) el.removeAttribute('open');
   });
 });
+
+// Su schermi stretti il pannello diventa "fixed" rispetto a tutta la pagina (vedi CSS) invece
+// che ancorato all'avatar, per non rischiare di partire fuori dallo schermo — ma la barra in
+// alto può andare su una o due righe a seconda del contenuto, quindi il punto esatto sotto cui
+// posizionarlo va calcolato qui, non indovinato in CSS.
+var switcherEl = document.querySelector('.profile-switcher');
+var navbarEl = document.querySelector('.navbar');
+if (switcherEl && navbarEl) {
+  switcherEl.addEventListener('toggle', function () {
+    if (!switcherEl.open || window.innerWidth > 480) return;
+    var panel = switcherEl.querySelector('.profile-switcher-panel');
+    if (panel) panel.style.top = (navbarEl.getBoundingClientRect().bottom + 8) + 'px';
+  });
+}
 </script>
 <?php endif; ?>
 
@@ -149,11 +283,23 @@ document.addEventListener('click', function (e) {
     <a href="/dashboard_profile.php" class="account-sidebar-link <?= $activeTab==='profile'?'active':'' ?>">
       <i class="fa-solid fa-id-card"></i> Profilo e anagrafica
     </a>
+    <a href="/dashboard_profiles.php" class="account-sidebar-link <?= $activeTab==='profiles'?'active':'' ?>">
+      <i class="fa-solid fa-layer-group"></i> I tuoi profili
+    </a>
     <a href="/dashboard_password.php" class="account-sidebar-link <?= $activeTab==='password'?'active':'' ?>">
       <i class="fa-solid fa-lock"></i> Cambia password
     </a>
     <a href="/dashboard_theme.php" class="account-sidebar-link <?= $activeTab==='theme'?'active':'' ?>">
       <i class="fa-solid fa-palette"></i> Tema grafico
+    </a>
+    <a href="/dashboard_nav_menu.php" class="account-sidebar-link <?= $activeTab==='nav_menu'?'active':'' ?>">
+      <i class="fa-solid fa-bars"></i> Menu di Navigazione
+    </a>
+    <a href="/dashboard_privacy_tracking.php" class="account-sidebar-link <?= $activeTab==='privacy_tracking'?'active':'' ?>">
+      <i class="fa-solid fa-shield-halved"></i> Privacy e Tracking
+    </a>
+    <a href="/dashboard_cinema.php" class="account-sidebar-link <?= $activeTab==='cinema'?'active':'' ?>">
+      <i class="fa-solid fa-film"></i> Cinema
     </a>
     <a href="/dashboard_invite.php" class="account-sidebar-link <?= $activeTab==='invite'?'active':'' ?>">
       <i class="fa-solid fa-user-plus"></i> Invita
@@ -161,7 +307,7 @@ document.addEventListener('click', function (e) {
     <a href="/dashboard_following.php" class="account-sidebar-link <?= $activeTab==='following'?'active':'' ?>">
       <i class="fa-solid fa-heart"></i> Seguiti
     </a>
-    <?php if ($isOwnBandOrLabel): ?>
+    <?php if ($isBandOrLabel): ?>
       <a href="/dashboard_team.php" class="account-sidebar-link <?= $activeTab==='team'?'active':'' ?>">
         <i class="fa-solid fa-people-group"></i> Team e co-admin
       </a>
@@ -169,19 +315,19 @@ document.addEventListener('click', function (e) {
         <i class="fa-solid fa-clock-rotate-left"></i> Log
       </a>
     <?php endif; ?>
-    <?php if ($isActingBandOrLabel): ?>
+    <?php if ($isBandOrLabel): ?>
       <div style="padding:14px 18px 4px;font-size:11.5px;text-transform:uppercase;color:var(--text-muted);">Integrazioni</div>
       <a href="/dashboard_spotify.php" class="account-sidebar-link <?= $activeTab==='spotify'?'active':'' ?>">
         <i class="fa-brands fa-spotify"></i> Account Spotify
-        <?php if (!empty($actingProfile['spotify_artist_id'])): ?><span class="account-sidebar-dot"></span><?php endif; ?>
+        <?php if (!empty($user['spotify_artist_id'])): ?><span class="account-sidebar-dot"></span><?php endif; ?>
       </a>
       <a href="/dashboard_podcast.php" class="account-sidebar-link <?= $activeTab==='podcast'?'active':'' ?>">
         <i class="fa-solid fa-microphone"></i> Account Podcast
-        <?php if (!empty($actingProfile['spotify_show_id'])): ?><span class="account-sidebar-dot"></span><?php endif; ?>
+        <?php if (!empty($user['spotify_show_id'])): ?><span class="account-sidebar-dot"></span><?php endif; ?>
       </a>
       <a href="/dashboard_youtube.php" class="account-sidebar-link <?= $activeTab==='youtube'?'active':'' ?>">
         <i class="fa-brands fa-youtube"></i> Account YouTube
-        <?php if (!empty($actingProfile['youtube_channel_id'])): ?><span class="account-sidebar-dot"></span><?php endif; ?>
+        <?php if (!empty($user['youtube_channel_id'])): ?><span class="account-sidebar-dot"></span><?php endif; ?>
       </a>
     <?php endif; ?>
   </div>
@@ -201,15 +347,10 @@ document.addEventListener('click', function (e) {
 </script>
 
 <div class="container">
-  <div class="tabs">
-    <a href="/dashboard_timeline.php" class="<?= $activeTab==='timeline'?'active':'' ?>">TIMELINE</a>
-    <a href="/dashboard_post.php" class="<?= $activeTab==='post'?'active':'' ?>">Pubblica</a>
-    <a href="/dashboard_fan_bands.php" class="<?= $activeTab==='fan_bands'?'active':'' ?>">Band che amo</a>
-    <a href="/dashboard_links.php" class="<?= $activeTab==='links'?'active':'' ?>">LINK</a>
-    <a href="/dashboard_audio.php" class="<?= $activeTab==='audio'?'active':'' ?>">Brani</a>
-    <?php if ($isActingBandOrLabel): ?>
-    <a href="/dashboard_events.php" class="<?= $activeTab==='events'?'active':'' ?>">Eventi</a>
-    <?php endif; ?>
-    <a href="/dashboard_blog.php" class="<?= $activeTab==='blog'?'active':'' ?>">Blog</a>
-    <a href="/dashboard_followers.php" class="<?= $activeTab==='followers'?'active':'' ?>">Follower</a>
+  <div class="tabs-wrap">
+  <div class="tabs" id="dash-tabs">
+    <?php foreach ($dashTabs as $t): ?>
+    <a href="<?= e($t['url']) ?>" class="<?= $activeTab===$t['active']?'active':'' ?>"><?= e($t['label']) ?></a>
+    <?php endforeach; ?>
+  </div>
   </div>

@@ -339,6 +339,28 @@ CREATE TABLE IF NOT EXISTS fan_favorite_trips (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- NOTA: le due tabelle seguenti (timeline_post_photos, fan_favorite_trip_photos) non erano
+-- nello schema.sql di chifacosa (solo in MIGRAZIONI.md, voci #43/#44) — schema.sql risultava
+-- disallineato dalla loro stessa produzione, scoperto testando dashboard_timeline.php sullo
+-- stack di test (errore 1146 "table doesn't exist").
+CREATE TABLE IF NOT EXISTS fan_favorite_trip_photos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    trip_id INT NOT NULL,
+    image_path VARCHAR(500) NOT NULL,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (trip_id) REFERENCES fan_favorite_trips(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS timeline_post_photos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    post_id INT NOT NULL,
+    image_path VARCHAR(500) NOT NULL,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES timeline_posts(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS api_tokens (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,

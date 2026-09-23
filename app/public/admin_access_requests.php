@@ -24,8 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($cfg['host']) {
             $mailer = new SimpleSmtpMailer($cfg['host'], $cfg['port'], $cfg['user'], $cfg['pass'], $cfg['secure'], $cfg['verifyCert']);
             $link = siteUrl('/register.php?invite=' . $token);
-            $body = "Ciao {$req['name']},\n\nLa tua richiesta di accesso a myband.it è stata approvata!\n\nCompleta la registrazione qui: {$link}\n\nA presto,\nmyband.it";
-            $mailer->send($cfg['from'], $cfg['fromName'], $req['email'], $req['name'], 'Il tuo invito per myband.it', $body);
+            $body = "Ciao {$req['name']},\n\nLa tua richiesta di accesso a " . siteName() . " è stata approvata!\n\nCompleta la registrazione qui: {$link}\n\nA presto,\n" . siteName();
+            $mailer->send($cfg['from'], $cfg['fromName'], $req['email'], $req['name'], 'Il tuo invito per ' . siteName(), $body);
         }
     } elseif ($req && $action === 'reject') {
         $stmt = getDB()->prepare("UPDATE access_requests SET status='rejected', decided_at=NOW() WHERE id=?");
@@ -40,9 +40,9 @@ include __DIR__ . '/_admin_header.php';
   <div class="card">
     <strong>Come funziona</strong>
     <p style="color:var(--text-muted)">
-      La registrazione a myBand è solo su invito. Le richieste ricevute dalla landing page
-      compaiono qui: approvandole, invii automaticamente un'email con un link di registrazione
-      valido una sola volta.
+      La registrazione a <?= e(siteName()) ?> è aperta a chiunque, non serve più un invito: questa
+      pagina non riceve più nuove richieste, resta solo come storico di quelle arrivate quando
+      l'accesso era ancora su invito.
     </p>
   </div>
 

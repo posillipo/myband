@@ -8,7 +8,7 @@ header('Pragma: no-cache');
 $slug = $_GET['slug'] ?? '';
 $trackId = (int) ($_GET['id'] ?? 0);
 
-$stmt = getDB()->prepare('SELECT u.id AS user_id, u.slug, u.account_type, p.display_name, p.avatar_path, p.theme_color, p.page_theme, p.spotify_artist_id, p.spotify_show_id, p.youtube_channel_id, p.genere, ft.*
+$stmt = getDB()->prepare('SELECT u.id AS user_id, u.slug, u.account_type, p.display_name, p.avatar_path, p.theme_color, p.page_theme, p.spotify_artist_id, p.spotify_show_id, p.youtube_channel_id, p.privacy_tracking_settings, p.genere, ft.*
                           FROM favorite_tracks ft
                           JOIN users u ON u.id = ft.user_id
                           JOIN profiles p ON p.user_id = u.id
@@ -21,6 +21,15 @@ if (!$track) {
     exit('Brano non trovato.');
 }
 
+// Stessa regola di favorite_track_item.php: un brano "Solo io" o ancora programmato non è
+// raggiungibile da nessun altro, nemmeno con il link diretto al testo.
+$isOwner = !empty($_SESSION['user_id']) && (int) $_SESSION['user_id'] === (int) $track['user_id'];
+$isScheduledFuture = $track['publish_at'] && strtotime($track['publish_at']) > time();
+if (!$isOwner && (!(int) $track['is_public'] || $isScheduledFuture)) {
+    http_response_code(404);
+    exit('Brano non trovato.');
+}
+
 // Se non è mai stato aggiunto un testo, non ha senso avere questa pagina indicizzabile a sé:
 // rimandiamo alla pagina di voto, che resta comunque il punto di riferimento del brano.
 if (empty($track['lyrics'])) {
@@ -29,20 +38,27 @@ if (empty($track['lyrics'])) {
 }
 
 $artist = [
-    'slug' => $track['slug'], 'display_name' => $track['display_name'], 'avatar_path' => $track['avatar_path'],
+    'id' => $track['user_id'], 'slug' => $track['slug'], 'display_name' => $track['display_name'], 'avatar_path' => $track['avatar_path'],
     'spotify_artist_id' => $track['spotify_artist_id'], 'spotify_show_id' => $track['spotify_show_id'],
     'youtube_channel_id' => $track['youtube_channel_id'], 'genere' => $track['genere'], 'account_type' => $track['account_type'], 'page_theme' => $track['page_theme'] ?? 'colorful',
+    'privacy_tracking_settings' => $track['privacy_tracking_settings'] ?? null,
 ];
 
-$pageUrl = siteUrl('/' . $slug . '/brani/' . $trackId . '/testo');
 $stats = getTrackRatingStats($trackId);
+
+if (($artist['page_theme'] ?? 'colorful') === 'adminlte-profile') {
+    echo renderAdminLteTrackLyricsPage($artist, $slug, $track, $stats);
+    exit;
+}
+
+$pageUrl = siteUrl('/' . $slug . '/brani/' . $trackId . '/testo');
 ?>
 <!doctype html>
 <html lang="it">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title><?= e($track['track_name']) ?> — Testo e ascolto — myband.it</title>
+<title><?= e($track['track_name']) ?> — Testo e ascolto — <?= e(siteName()) ?></title>
 <meta property="og:type" content="website">
 <meta property="og:title" content="<?= e($track['track_name']) ?> — Testo e ascolto">
 <meta property="og:url" content="<?= e($pageUrl) ?>">
@@ -51,13 +67,18 @@ $stats = getTrackRatingStats($trackId);
 <link rel="stylesheet" href="<?= assetUrl('/assets/css/style.css') ?>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
 <style>:root { --accent: <?= e($track['theme_color'] ?: '#6C5CE7') ?>; --accent-text: <?= e(getContrastTextColor($track['theme_color'])) ?>; }</style>
-<?= embedPrivacyScript() ?>
-<?= embedTrackingHead() ?>
-<?= embedGoogleAnalytics() ?>
+<?= embedPrivacyScript($artist) ?>
+<?= embedTrackingHead($artist) ?>
+<?= embedGoogleAnalytics($artist) ?>
 </head>
 <body class="<?= e(getPageThemeClass($artist['page_theme'] ?? 'colorful')) ?>">
 <?php if (str_starts_with($artist['page_theme'] ?? 'colorful', 'wave')): ?><?= renderWaveBackground($artist['theme_color'] ?? '#6C5CE7', $artist['page_theme']) ?><?php endif; ?>
-<?= embedTrackingBodyStart() ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'circuit'): ?><?= renderCircuitBackground($artist['theme_color'] ?? '#6C5CE7') ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'napoli'): ?><?= renderNapoliBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'cinemapop'): ?><?= renderCinemaPopBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'startrek'): ?><?= renderStarTrekBackground() ?><?php endif; ?>
+<?php if (($artist['page_theme'] ?? 'colorful') === 'galactic'): ?><?= renderGalacticBackground() ?><?php endif; ?>
+<?= embedTrackingBodyStart($artist) ?>
 <div class="container">
   <?= publicProfileHeader($artist, 'brani') ?>
 
@@ -91,6 +112,6 @@ $stats = getTrackRatingStats($trackId);
   <p><a href="/<?= e($slug) ?>/brani">← Tutti i brani di <?= e($track['display_name']) ?></a></p>
 </div>
 <?= renderFloatingButtons() ?>
-<?= renderSiteFooterBar($slug) ?>
+<?= renderSiteFooterBar($artist) ?>
 </body>
 </html>

@@ -2,84 +2,66 @@
 session_start();
 require_once __DIR__ . '/../src/functions.php';
 $user = requireLogin();
-$profile = getActingProfile($user); // il profilo su cui si sta agendo (proprio, o co-gestito)
+$profile = getActingProfile($user); requireFullOwnerAccess($user, $profile);
 $activeTab = 'blog';
 $pageTitle = 'Blog';
-$error = null;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    checkCsrf();
-    $action = $_POST['action'] ?? '';
-
-    if ($action === 'add') {
-        $title = trim($_POST['title'] ?? '');
-        $content = trim($_POST['content'] ?? '');
-        if ($title === '' || $content === '') {
-            $error = 'Titolo e contenuto sono obbligatori.';
-        } else {
-            $slug = generateUniquePostSlug((int)$profile['id'], $title);
-            $excerpt = textExcerpt($content, 200);
-            $coverPath = handleCoverUpload($profile['slug']);
-            $stmt = getDB()->prepare('INSERT INTO blog_posts (user_id, title, slug, excerpt, content, cover_path) VALUES (?,?,?,?,?,?)');
-            $stmt->execute([$profile['id'], $title, $slug, $excerpt, $content, $coverPath]);
-
-            $postUrl = siteUrl(blogPostUrl($profile['slug'], ['published_at' => date('Y-m-d H:i:s'), 'slug' => $slug]));
-            notifyFollowersNewContent((int)$profile['id'], $profile['display_name'], $profile['slug'], 'blog', $title, $postUrl);
-        }
-    } elseif ($action === 'delete') {
-        $id = (int) ($_POST['id'] ?? 0);
-        $stmt = getDB()->prepare('SELECT cover_path FROM blog_posts WHERE id=? AND user_id=?');
-        $stmt->execute([$id, $profile['id']]);
-        if ($row = $stmt->fetch()) {
-            deleteCoverFile($row['cover_path']);
-        }
-        $stmt = getDB()->prepare('DELETE FROM blog_posts WHERE id=? AND user_id=?');
-        $stmt->execute([$id, $profile['id']]);
-    }
-    if (!$error) {
-        header('Location: /dashboard_blog.php');
-        exit;
-    }
-}
-
-$stmt = getDB()->prepare('SELECT * FROM blog_posts WHERE user_id=? ORDER BY published_at DESC');
+$stmt = getDB()->prepare('SELECT COUNT(*) c FROM blog_categories WHERE user_id=?');
 $stmt->execute([$profile['id']]);
-$posts = $stmt->fetchAll();
+$categoriesCount = (int) $stmt->fetch()['c'];
+
+$tagsCount = count(getBlogTagCounts((int) $profile['id']));
+
+$stmt = getDB()->prepare('SELECT COUNT(*) c FROM blog_posts WHERE user_id=?');
+$stmt->execute([$profile['id']]);
+$postsCount = (int) $stmt->fetch()['c'];
 
 include __DIR__ . '/_dash_header.php';
 ?>
-  <?php if ($error): ?><div class="alert error"><?= e($error) ?></div><?php endif; ?>
+  <details class="help-box">
+    <summary>ℹ️ Come funziona</summary>
+    <p style="color:var(--text-muted)">
+      Gestisci qui il blog: organizza categorie e tag, scrivi un nuovo articolo, oppure vai
+      all'elenco completo per cercare, modificare o eliminare quelli già pubblicati.
+    </p>
+  </details>
 
-  <form method="post" enctype="multipart/form-data" class="card">
-    <?= csrfField() ?>
-    <input type="hidden" name="action" value="add">
-    <label>Titolo post</label>
-    <input type="text" name="title" required>
-    <label>Contenuto</label>
-    <textarea name="content" rows="6" required></textarea>
-    <label>Copertina quadrata (opzionale, jpg/png/webp — usata anche come immagine di anteprima quando condividi il link)</label>
-    <input type="file" name="cover" accept="image/*">
-    <button type="submit" class="btn">Pubblica</button>
-  </form>
-
-  <div class="section-title">I tuoi post (<?= count($posts) ?>)</div>
-  <?php foreach ($posts as $p): ?>
-    <div class="blog-item" style="display:flex;gap:14px;align-items:flex-start;">
-      <?php if ($p['cover_path']): ?>
-        <img src="/<?= e($p['cover_path']) ?>" style="width:64px;height:64px;border-radius:8px;object-fit:cover;flex-shrink:0;">
-      <?php endif; ?>
-      <div style="flex:1;min-width:0;">
-        <div class="date"><?= date('d/m/Y', strtotime($p['published_at'])) ?></div>
-        <strong><?= e($p['title']) ?></strong>
-        <p style="color:var(--text-muted)"><?= nl2br(e($p['content'])) ?></p>
-        <p><a href="<?= e(blogPostUrl($profile['slug'], $p)) ?>" target="_blank">myband.it<?= e(blogPostUrl($profile['slug'], $p)) ?> ↗</a></p>
-        <form method="post" onsubmit="return confirm('Eliminare questo post?');">
-          <?= csrfField() ?>
-          <input type="hidden" name="action" value="delete">
-          <input type="hidden" name="id" value="<?= (int)$p['id'] ?>">
-          <button class="btn small danger" type="submit">Elimina</button>
-        </form>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;">
+    <a href="/dashboard_blog_categories.php" class="card" style="display:block;text-decoration:none;color:inherit;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+        <span style="width:40px;height:40px;border-radius:10px;background:rgba(108,92,231,0.12);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;">
+          <i class="fa-solid fa-folder"></i>
+        </span>
+        <strong>Categorie</strong>
       </div>
-    </div>
-  <?php endforeach; ?>
+      <p style="margin:0;color:var(--text-muted);font-size:13.5px;"><?= $categoriesCount ?> categori<?= $categoriesCount === 1 ? 'a' : 'e' ?></p>
+    </a>
+    <a href="/dashboard_blog_tags.php" class="card" style="display:block;text-decoration:none;color:inherit;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+        <span style="width:40px;height:40px;border-radius:10px;background:rgba(108,92,231,0.12);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;">
+          <i class="fa-solid fa-tags"></i>
+        </span>
+        <strong>Tag</strong>
+      </div>
+      <p style="margin:0;color:var(--text-muted);font-size:13.5px;"><?= $tagsCount ?> tag</p>
+    </a>
+    <a href="/dashboard_blog_posts.php" class="card" style="display:block;text-decoration:none;color:inherit;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+        <span style="width:40px;height:40px;border-radius:10px;background:rgba(108,92,231,0.12);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;">
+          <i class="fa-solid fa-newspaper"></i>
+        </span>
+        <strong>Tutti gli articoli</strong>
+      </div>
+      <p style="margin:0;color:var(--text-muted);font-size:13.5px;"><?= $postsCount ?> articol<?= $postsCount === 1 ? 'o' : 'i' ?></p>
+    </a>
+    <a href="/dashboard_blog_new.php" class="card" style="display:block;text-decoration:none;color:inherit;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+        <span style="width:40px;height:40px;border-radius:10px;background:rgba(108,92,231,0.12);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;">
+          <i class="fa-solid fa-pen"></i>
+        </span>
+        <strong>Nuovo articolo</strong>
+      </div>
+      <p style="margin:0;color:var(--text-muted);font-size:13.5px;">Scrivi un nuovo post</p>
+    </a>
+  </div>
 <?php include __DIR__ . '/_dash_footer.php'; ?>
