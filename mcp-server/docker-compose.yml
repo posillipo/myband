@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  mcp:
+    build: .
+    container_name: ${CONTAINER_NAME:-myband_mcp}
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      - MCP_ACCESS_TOKEN=${MCP_ACCESS_TOKEN}
+      - MYBAND_API_TOKEN=${MYBAND_API_TOKEN:-}
+      - MYBAND_BASE_URL=${MYBAND_BASE_URL:-https://myband.it/api/v1/social-posts}
+    volumes:
+      - mcp_data:/data
+    networks:
+      - proxy-manager_default
+
+# mcp_data: dove il server salva profiles.json (nome->token per profilo, gestiti a caldo via
+# POST/DELETE /admin/profiles) — un volume Docker dedicato, non una cartella dentro il checkout
+# Git dello stack, altrimenti sparirebbe ad ogni "Pull and redeploy" (stesso principio già
+# applicato a uploads_data nello stack principale — vedi il commento lì).
+#
+# Non serve la rete myband_net: questo server non parla mai direttamente col database, solo con
+# l'API pubblica di MYBAND via HTTPS (come qualunque altro client dell'API) — quindi gli basta
+# essere raggiungibile da Nginx Proxy Manager, non dal MySQL condiviso.
+volumes:
+  mcp_data:
+
+networks:
+  proxy-manager_default:
+    external: true
