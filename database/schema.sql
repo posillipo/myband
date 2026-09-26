@@ -76,6 +76,7 @@ CREATE TABLE IF NOT EXISTS events (
     title VARCHAR(150) NOT NULL,
     venue VARCHAR(150),
     city VARCHAR(100),
+    provincia VARCHAR(100) DEFAULT NULL,
     event_date DATETIME NOT NULL,
     ticket_url VARCHAR(500),
     cover_path VARCHAR(255) DEFAULT NULL,
