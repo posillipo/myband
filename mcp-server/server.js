@@ -158,6 +158,7 @@ const blogPostFieldsSchema = {
     categories: z.array(z.string()).optional().describe('Nomi delle categorie da assegnare — una categoria non ancora esistente viene creata automaticamente'),
     image_url: z.string().url().optional().describe('URL pubblico di un\'immagine da scaricare e usare come copertina'),
     publication_date: z.string().optional().describe('Data/ora di pubblicazione in ISO 8601 con fuso orario esplicito, es. 2026-09-24T08:00:00+02:00 — se futura l\'articolo resta programmato fino ad allora, se omessa si pubblica subito'),
+    include_in_feed: z.boolean().optional().describe('true (default) = compare anche nel feed RSS del profilo, letto dalle automazioni social come Metricool. false = resta pubblico sul sito ma non finisce nel feed. Non riguarda la visibilità dell\'articolo sul sito, solo la pubblicazione automatica sui social.'),
 };
 
 // Campi comuni a create/update per un evento — stessa forma esposta dall'API REST, vedi
