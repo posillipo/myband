@@ -243,6 +243,19 @@ all'evento). Gli eventi già esistenti riceveranno automaticamente la data odier
 `created_at` (comportamento di default per le righe già presenti quando si aggiunge una colonna
 con `DEFAULT CURRENT_TIMESTAMP`).
 
+## 24. Visibilità nel Feed per il Blog (`blog_posts.in_feed`)
+```sql
+ALTER TABLE blog_posts ADD COLUMN in_feed TINYINT(1) NOT NULL DEFAULT 1;
+```
+Stesso meccanismo già esistente per Timeline e Che Amo: un articolo del blog può restare
+pubblico e visibile sul sito senza per questo comparire anche nel feed RSS del profilo
+(`/slug/feed`, letto dalle automazioni social come Metricool). Non riguarda la visibilità
+dell'articolo sul sito — quella resta sempre pubblica una volta pubblicato — solo se finisce o
+meno nel feed aggregato. Gestibile dalla dashboard (checkbox "Includi nel Feed" in
+`dashboard_blog_new.php`/`dashboard_blog_edit.php`), via API REST (campo `include_in_feed` in
+`POST /blog-posts/create` e `PUT /blog-posts/{id}`) e via MCP (`create_blog_post`/
+`update_blog_post`). Default `1` per compatibilità con gli articoli già esistenti.
+
 ---
 
 ## Come aggiungere una nuova voce

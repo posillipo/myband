@@ -189,7 +189,7 @@ const BOARD_SIGNATURE_NOTE = 'Ogni scrittura va firmata: il segreto assegnato al
 const boardActorSchema = z.string().regex(/^[a-z0-9_-]{2,30}$/);
 
 function buildMcpServer() {
-    const server = new McpServer({ name: 'myband-social-posts', version: '1.7.1' });
+    const server = new McpServer({ name: 'myband-social-posts', version: '1.8.0' });
 
     // Ricalcolati ad ogni richiesta (siamo in modalità stateless, un buildMcpServer() per
     // richiesta — vedi più sotto): un profilo appena registrato via /admin/profiles deve
