@@ -997,7 +997,7 @@ function adminLteAssetLinks(): string {
          // copertine non quadrate. Scale(1.15) evita che la sfocatura mostri i bordi netti
          // dell'immagine originale ai margini del riquadro.
          . '.admlte-pinned-cover-bg{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(20px) brightness(.9);transform:scale(1.15);}'
-         . '@media (min-width:768px){.adminlte-sidebar-col,.adminlte-extras-col{position:sticky;top:60px;align-self:flex-start;}}'
+         . '@media (min-width:992px){.adminlte-sidebar-col,.adminlte-extras-col{position:sticky;top:60px;align-self:flex-start;}}'
          . '</style>';
 }
 
@@ -1464,7 +1464,7 @@ function renderAdminLteProfileSidebar(array $artist, string $slug, bool $showFol
 
     ob_start();
     ?>
-          <div class="col-md-3 order-2 order-md-1 adminlte-sidebar-col">
+          <div class="col-lg-3 order-2 order-lg-1 adminlte-sidebar-col">
             <div class="card widget-user-2 mb-0">
               <div class="widget-user-header text-bg-warning">
                 <div class="widget-user-image">
@@ -1712,7 +1712,7 @@ function renderAdminLteProfileExtras(array $artist, string $slug, string $extraC
 
     ob_start();
     ?>
-          <div class="col-md-3 order-3 order-md-3 adminlte-extras-col">
+          <div class="col-lg-3 order-3 order-lg-3 adminlte-extras-col">
             <?php foreach ($blocks as $i => $block): ?>
             <div class="<?= $i > 0 ? 'mt-3' : '' ?>"><?= $block ?></div>
             <?php endforeach; ?>
@@ -2715,7 +2715,7 @@ function renderAdminLteProfileTheme(array $artist, string $slug): string {
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug, true) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <?php if (!empty($_GET['follow_msg'])): ?>
             <div class="alert <?= !empty($_GET['follow_err']) ? 'alert-danger' : 'alert-success' ?> mb-3"><?= e($_GET['follow_msg']) ?></div>
             <?php endif; ?>
@@ -2770,7 +2770,7 @@ function renderAdminLteTimelinePage(array $artist, string $slug): string {
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <?= renderAdminLteTimelineFeedBlock($artist, $slug) ?>
           </div>
         </div>
@@ -2848,7 +2848,7 @@ function renderAdminLteTimelinePostPage(array $post, array $artist, string $slug
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title"><?= e('Aggiornamento') ?></h3>
@@ -2958,7 +2958,7 @@ function renderAdminLteBlogIndexPage(array $artist, string $slug, array $posts):
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug, renderAdminLteBlogCategoriesNavCard((int) $artist['id'], $slug)) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title"><?= e('Blog') ?></h3>
@@ -3042,7 +3042,7 @@ function renderAdminLteBlogCategoryPage(array $artist, string $slug, array $cate
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug, renderAdminLteBlogCategoriesNavCard((int) $artist['id'], $slug, (int) $category['id'])) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title"><?= e($category['name']) ?></h3>
@@ -3168,7 +3168,7 @@ function renderAdminLteBlogPostPage(array $post, array $artist, string $slug, bo
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug, $blogLatestPostsHtml . $blogCoverSidebarHtml . renderAdminLteBlogCategoriesNavCard((int) $post['user_id'], $slug, $activeCategoryId), true) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
                 <?php if (($isOwner || $isPreview) && $isScheduledFuture): ?>
                   <div class="alert alert-warning mb-3">Questo articolo non è ancora pubblico (programmato per il futuro) — <?= e(previewNoticeSuffix($isOwner)) ?></div>
                 <?php endif; ?>
@@ -3268,7 +3268,7 @@ function renderAdminLteCheAmoIndexPage(array $artist, string $slug, array $visib
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title"><?= e('Che Amo') ?></h3>
@@ -3348,7 +3348,7 @@ function renderAdminLteFanFavoriteListPage(array $artist, string $slug, array $f
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title"><?= e($cfg['label']) ?></h3>
@@ -3446,7 +3446,7 @@ function renderAdminLteFanFavoriteDetailPage(array $artist, string $slug, string
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <h3 class="mb-3"><?= e($cfg['label']) ?></h3>
             <?php if (($isOwner || $isPreview) && (!(int) $item['is_public'] || $isScheduledFuture)): ?>
               <div class="alert alert-warning">Questo elemento non è visibile al pubblico al momento (Solo io, o programmato per il futuro) — <?= e(previewNoticeSuffix($isOwner)) ?></div>
@@ -3589,7 +3589,7 @@ function renderAdminLteViaggiListPage(array $artist, string $slug, array $monthG
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title"><?= e('Viaggi (' . $totalCount . ')') ?></h3>
@@ -3689,7 +3689,7 @@ function renderAdminLteViaggioDetailPage(array $artist, string $slug, array $tri
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <h3 class="mb-3"><?= e('Viaggi') ?></h3>
             <?php if (($isOwner || $isPreview) && (!(int) $trip['is_public'] || $isScheduledFuture)): ?>
               <div class="alert alert-warning">Questo viaggio non è visibile al pubblico al momento (Solo io, o programmato per il futuro) — <?= e(previewNoticeSuffix($isOwner)) ?></div>
@@ -3787,7 +3787,7 @@ function renderAdminLteBraniListPage(array $artist, string $slug, array $tracks)
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title"><?= e('Brani che amo') ?></h3>
@@ -3873,7 +3873,7 @@ function renderAdminLteFavoriteTrackDetailPage(array $artist, string $slug, arra
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <h3 class="mb-3"><?= e('Brani che amo') ?></h3>
             <?php if (($isOwner || $isPreview) && (!(int) $track['is_public'] || $isScheduledFuture)): ?>
               <div class="alert alert-warning">Questo brano non è visibile al pubblico al momento (Solo io, o programmato per il futuro) — <?= e(previewNoticeSuffix($isOwner)) ?></div>
@@ -3966,7 +3966,7 @@ function renderAdminLteTrackLyricsPage(array $artist, string $slug, array $track
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title"><?= e('Testo e ascolto') ?></h3>
@@ -4051,7 +4051,7 @@ function renderAdminLteTrackReviewPage(array $artist, string $slug, array $track
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title"><?= e('Vota il brano') ?></h3>
@@ -4143,7 +4143,7 @@ function renderAdminLteSpotifyPage(array $artist, string $slug, array $albums, a
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title"><?= e('Spotify') ?></h3>
@@ -4264,7 +4264,7 @@ function renderAdminLtePodcastPage(array $artist, string $slug, array $episodes,
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title"><?= e($artist['spotify_show_name'] ?: 'Podcast') ?></h3>
@@ -4353,7 +4353,7 @@ function renderAdminLteVideoPage(array $artist, string $slug, array $videos): st
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title"><?= e('Video') ?></h3>
@@ -4454,7 +4454,7 @@ function renderAdminLteMenuPage(array $artist, string $slug, array $categories, 
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title"><?= e('Menù') ?></h3>
@@ -4711,7 +4711,7 @@ function renderAdminLteOfferteListPage(array $artist, string $slug, array $offer
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title"><?= e('Offerte') ?></h3>
@@ -4796,7 +4796,7 @@ function renderAdminLteOffertaDetailPage(array $artist, string $slug, array $off
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title"><?= e('Offerta') ?></h3>
@@ -4877,7 +4877,7 @@ function renderAdminLteFotoPage(array $artist, string $slug, array $albums, arra
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
 
             <?php if ($albums): ?>
               <div class="card mb-3">
@@ -4992,7 +4992,7 @@ function renderAdminLteAlbumDetailPage(array $artist, string $slug, array $album
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <?php if (($isOwner || $isPreview) && (!(int) $album['is_public'] || $isScheduledFuture)): ?>
               <div class="alert alert-warning">Questo album non è visibile al pubblico al momento (privato o programmato per il futuro) — <?= e(previewNoticeSuffix($isOwner)) ?></div>
             <?php endif; ?>
@@ -5080,7 +5080,7 @@ function renderAdminLteServiziListPage(array $artist, string $slug, array $servi
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title"><?= e('Servizi') ?></h3>
@@ -5166,7 +5166,7 @@ function renderAdminLteServizioDetailPage(array $artist, string $slug, array $se
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title"><?= e('Servizio') ?></h3>
@@ -5272,7 +5272,7 @@ function renderAdminLteEventiListPage(array $artist, string $slug, array $events
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title"><?= e('Eventi') ?><?php if ($extraQuery !== ''): ?> <span class="fw-normal text-secondary">— provincia di <?= e($provinciaFilter) ?></span><?php endif; ?></h3>
@@ -5403,7 +5403,7 @@ function renderAdminLteEventoDetailPage(array $artist, string $slug, array $even
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug, $eventCoverSidebarHtml, true, $event['provincia'] ?? null) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title"><?= e('Evento') ?></h3>
@@ -5511,7 +5511,7 @@ function renderAdminLteContattiPage(array $artist, string $slug, bool $formSent,
         <div class="row g-3">
           <?= renderAdminLteProfileSidebar($artist, $slug) ?>
           <?= renderAdminLteProfileExtras($artist, $slug) ?>
-          <div class="col-md-6 order-1 order-md-2 adminlte-main-col">
+          <div class="col-lg-6 order-1 order-lg-2 adminlte-main-col">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title"><?= e('Contatti') ?></h3>
