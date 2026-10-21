@@ -189,7 +189,7 @@ const BOARD_SIGNATURE_NOTE = 'Ogni scrittura va firmata: il segreto assegnato al
 const boardActorSchema = z.string().regex(/^[a-z0-9_-]{2,30}$/);
 
 function buildMcpServer() {
-    const server = new McpServer({ name: 'myband-social-posts', version: '1.9.0' });
+    const server = new McpServer({ name: 'myband-social-posts', version: '1.10.0' });
 
     // Ricalcolati ad ogni richiesta (siamo in modalità stateless, un buildMcpServer() per
     // richiesta — vedi più sotto): un profilo appena registrato via /admin/profiles deve
@@ -352,6 +352,58 @@ function buildMcpServer() {
         description: 'Scambia la posizione di un elemento fissato con quello immediatamente sopra o sotto nel carosello "Primo Piano" (dato il suo pin_id, vedi list_pinned_items). Restituisce l\'elenco aggiornato.',
         inputSchema: { ...profileField, pin_id: z.number().int().describe('ID del pin da spostare (campo pin_id di list_pinned_items)'), direction: z.enum(['up', 'down']).describe('up = verso l\'inizio del carosello, down = verso la fine') },
     }, async ({ profile, pin_id, direction }) => toolResult(await mybandApi(profile, `/pinned-items/${pin_id}`, { method: 'PUT', body: { direction } })));
+
+    const albumFieldsSchema = {
+        title: z.string().max(150).optional().describe('Titolo dell\'album (max 150 caratteri)'),
+        description: z.string().optional().describe('Descrizione dell\'album (opzionale)'),
+        cover_image_url: z.string().url().optional().describe('URL pubblico di un\'immagine da usare come copertina dell\'album'),
+        extra_photo_urls: z.array(z.string().url()).max(50).optional().describe('Elenco di URL di foto aggiuntive da scaricare e aggiungere all\'album (max 50). In un aggiornamento (update_album), sostituiscono TUTTE le foto extra esistenti.'),
+        is_public: z.boolean().optional().describe('true (default) = album visibile sulla pagina pubblica, false = solo per te (le URL delle foto restano comunque accessibili)'),
+        include_in_feed: z.boolean().optional().describe('true (default) = compare anche nel feed RSS, false = resta pubblico ma non finisce nel feed'),
+        publish_at: z.string().optional().describe('Data/ora di pubblicazione programmata in ISO 8601 — se futura l\'album resta nascosto fino ad allora, se omessa si pubblica subito'),
+    };
+
+    server.registerTool('list_albums', {
+        title: 'Elenca gli album fotografici di un profilo',
+        description: 'Elenca gli album fotografici del profilo scelto, con filtro opzionale per visibilità (public/private) e paginazione. Ogni album include la lista completa delle URL pubbliche di tutte le foto.',
+        inputSchema: {
+            ...profileField,
+            visibility: z.enum(['public', 'private']).optional().describe('Filtra per visibilità: public = solo album pubblici, private = solo privati. Ometti per entrambi.'),
+            page: z.number().int().min(1).optional(),
+            per_page: z.number().int().min(1).max(100).optional(),
+        },
+    }, async ({ profile, ...args }) => {
+        const params = new URLSearchParams();
+        for (const [k, v] of Object.entries(args || {})) {
+            if (v !== undefined && v !== null) params.set(k, String(v));
+        }
+        const qs = params.toString();
+        return toolResult(await mybandApi(profile, '/albums/list' + (qs ? `?${qs}` : '')));
+    });
+
+    server.registerTool('get_album', {
+        title: 'Dettaglio di un album fotografico',
+        description: 'Recupera i dettagli di un singolo album fotografico di un profilo, dato il suo ID. Include la lista completa delle URL pubbliche di tutte le foto, indipendentemente dal flag is_public.',
+        inputSchema: { ...profileField, id: z.number().int().describe('ID dell\'album') },
+    }, async ({ profile, id }) => toolResult(await mybandApi(profile, `/albums/${id}`)));
+
+    server.registerTool('create_album', {
+        title: 'Crea un album fotografico su un profilo MYBAND',
+        description: 'Crea un nuovo album fotografico (pubblico o privato, subito o programmato). Richiede title. Usa cover_image_url per la copertina e extra_photo_urls per le foto aggiuntive: verranno scaricate e salvate nel profilo.',
+        inputSchema: { ...profileField, ...albumFieldsSchema },
+    }, async ({ profile, ...fields }) => toolResult(await mybandApi(profile, '/albums/create', { method: 'POST', body: fields })));
+
+    server.registerTool('update_album', {
+        title: 'Modifica un album fotografico',
+        description: 'Modifica un album fotografico esistente di un profilo. Tutti i campi oltre a profile/id sono opzionali. Se passi extra_photo_urls, le foto esistenti vengono sostituite interamente dalle nuove.',
+        inputSchema: { ...profileField, id: z.number().int().describe('ID dell\'album da modificare'), ...albumFieldsSchema },
+    }, async ({ profile, id, ...fields }) => toolResult(await mybandApi(profile, `/albums/${id}`, { method: 'PUT', body: fields })));
+
+    server.registerTool('delete_album', {
+        title: 'Elimina un album fotografico',
+        description: 'Elimina definitivamente un album fotografico di un profilo, dato il suo ID. Tutte le foto vengono rimosse dal disco.',
+        inputSchema: { ...profileField, id: z.number().int().describe('ID dell\'album da eliminare') },
+    }, async ({ profile, id }) => toolResult(await mybandApi(profile, `/albums/${id}`, { method: 'DELETE' })));
 
     server.registerTool('create_event', {
         title: 'Crea un evento su un profilo MYBAND',
@@ -524,6 +576,15 @@ function buildMcpServer() {
         description: 'Imposta l\'ordine dei video: passa gli id dal primo (in alto) all\'ultimo. Gli id non indicati restano dopo, nel loro ordine attuale. Restituisce l\'elenco aggiornato.',
         inputSchema: { ...profileField, order: z.array(z.number().int()).min(1).describe('ID dei video nell\'ordine desiderato') },
     }, async ({ profile, order }) => toolResult(await mybandApi(profile, '/videos/reorder', { method: 'POST', body: { order } })));
+
+    server.registerTool('send_telegram_message', {
+        title: 'Invia un messaggio sul canale Telegram del profilo',
+        description: 'Invia un messaggio di testo al canale o gruppo Telegram collegato al profilo. Il profilo deve aver collegato un canale Telegram dalla dashboard e il bot deve esserne amministratore. Supporta formattazione HTML (es. <b>grassetto</b>, <i>corsivo</i>, <a href="...">link</a>).',
+        inputSchema: {
+            ...profileField,
+            text: z.string().min(1).max(4096).describe('Testo del messaggio da inviare (supporta HTML: <b>, <i>, <a href="...">)'),
+        },
+    }, async ({ profile, text }) => toolResult(await mybandApi(profile, '/telegram/send', { method: 'POST', body: { text } })));
 
     server.registerTool('request_image_upload', {
         title: 'Richiedi un indirizzo per caricare un\'immagine generata',
