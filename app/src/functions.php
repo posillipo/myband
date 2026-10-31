@@ -212,7 +212,11 @@ function attemptRememberLogin(): void {
     }
 
     $_SESSION['user_id'] = (int) $row['user_id'];
-    getDB()->prepare('DELETE FROM remember_tokens WHERE id = ?')->execute([$row['id']]);
+    // Il vecchio token non si cancella subito ma scade fra 2 minuti: il browser fa più richieste
+    // in parallelo (pagina, script, immagini) con lo stesso cookie, e se la prima lo ruotasse
+    // all'istante le altre risulterebbero "non loggato" e la loro sessione vuota potrebbe
+    // sovrascrivere quella buona.
+    getDB()->prepare('UPDATE remember_tokens SET expires_at = LEAST(expires_at, DATE_ADD(NOW(), INTERVAL 2 MINUTE)) WHERE id = ?')->execute([$row['id']]);
     issueRememberToken((int) $row['user_id']);
 }
 
@@ -1442,10 +1446,18 @@ function adminLteTopNav(array $artist, string $slug, string $activeKey): string 
                   <i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>Dashboard
                 </a>
                 <?php elseif ($isFollowing): ?>
+                <a href="/dashboard.php" class="btn btn-outline-secondary btn-sm my-2 my-lg-0 me-1">
+                  <i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>Dashboard
+                </a>
                 <a href="/<?= e($slug) ?>#segui-widget" class="btn btn-outline-primary btn-sm my-2 my-lg-0">
                   <i class="bi bi-person-check-fill me-1" aria-hidden="true"></i>Segui già
                 </a>
                 <?php else: ?>
+                <?php if (!empty($_SESSION['user_id'])): ?>
+                <a href="/dashboard.php" class="btn btn-outline-secondary btn-sm my-2 my-lg-0 me-1">
+                  <i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>Dashboard
+                </a>
+                <?php endif; ?>
                 <a href="/<?= e($slug) ?>#segui-widget" class="btn btn-primary btn-sm my-2 my-lg-0">
                   <i class="bi bi-person-plus me-1" aria-hidden="true"></i>Segui
                 </a>
