@@ -1,3 +1,16 @@
+# Stato al 5/11/2026
+
+**Applicato** all'attività "MyBand – Email info@my-band.it → Blog ed Eventi" (esecuzione ogni giorno alle 19:00):
+ricerca con `-label:MyBand-elaborata` e filtro anti-rumore (finestra 7 giorni, max 8 mail per esecuzione),
+tabella indirizzo → categoria del blog (sempre più "Eco"), immagine in ordine allegato → corpo della mail → generata,
+formati 4:5 (1080×1350) e storia 1080×1920 con 250 px liberi sopra e sotto, appoggio con `request_image_upload`,
+doppioni evitati con `list_events`, e a fine lavoro etichetta `MyBand-elaborata` + mail segnata come letta.
+L'attività di prova "Triage comunicati MyBand (dry-run)" è in pausa (resta il documento qui sotto come riferimento).
+
+Limite aperto: gli allegati Gmail non si possono scaricare con gli strumenti attuali.
+
+---
+
 # Attività pianificata: ingest comunicati da email → timeline myband.it
 
 Stato: **mattone 1 — triage in sola lettura (dry-run)**. Non pubblica nulla.
