@@ -66,12 +66,42 @@ Regole di scelta:
 ### 3. Estrazione (un record per uscita / per singola data)
 
 Campi: `classe`, `artista`, `titolo`, `data` (ISO 8601 con fuso Europe/Rome), `luogo`, `città`,
-`provincia`, `link_biglietti`, `link_ascolto/pre-save`, `immagine` (solo se URL pubblico
-stabile, mai link di tracking), `fonte` (id thread Gmail + mittente), `confidenza`
+`provincia`, `link_biglietti`, `link_ascolto/pre-save`, `immagine` (fonte scelta come in 3b: allegato / inline /
+link press kit / da generare, più nome file o URL), `fonte` (id thread Gmail + mittente), `confidenza`
 (alta/media/bassa), `da_confermare` (es. orario mancante → il sito usa "Orario da confermare").
 
 Una tournée con N date produce **N record**, uno per data. Esempio reale: eventi 182 e 183
 sono lo stesso spettacolo in due serate diverse e sono corretti entrambi.
+
+### 3b. Immagini (stesso ordine di priorità, sempre)
+
+Per ogni record si sceglie **una sola fonte**, nell'ordine:
+
+1. **Allegato** alla mail: `mimeType` `image/*` (jpg/png/webp). Si ignorano `.docx`, `.pdf`,
+   file minuscoli, loghi, firme email, icone social. Più allegati: si preferisce la foto
+   più grande e non il logo; il nome file aiuta ("Foto di …", "cover", "locandina").
+2. **Inline** nel corpo HTML, solo se non c'è nessun allegato valido: tag `<img>` con URL
+   pubblico stabile o `cid:`. Si scartano pixel di tracciamento (1×1), icone, banner di
+   firma, immagini dei pulsanti "social".
+3. **Link a press kit / foto HD** (Drive, Dropbox, WeTransfer): non si scaricano da soli, si
+   segnala nel rapporto come `immagine: link press kit` perché decida una persona.
+4. **Generata da zero**: solo se 1, 2 e 3 non danno nulla. Il rapporto la marca
+   `immagine: DA GENERARE` e, quando verrà pubblicata, `generata` (mai spacciata per foto
+   dell'artista, niente volti di persone reali o riproduzioni di loghi).
+
+Mai immagini prese dal web o da altri siti: solo ciò che è nella mail.
+
+Formati di uscita (si ritaglia con "cover" centrato sul soggetto, mai deformando):
+- **Post social / copertine**: **4:5**, 1080×1350 px.
+- **Storie**: **da confermare** (proposta: 9:16, 1080×1920 px). Va nel campo
+  `image_story_url` della coda social.
+Se la sorgente è più piccola del formato richiesto si segnala `bassa risoluzione`.
+
+**Limite tecnico noto (da risolvere nel mattone 2).** Con gli strumenti Gmail oggi
+disponibili si vedono nome, tipo e id degli allegati, ma non c'è un modo di scaricarne il
+contenuto per ricaricarlo su myband (`request_image_upload` vuole il file). Il mattone 1
+si limita quindi a **rilevare** quale immagine c'è; il recupero vero va risolto prima di
+pubblicare. Le immagini inline con URL pubblico, invece, si possono scaricare e ricaricare.
 
 ### 4. Dedupe
 
