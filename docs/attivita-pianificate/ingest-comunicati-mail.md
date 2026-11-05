@@ -1,0 +1,93 @@
+# Attività pianificata: ingest comunicati da email → timeline myband.it
+
+Stato: **mattone 1 — triage in sola lettura (dry-run)**. Non pubblica nulla.
+
+## Perché
+
+Gran parte dei contenuti della timeline di myband.it nasce da email inviate da band, uffici stampa
+e giornalisti (uscite discografiche, date di concerti). Oggi il passaggio email → sito esiste già
+ma è manuale/semi-automatico. Questa attività lo rende ripetibile, controllabile e senza doppioni.
+
+## Come funziona oggi (osservato su Gmail e sul profilo MyBand, 5/11/2026)
+
+- I comunicati arrivano su `info@my-band.it` e sono inoltrati su Gmail.
+- Mittenti ricorrenti: BIG TIME Ufficio Stampa (`pressoff@bigtimeweb.it`), Ender Comunicazione,
+  HF4, Almae Music (`mediasender.it`), Sorry Mom!. Etichette già usate: `MYBAND`,
+  `MYBAND/BigTime`, `MYBAND/MyBandTv Appuntamenti`.
+- Una mail già lavorata riceve l'etichetta **`MyBand-elaborata`**. Questo è il marcatore di
+  idempotenza da riusare, non va inventato un secondo sistema.
+- Il sito pubblica poi un evento (`create_event`, con "Fonte: <url articolo blog>" nella
+  descrizione) e/o un articolo blog, e manda una mail di notifica "myBand.it ha pubblicato…".
+- Rumore da ignorare nella stessa casella: Pinterest, notifiche di registrazione/follow di
+  myband, newsletter commerciali (viaggi, DICE, Vivaticket, Bandsintown), mail di sistema
+  inviate da `info@my-band.it` stesso.
+
+## Perimetro del mattone 1
+
+Solo leggere e produrre un **rapporto**. Zero scritture su myband.it, zero etichette su Gmail,
+zero invii. Serve a validare le regole sui dati reali prima di dare il permesso di pubblicare.
+
+### 1. Selezione candidate
+
+```
+in:inbox newer_than:3d -label:MyBand-elaborata -from:info@my-band.it
+  (to:info@my-band.it OR label:MYBAND)
+  -category:promotions
+```
+
+Poi scarto per mittente: lista di esclusione (Pinterest, trivago, ecc.) mantenuta qui sotto.
+Lettura thread sempre con `messageFormat: PLAIN_TEXT` (i comunicati pesano 70 KB+ per via di
+biografie e link di tracking).
+
+### 2. Classificazione
+
+| Classe | Segnali | Destinazione futura |
+|---|---|---|
+| `uscita` | "esce il", "nuovo singolo/album/EP/video", radio date, pre-save, ISRC | post timeline (+ articolo blog se c'è un comunicato esteso) |
+| `evento` | data + luogo + (biglietti/ingresso/orario), "in concerto", "tour", "festival" | evento (`create_event`) |
+| `uscita+evento` | presentazione album con date live | entrambi, collegati |
+| `scarta` | promo commerciale, notifica di sistema, nessun fatto datato | niente |
+
+### 3. Estrazione (un record per uscita / per singola data)
+
+Campi: `classe`, `artista`, `titolo`, `data` (ISO 8601 con fuso Europe/Rome), `luogo`, `città`,
+`provincia`, `link_biglietti`, `link_ascolto/pre-save`, `immagine` (solo se URL pubblico
+stabile, mai link di tracking), `fonte` (id thread Gmail + mittente), `confidenza`
+(alta/media/bassa), `da_confermare` (es. orario mancante → il sito usa "Orario da confermare").
+
+Una tournée con N date produce **N record**, uno per data. Esempio reale: eventi 182 e 183
+sono lo stesso spettacolo in due serate diverse e sono corretti entrambi.
+
+### 4. Dedupe
+
+Chiave eventi: `normalizza(artista|titolo) + data(giorno) + normalizza(luogo)`.
+Chiave uscite: `normalizza(artista) + normalizza(titolo brano) + data uscita`.
+
+Il confronto avviene contro `list_events` (finestra ±1 giorno sulla data) e `list_social_posts`
+/ `list_blog_posts` recenti di profilo `MyBand`. Il titolo da solo **non** basta: la stessa
+produzione in date diverse non è un doppione. Match esatto → `gia_presente`; titolo uguale ma
+data o luogo diversi → `nuova_data`; parziale → `da_verificare` (decide una persona).
+
+### 5. Output
+
+Un rapporto breve in chat (e nel riepilogo della sessione pianificata), una riga per record:
+`classe | artista – titolo | data | luogo | esito dedupe | confidenza | thread`.
+Più il conteggio finale: candidate lette, scartate, nuove, già presenti, da verificare.
+
+## Cosa NON fa (volutamente, per i mattoni successivi)
+
+- Non pubblica (mattone 2: pubblicazione in `draft`/`scheduled`, mai `published` diretto).
+- Non applica `MyBand-elaborata` (mattone 2, solo dopo pubblicazione riuscita).
+- Non accoda su Metricool (`enqueue_social_queue`) (mattone 3).
+- Non risponde ai mittenti.
+
+## Lista di esclusione mittenti (da far crescere)
+
+`recommendations@*.pinterest.com`, `*@trivago.com`, `newsletter@alpitourworld-digital.com`,
+`lastminute@yallayalla.it`, `notifications@hello.bandsintown.com`, `news@communication.vivaticket.com`,
+`gigs@mailer.dice.fm`, `googlealerts-noreply@google.com`, `info@my-band.it`.
+
+## Pianificazione
+
+Proposta: ogni mattina feriale, fuori dall'ora di punta, finestra `newer_than:3d` (la
+sovrapposizione è sicura perché la dedupe è deterministica). Frequenza e orario da confermare.
