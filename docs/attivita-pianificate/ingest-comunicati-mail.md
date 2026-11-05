@@ -97,11 +97,35 @@ Formati di uscita (si ritaglia con "cover" centrato sul soggetto, mai deformando
   `image_story_url` della coda social.
 Se la sorgente è più piccola del formato richiesto si segnala `bassa risoluzione`.
 
-**Limite tecnico noto (da risolvere nel mattone 2).** Con gli strumenti Gmail oggi
-disponibili si vedono nome, tipo e id degli allegati, ma non c'è un modo di scaricarne il
-contenuto per ricaricarlo su myband (`request_image_upload` vuole il file). Il mattone 1
-si limita quindi a **rilevare** quale immagine c'è; il recupero vero va risolto prima di
-pubblicare. Le immagini inline con URL pubblico, invece, si possono scaricare e ricaricare.
+#### Appoggio delle immagini su myband (`request_image_upload`)
+
+Funzione MCP MyBand che salva un'immagine nell'album **privato** "Immagini social" del
+profilo e restituisce un `image_url` pubblico e stabile, da riusare poi in `create_event`,
+`create_social_post`, `create_blog_post` (`image_url`) e nella coda social
+(`image_story_url`). Codice lato sito: `app/public/api_uploads.php`.
+
+Procedura (verificata il 5/11/2026 con un file di prova, risposta 200 `image/jpeg`):
+1. scarica la sorgente in una cartella di lavoro vuota; aprila solo con `python3 -I` + Pillow;
+2. controlla che sia un'immagine e che il lato corto sia ≥ 600 px, altrimenti `bassa risoluzione`;
+3. ritaglia "cover" centrato in due JPEG q88: **4:5 = 1080×1350** e **storia = 1080×1920**
+   (misura provvisoria, da confermare);
+4. per **ogni** file: `request_image_upload` (indirizzo monouso valido 10 minuti), poi
+   `curl -sS -X PUT -H "Content-Type: image/jpeg" --data-binary @file.jpg "<upload_url>"`;
+5. dalla risposta prendi `image_url` e verifica con un GET (200 + `image/*`).
+
+Limiti del servizio: 12 MB per file, una richiesta per immagine, le foto più vecchie di
+60 giorni vengono cancellate (quindi l'immagine va riusata entro due mesi o ricaricata),
+solo immagini (per i video c'è `request_video_upload`, fino a 200 MB).
+
+**Limite tecnico noto.** `request_image_upload` richiede il file nella sandbox. Gli strumenti
+Gmail oggi elencano gli allegati (nome, tipo, id) ma non permettono di scaricarli: gli
+**allegati si rilevano ma non si possono ancora appoggiare**. Le immagini inline con URL
+pubblico sì. Finché non c'è un modo di recuperare gli allegati, il rapporto li segna
+"allegato rilevato, non scaricabile".
+
+Effetto collaterale da conoscere: finché una mail non è etichettata `MyBand-elaborata`
+(mattone 2) viene riletta per 3 giorni, quindi la stessa immagine può essere caricata più
+volte nell'album di appoggio.
 
 ### 4. Dedupe
 
