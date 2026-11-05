@@ -31,8 +31,7 @@ zero invii. Serve a validare le regole sui dati reali prima di dare il permesso 
 
 ```
 in:inbox newer_than:3d -label:MyBand-elaborata -from:info@my-band.it
-  (to:info@my-band.it OR label:MYBAND)
-  -category:promotions
+  (to:info@my-band.it OR deliveredto:info@my-band.it)
 ```
 
 Poi scarto per mittente: lista di esclusione (Pinterest, trivago, ecc.) mantenuta qui sotto.
@@ -41,12 +40,28 @@ biografie e link di tracking).
 
 ### 2. Classificazione
 
-| Classe | Segnali | Destinazione futura |
-|---|---|---|
-| `uscita` | "esce il", "nuovo singolo/album/EP/video", radio date, pre-save, ISRC | post timeline (+ articolo blog se c'è un comunicato esteso) |
-| `evento` | data + luogo + (biglietti/ingresso/orario), "in concerto", "tour", "festival" | evento (`create_event`) |
-| `uscita+evento` | presentazione album con date live | entrambi, collegati |
-| `scarta` | promo commerciale, notifica di sistema, nessun fatto datato | niente |
+Ogni mail ha **una classe principale** (obbligatoria) e può avere **classi secondarie**
+(una presentazione d'album con date live è `uscita` + `concerto`).
+
+| Classe | Segnali | Esempi reali in casella | Destinazione futura |
+|---|---|---|---|
+| `uscita` | "esce il", nuovo singolo/album/EP/video, radio date, pre-save, ISRC, label copy | Pier Cortese "Come noi" (BIG TIME), Ivan Comar "Milioni di Dubbi" (Almae) | post timeline; articolo blog se c'è comunicato esteso |
+| `concerto` | data + luogo + live, "in concerto", tour, presentazione dal vivo | Fanali (presentazione mini album), Love Bombing tour | evento, una riga per data |
+| `festival_rassegna` | programma multi-giorno o multi-artista, cartellone | Monferr'Autore Festival, MEI Faenza | evento per ogni appuntamento citato + articolo blog di contesto |
+| `teatro` | spettacolo, regia, compagnia, teatro come luogo, "in scena" | Il medico dei pazzi (Teatro Cilea), L'Ospedale dei Giocattoli Rotti (Teatro San Giustino) | evento, etichettato teatro |
+| `incontro_attivita` | presentazione libro, laboratorio, incontro, proiezione, masterclass | rassegne tipo "Fiori nei giardini chiusi" | evento o post, secondo se ha data/luogo fissi |
+| `notizia` | fatto senza data utile: premio, annuncio, intervista, video | comunicati di sola novità | post timeline o articolo blog |
+| `altro_da_valutare` | pertinente alla musica/spettacolo ma non riconducibile alle precedenti | — | niente: finisce nel rapporto per decisione umana |
+| `scarta` | promo commerciale, notifica di sistema, nessun fatto | Pinterest, newsletter viaggi, mail di sistema di myband | niente |
+
+Regole di scelta:
+- Se c'è una **data con luogo**, vince la logica evento (anche per teatro e incontri), perché
+  così fa già il sito: gli spettacoli teatrali sono oggi eventi.
+- Se la data è solo l'uscita di un brano (radio date), è `uscita`, non evento.
+- `create_event` non ha un campo categoria: il tipo si segna in testa alla descrizione
+  (es. "Teatro · …") e nell'hashtag/tag dell'articolo. **Da decidere** se myband.it ha o vuole
+  una categoria vera, altrimenti il tipo si perde nel testo.
+- Un mittente non determina la classe: lo stesso ufficio stampa manda uscite, concerti e teatro.
 
 ### 3. Estrazione (un record per uscita / per singola data)
 
