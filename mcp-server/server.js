@@ -609,7 +609,7 @@ function buildMcpServer() {
 
     server.registerTool('update_marketing_step', {
         title: 'Modifica un passo di un progetto Marketing',
-        description: 'Cambia titolo e/o istruzioni di un passo (id del passo dal progetto). Non cambia l\'ordine né lo stato del passo.',
+        description: 'Cambia titolo e/o istruzioni di un passo del modello (id del passo dal progetto). Non cambia l\'ordine.',
         inputSchema: {
             ...profileField,
             id: z.number().int().describe('ID del passo'),
