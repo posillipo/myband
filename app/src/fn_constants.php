@@ -8,7 +8,7 @@
 // futuro significa solo aggiungere una voce qui + le regole CSS corrispondenti (vedi
 // style.css), senza toccare le singole pagine pubbliche.
 const PAGE_THEMES = [
-    'colorful' => ['label' => 'Colorful', 'description' => 'Sfumatura pastello, il classico CHI FA COSA', 'body_class' => 'colorful-page'],
+    'colorful' => ['label' => 'Colorful', 'description' => 'Sfumatura pastello, il classico myband', 'body_class' => 'colorful-page'],
     'rock' => ['label' => 'Rock', 'description' => 'Sfondo scuro, angoli netti, tono più deciso', 'body_class' => 'rock-page'],
     'wave' => ['label' => 'Wave', 'description' => 'Sfondo 3D scuro, griglia di cubi che ondeggia al passaggio del mouse', 'body_class' => 'wave-page'],
     'wave-light' => ['label' => 'Wave Chiaro', 'description' => 'Stessa griglia animata, in versione chiara e più ariosa', 'body_class' => 'wave-light-page'],

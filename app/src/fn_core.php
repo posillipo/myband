@@ -183,12 +183,11 @@ function setSiteSetting(string $key, string $value): void {
 
 
 // Nome del sito installato, impostato dal wizard install.php e modificabile da Area Admin.
-// "Chi Fa Cosa" (il nome del software) resta come fallback solo se il wizard non è ancora
-// stato completato — ogni installazione configurata mostra il proprio nome ovunque, mai
-// quello del software sottostante (eccetto Crediti e header Admin, che restano branding fisso).
+// "myband" resta come fallback solo se il wizard non è ancora stato completato — ogni
+// installazione configurata mostra il proprio nome ovunque.
 function siteName(): string {
     $name = trim(getSiteSetting('site_name') ?? '');
-    return $name !== '' ? $name : 'Chi Fa Cosa';
+    return $name !== '' ? $name : 'myband';
 }
 
 
